@@ -1,0 +1,473 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>旅遊記錄 · Travel Log</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@400;600;900&family=DM+Mono:wght@400;500&family=Cormorant+Garamond:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --ink: #0e0c09;
+    --paper: #f7f3ec;
+    --cream: #ede7d9;
+    --gold: #b5922a;
+    --gold-light: #e8d5a0;
+    --muted: #7a7168;
+    --red: #b03a2e;
+    --sage: #5a6e52;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'Noto Serif TC', serif;
+    background: var(--paper);
+    color: var(--ink);
+    min-height: 100vh;
+  }
+
+  /* ── HERO ── */
+  .hero {
+    position: relative;
+    background: var(--ink);
+    color: var(--paper);
+    padding: 5rem 2rem 4rem;
+    overflow: hidden;
+    text-align: center;
+  }
+
+  .hero-bg-text {
+    position: absolute;
+    font-size: clamp(8rem, 20vw, 20rem);
+    font-weight: 900;
+    opacity: 0.04;
+    top: 50%; left: 50%;
+    transform: translate(-50%, -50%);
+    white-space: nowrap;
+    pointer-events: none;
+    letter-spacing: -0.02em;
+    font-family: 'Cormorant Garamond', serif;
+  }
+
+  .hero-eyebrow {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.7rem;
+    letter-spacing: 0.3em;
+    text-transform: uppercase;
+    color: var(--gold-light);
+    margin-bottom: 1.25rem;
+  }
+
+  .hero h1 {
+    font-size: clamp(2.5rem, 6vw, 5rem);
+    font-weight: 900;
+    letter-spacing: 0.05em;
+    line-height: 1;
+    margin-bottom: 0.5rem;
+  }
+
+  .hero-sub {
+    font-family: 'Cormorant Garamond', serif;
+    font-style: italic;
+    font-size: clamp(1rem, 2vw, 1.4rem);
+    color: #aaa;
+    margin-bottom: 2.5rem;
+  }
+
+  .hero-stats {
+    display: flex;
+    justify-content: center;
+    gap: 3rem;
+    flex-wrap: wrap;
+  }
+
+  .stat {
+    text-align: center;
+  }
+
+  .stat-num {
+    font-size: 2rem;
+    font-weight: 900;
+    color: var(--gold-light);
+    font-family: 'DM Mono', monospace;
+    line-height: 1;
+  }
+
+  .stat-label {
+    font-size: 0.7rem;
+    letter-spacing: 0.15em;
+    color: #888;
+    margin-top: 0.25rem;
+    text-transform: uppercase;
+  }
+
+  /* ── DIVIDER ── */
+  .divider {
+    height: 4px;
+    background: linear-gradient(90deg, var(--gold) 0%, var(--gold-light) 50%, var(--gold) 100%);
+  }
+
+  /* ── MAIN ── */
+  main {
+    max-width: 1000px;
+    margin: 0 auto;
+    padding: 3rem 1.5rem 5rem;
+  }
+
+  /* ── YEAR GROUP ── */
+  .year-group {
+    margin-bottom: 3.5rem;
+  }
+
+  .year-header {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+  }
+
+  .year-label {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.7rem;
+    letter-spacing: 0.2em;
+    color: var(--muted);
+    text-transform: uppercase;
+    white-space: nowrap;
+  }
+
+  .year-num {
+    font-size: 2.8rem;
+    font-weight: 900;
+    line-height: 1;
+    color: var(--ink);
+  }
+
+  .year-line {
+    flex: 1;
+    height: 1px;
+    background: var(--cream);
+    border-top: 1px solid #d0c8bc;
+  }
+
+  /* ── TRIP GRID ── */
+  .trip-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 1.25rem;
+  }
+
+  /* ── TRIP CARD ── */
+  .trip-card {
+    background: white;
+    border: 1px solid #ddd5c8;
+    border-radius: 8px;
+    overflow: hidden;
+    text-decoration: none;
+    color: inherit;
+    display: block;
+    transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+    position: relative;
+  }
+
+  .trip-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 12px 32px rgba(0,0,0,0.1);
+    border-color: var(--gold);
+  }
+
+  .trip-card-banner {
+    height: 8px;
+  }
+
+  .trip-card-body {
+    padding: 1.25rem 1.25rem 1rem;
+  }
+
+  .trip-meta {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-bottom: 0.75rem;
+  }
+
+  .trip-flag {
+    font-size: 1.4rem;
+    line-height: 1;
+  }
+
+  .trip-dates {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.68rem;
+    color: var(--muted);
+    letter-spacing: 0.05em;
+  }
+
+  .trip-title {
+    font-size: 1.3rem;
+    font-weight: 900;
+    letter-spacing: 0.03em;
+    line-height: 1.2;
+    margin-bottom: 0.4rem;
+  }
+
+  .trip-subtitle {
+    font-size: 0.8rem;
+    color: var(--muted);
+    line-height: 1.5;
+    margin-bottom: 1rem;
+  }
+
+  .trip-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.35rem;
+  }
+
+  .trip-tag {
+    font-size: 0.65rem;
+    font-family: 'DM Mono', monospace;
+    padding: 0.2em 0.6em;
+    border-radius: 2px;
+    letter-spacing: 0.05em;
+    background: var(--cream);
+    color: var(--muted);
+  }
+
+  .trip-card-footer {
+    padding: 0.75rem 1.25rem;
+    border-top: 1px solid #f0e8dc;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    font-size: 0.75rem;
+    color: var(--muted);
+  }
+
+  .trip-days {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.68rem;
+  }
+
+  .trip-arrow {
+    font-size: 1rem;
+    color: var(--gold);
+    transition: transform 0.2s;
+  }
+
+  .trip-card:hover .trip-arrow {
+    transform: translateX(4px);
+  }
+
+  /* ── PLACEHOLDER CARD ── */
+  .trip-card.placeholder {
+    border-style: dashed;
+    border-color: #ccc;
+    opacity: 0.5;
+    pointer-events: none;
+  }
+
+  .trip-card.placeholder .trip-title {
+    color: var(--muted);
+  }
+
+  /* ── ADD CARD ── */
+  .trip-card.add-card {
+    border-style: dashed;
+    border-color: #ccc;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 160px;
+    color: var(--muted);
+    font-size: 0.85rem;
+    letter-spacing: 0.05em;
+    transition: border-color 0.2s, color 0.2s;
+    cursor: default;
+  }
+
+  .trip-card.add-card:hover {
+    transform: none;
+    box-shadow: none;
+    border-color: var(--gold);
+    color: var(--gold);
+  }
+
+  .add-inner {
+    text-align: center;
+  }
+
+  .add-plus {
+    font-size: 2rem;
+    line-height: 1;
+    margin-bottom: 0.5rem;
+    display: block;
+  }
+
+  /* ── README BOX ── */
+  .readme-box {
+    background: var(--ink);
+    color: var(--paper);
+    border-radius: 8px;
+    padding: 1.5rem 2rem;
+    margin-bottom: 3rem;
+    font-family: 'DM Mono', monospace;
+    font-size: 0.8rem;
+    line-height: 1.8;
+  }
+
+  .readme-box h3 {
+    font-size: 0.7rem;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--gold-light);
+    margin-bottom: 0.75rem;
+  }
+
+  .readme-box .dir {
+    color: var(--gold-light);
+  }
+
+  .readme-box .file {
+    color: #88c9a0;
+  }
+
+  .readme-box .comment {
+    color: #666;
+  }
+
+  /* ── FOOTER ── */
+  footer {
+    text-align: center;
+    padding: 2rem;
+    font-size: 0.75rem;
+    color: var(--muted);
+    font-family: 'DM Mono', monospace;
+    border-top: 1px solid var(--cream);
+    letter-spacing: 0.1em;
+  }
+
+  /* ── ANIMATIONS ── */
+  .trip-card {
+    animation: fadeUp 0.5s ease both;
+  }
+
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(16px); }
+    to   { opacity: 1; transform: none; }
+  }
+
+  .trip-grid .trip-card:nth-child(1) { animation-delay: 0.05s; }
+  .trip-grid .trip-card:nth-child(2) { animation-delay: 0.10s; }
+  .trip-grid .trip-card:nth-child(3) { animation-delay: 0.15s; }
+</style>
+</head>
+<body>
+
+<!-- ── HERO ── -->
+<div class="hero">
+  <div class="hero-bg-text">TRAVEL</div>
+  <div class="hero-eyebrow">Personal Travel Archive</div>
+  <h1>旅遊記錄</h1>
+  <p class="hero-sub">Every journey, remembered.</p>
+  <div class="hero-stats">
+    <div class="stat">
+      <div class="stat-num">1</div>
+      <div class="stat-label">旅程</div>
+    </div>
+    <div class="stat">
+      <div class="stat-num">1</div>
+      <div class="stat-label">國家</div>
+    </div>
+    <div class="stat">
+      <div class="stat-num">4</div>
+      <div class="stat-label">天數</div>
+    </div>
+  </div>
+</div>
+<div class="divider"></div>
+
+<main>
+
+  <!-- ── README / 資料結構說明 ── -->
+  <div class="readme-box">
+    <h3>📁 Repository Structure</h3>
+    <span class="dir">Travel/</span><br>
+    &nbsp;&nbsp;<span class="file">index.html</span> &nbsp;&nbsp;<span class="comment">← 你現在看的這頁（旅遊首頁）</span><br>
+    &nbsp;&nbsp;<span class="file">2026_tokyo.html</span> &nbsp;&nbsp;<span class="comment">← 2026 東京四日遊行程</span><br>
+    &nbsp;&nbsp;<span class="comment">2027_xxx.html &nbsp;&nbsp;← 未來旅程放這裡</span>
+  </div>
+
+  <!-- ── 2026 ── -->
+  <div class="year-group">
+    <div class="year-header">
+      <div>
+        <div class="year-label">Year</div>
+        <div class="year-num">2026</div>
+      </div>
+      <div class="year-line"></div>
+    </div>
+
+    <div class="trip-grid">
+
+      <!-- 東京 -->
+      <a class="trip-card" href="2026_tokyo.html">
+        <div class="trip-card-banner" style="background: linear-gradient(90deg, #c0392b, #e67e22);"></div>
+        <div class="trip-card-body">
+          <div class="trip-meta">
+            <span class="trip-flag">🇯🇵</span>
+            <span class="trip-dates">2026 / 04 / 16 – 04 / 19</span>
+          </div>
+          <div class="trip-title">東京四日遊</div>
+          <div class="trip-subtitle">新宿・澀谷・品川・代代木・天王洲</div>
+          <div class="trip-tags">
+            <span class="trip-tag">日本</span>
+            <span class="trip-tag">東京</span>
+            <span class="trip-tag">購物</span>
+            <span class="trip-tag">賞櫻</span>
+            <span class="trip-tag">美食</span>
+          </div>
+        </div>
+        <div class="trip-card-footer">
+          <span class="trip-days">4 天 3 夜</span>
+          <span class="trip-arrow">→</span>
+        </div>
+      </a>
+
+      <!-- 佔位：待新增 -->
+      <div class="trip-card add-card">
+        <div class="add-inner">
+          <span class="add-plus">＋</span>
+          下一趟旅程
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ── 未來年份（預留） ── -->
+  <div class="year-group">
+    <div class="year-header">
+      <div>
+        <div class="year-label">Year</div>
+        <div class="year-num" style="color:#ccc;">2027</div>
+      </div>
+      <div class="year-line"></div>
+    </div>
+    <div class="trip-grid">
+      <div class="trip-card add-card">
+        <div class="add-inner">
+          <span class="add-plus">＋</span>
+          新增 2027 旅程
+        </div>
+      </div>
+    </div>
+  </div>
+
+</main>
+
+<footer>
+  Travel / index.html &nbsp;·&nbsp; GitHub Pages &nbsp;·&nbsp; Updated 2026
+</footer>
+
+</body>
+</html>
