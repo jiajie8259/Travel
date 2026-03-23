@@ -365,6 +365,194 @@
 
   .tab-panel { display: none; }
   .tab-panel.active { display: block; }
+
+  .empty-notice {
+    background: var(--cream);
+    border: 1.5px dashed #ccc;
+    border-radius: 6px;
+    padding: 1.25rem 1.5rem;
+    font-size: 0.85rem;
+    color: var(--muted);
+    font-family: 'DM Mono', monospace;
+    letter-spacing: 0.03em;
+  }
+
+  /* ── TRANSPORT TAB ── */
+  .transport-day {
+    margin-bottom: 2.5rem;
+  }
+  .transport-day-header {
+    display: flex;
+    align-items: baseline;
+    gap: 0.75rem;
+    margin-bottom: 0.75rem;
+  }
+  .transport-day-label {
+    background: var(--ink);
+    color: var(--paper);
+    font-family: 'DM Mono', monospace;
+    font-size: 0.72rem;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    padding: 0.25em 0.7em;
+    border-radius: 3px;
+    white-space: nowrap;
+  }
+  .transport-day-sub {
+    font-size: 0.82rem;
+    color: var(--muted);
+    letter-spacing: 0.03em;
+  }
+  .transport-table-wrap {
+    overflow-x: auto;
+    border-radius: 6px;
+    border: 1px solid #e0d8cc;
+  }
+  .transport-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.8rem;
+    background: white;
+  }
+  .transport-table thead tr {
+    background: var(--ink);
+    color: var(--paper);
+  }
+  .transport-table th {
+    padding: 0.6rem 0.75rem;
+    font-family: 'DM Mono', monospace;
+    font-size: 0.65rem;
+    letter-spacing: 0.08em;
+    font-weight: 500;
+    text-align: left;
+    white-space: nowrap;
+  }
+  .transport-table tbody tr {
+    border-bottom: 1px solid #f0e8dc;
+    transition: background 0.15s;
+  }
+  .transport-table tbody tr:hover {
+    background: #fdf8f2;
+  }
+  .transport-table tbody tr:last-child {
+    border-bottom: none;
+  }
+  .transport-table td {
+    padding: 0.6rem 0.75rem;
+    vertical-align: middle;
+    line-height: 1.5;
+  }
+  .transport-table td.route {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.72rem;
+    color: var(--blue);
+    white-space: nowrap;
+  }
+  .transport-table td.time {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.75rem;
+    white-space: nowrap;
+    color: var(--ink);
+    font-weight: 600;
+  }
+  .transport-table td.suica {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.72rem;
+    text-align: center;
+    color: var(--sage);
+    font-weight: 600;
+  }
+  .line-name {
+    display: inline-block;
+    background: #e8f0fa;
+    color: var(--blue);
+    font-size: 0.65rem;
+    font-family: 'DM Mono', monospace;
+    padding: 0.1em 0.5em;
+    border-radius: 2px;
+    margin-left: 0.3em;
+    vertical-align: middle;
+    font-weight: 600;
+  }
+
+  /* ── FOOD TAB ── */
+  .food-table-wrap {
+    overflow-x: auto;
+    border-radius: 6px;
+    border: 1px solid #e0d8cc;
+  }
+  .food-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.8rem;
+    background: white;
+  }
+  .food-table thead tr {
+    background: var(--ink);
+    color: var(--paper);
+  }
+  .food-table th {
+    padding: 0.6rem 0.75rem;
+    font-family: 'DM Mono', monospace;
+    font-size: 0.65rem;
+    letter-spacing: 0.08em;
+    font-weight: 500;
+    text-align: left;
+    white-space: nowrap;
+  }
+  .food-table th.col-price { text-align: right; }
+  .food-table tbody tr {
+    border-bottom: 1px solid #f0e8dc;
+    transition: background 0.15s;
+  }
+  .food-table tbody tr:hover { background: #fdf8f2; }
+  .food-table tbody tr:last-child { border-bottom: none; }
+  .food-table tbody tr.booked-row { background: #fef9f0; }
+  .food-table tbody tr.booked-row:hover { background: #fdf3e3; }
+  .food-table td {
+    padding: 0.6rem 0.75rem;
+    vertical-align: middle;
+    line-height: 1.5;
+  }
+  .food-table td.col-price {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.78rem;
+    text-align: right;
+    white-space: nowrap;
+  }
+  .food-table td.total-price {
+    font-weight: 700;
+    color: var(--red);
+  }
+  .food-table tfoot tr {
+    border-top: 2px solid var(--ink);
+    background: var(--cream);
+  }
+  .food-name { white-space: nowrap; }
+  .food-name a {
+    color: var(--blue);
+    text-decoration: none;
+  }
+  .food-name a:hover { text-decoration: underline; }
+  .food-hours {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.72rem;
+    white-space: nowrap;
+    color: var(--muted);
+  }
+  .food-booked { color: var(--sage); font-weight: 700; text-align: center; }
+  .food-unbooked { color: #ccc; text-align: center; }
+  .pay-tag {
+    font-size: 0.65rem;
+    font-family: 'DM Mono', monospace;
+    padding: 0.2em 0.55em;
+    border-radius: 3px;
+    white-space: nowrap;
+    font-weight: 500;
+  }
+  .pay-card   { background: #e8f0fa; color: #2c4a7c; }
+  .pay-mobile { background: #e8f4ee; color: #2e6644; }
+  .pay-cash   { background: #fde8e8; color: #8b2c22; font-weight: 700; }
 </style>
 </head>
 <body>
@@ -385,6 +573,8 @@
 <div class="tab-nav">
   <button class="tab-btn active" onclick="switchTab('itinerary',this)">📅 行程總覽</button>
   <button class="tab-btn" onclick="switchTab('cards',this)">🃏 隨身小卡</button>
+  <button class="tab-btn" onclick="switchTab('transport',this)">🚆 交通</button>
+  <button class="tab-btn" onclick="switchTab('food',this)">🍽 美食</button>
 </div>
 
 <!-- ══ TAB 1: ITINERARY ══ -->
@@ -757,6 +947,388 @@
 
   </div>
   <p style="font-size:0.75rem;color:#aaa;margin-top:1.5rem;text-align:center;">共 4 張 · 列印後剪開，每天帶當天那張即可</p>
+</div>
+</div>
+
+<!-- ══ TAB 3: 交通 ══ -->
+<div id="transport" class="tab-panel">
+<div style="max-width:960px;margin:0 auto;padding:2.5rem 1.5rem 4rem;">
+  <h2 style="font-size:1.1rem;font-weight:700;border-bottom:2px solid var(--ink);padding-bottom:0.5rem;margin-bottom:0.75rem;letter-spacing:0.1em;">🚆 交通資訊</h2>
+  <p style="font-size:0.78rem;color:var(--muted);margin-bottom:2rem;">🍉 欄位數字為西瓜卡扣款金額（日元／人）</p>
+
+  <!-- 出發前提醒 -->
+  <div style="background:#fff8e8;border:1.5px solid var(--gold);border-radius:6px;padding:1rem 1.25rem;margin-bottom:2rem;font-size:0.82rem;line-height:1.8;">
+    ⚠️ <strong>桃園機場 第一航廈</strong>　當天 AM 4:20 出門，約 6:00 以前抵達桃園機場
+  </div>
+
+  <!-- DAY 1 -->
+  <div class="transport-day">
+    <div class="transport-day-header">
+      <span class="transport-day-label">Day 1</span>
+      <span class="transport-day-sub">4/16 (四)　成田 → 飯店 → 新宿</span>
+    </div>
+    <div class="transport-table-wrap">
+      <table class="transport-table">
+        <thead><tr><th>目的地</th><th>路線名稱</th><th>起訖點</th><th>發車／時間</th><th>備註</th><th>🍉</th></tr></thead>
+        <tbody>
+          <tr>
+            <td><strong>飯店</strong></td>
+            <td>成田特快30號（新宿行）<span class="line-name">N'EX</span></td>
+            <td class="route">成田機場 → 品川</td>
+            <td class="time">14:23–15:25</td>
+            <td>1號月台發車</td>
+            <td>—</td>
+          </tr>
+          <tr>
+            <td></td>
+            <td>山手線 內回り（東京方面行）</td>
+            <td class="route">品川 → 高輪Gateway</td>
+            <td class="time">—</td>
+            <td>1號月台發車</td>
+            <td class="suica">155</td>
+          </tr>
+          <tr>
+            <td><strong>新宿</strong></td>
+            <td>山手線 外回り（品川方面行）</td>
+            <td class="route">高輪Gateway → 新宿</td>
+            <td class="time">17:35–17:58</td>
+            <td>2號月台發車</td>
+            <td class="suica">253</td>
+          </tr>
+          <tr>
+            <td><strong>飯店</strong></td>
+            <td>山手線 內回り（澀谷方面行）</td>
+            <td class="route">新宿 → 高輪Gateway</td>
+            <td class="time">21:32–21:54</td>
+            <td>14號月台發車</td>
+            <td class="suica">253</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- DAY 2 -->
+  <div class="transport-day">
+    <div class="transport-day-header">
+      <span class="transport-day-label">Day 2</span>
+      <span class="transport-day-sub">4/17 (五)　南大塚 → 池袋 → 表參道 → 品川</span>
+    </div>
+    <div class="transport-table-wrap">
+      <table class="transport-table">
+        <thead><tr><th>目的地</th><th>路線名稱</th><th>起訖點</th><th>發車／時間</th><th>備註</th><th>🍉</th></tr></thead>
+        <tbody>
+          <tr>
+            <td><strong>南大塚三丁目</strong></td>
+            <td>山手線 內回り（東京方面行）</td>
+            <td class="route">高輪Gateway → 大塚（東京）</td>
+            <td class="time">08:45–09:18</td>
+            <td>1號月台發車，抵達後從南口走7分鐘</td>
+            <td class="suica">341</td>
+          </tr>
+          <tr>
+            <td><strong>池袋</strong></td>
+            <td>山手線 內回り（池袋方面行）</td>
+            <td class="route">大塚（東京）→ 池袋</td>
+            <td class="time">10:13–10:17</td>
+            <td>1號月台發車</td>
+            <td class="suica">155</td>
+          </tr>
+          <tr>
+            <td><strong>表參道</strong></td>
+            <td>副都心線 F 快線（元町、中華街）</td>
+            <td class="route">池袋 → 明治神宮前</td>
+            <td class="time">11:56–12:06</td>
+            <td>5號月台發車</td>
+            <td class="suica">209</td>
+          </tr>
+          <tr>
+            <td></td>
+            <td>千代田線（綾瀨行）</td>
+            <td class="route">明治神宮前 → 表參道車站</td>
+            <td class="time">12:14–12:15</td>
+            <td>2號月台發車，抵達後從A4出口走5分鐘</td>
+            <td class="suica">178</td>
+          </tr>
+          <tr>
+            <td><strong>奧澀谷商圈</strong></td>
+            <td colspan="2" style="color:var(--muted);font-size:0.78rem;">步行</td>
+            <td class="time">—</td>
+            <td>—</td>
+            <td>—</td>
+          </tr>
+          <tr>
+            <td><strong>品川</strong></td>
+            <td>山手線 內回り（品川方面行）</td>
+            <td class="route">澀谷 → 品川</td>
+            <td class="time">18:33–18:46</td>
+            <td>2號月台發車，抵達後從港南口走3分鐘</td>
+            <td class="suica">209</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- DAY 3 -->
+  <div class="transport-day">
+    <div class="transport-day-header">
+      <span class="transport-day-label">Day 3</span>
+      <span class="transport-day-sub">4/18 (六)　天王洲島 → 大井町 → 品川 → 武藏小山 → 戶越銀座 → 高輪</span>
+    </div>
+    <div class="transport-table-wrap">
+      <table class="transport-table">
+        <thead><tr><th>目的地</th><th>路線名稱</th><th>起訖點</th><th>發車／時間</th><th>備註</th><th>🍉</th></tr></thead>
+        <tbody>
+          <tr>
+            <td><strong>天王洲島</strong></td>
+            <td colspan="2" style="color:var(--muted);font-size:0.78rem;">步行</td>
+            <td class="time">約25分鐘</td>
+            <td>—</td>
+            <td>—</td>
+          </tr>
+          <tr>
+            <td><strong>大井町</strong></td>
+            <td>りんかい線（大崎行）</td>
+            <td class="route">天王洲島車站 → 大井町</td>
+            <td class="time">5分鐘</td>
+            <td>—</td>
+            <td class="suica">210</td>
+          </tr>
+          <tr>
+            <td><strong>品川 Wing高輪</strong></td>
+            <td>京濱東北線（南浦和）</td>
+            <td class="route">大井町 → 品川</td>
+            <td class="time">3分鐘</td>
+            <td>—</td>
+            <td class="suica">160</td>
+          </tr>
+          <tr>
+            <td><strong>武藏小山商店街</strong></td>
+            <td>山手線 外回り（澀谷方面行）</td>
+            <td class="route">品川 → 目黒</td>
+            <td class="time">9分鐘</td>
+            <td>3號月台發車</td>
+            <td class="suica">199</td>
+          </tr>
+          <tr>
+            <td></td>
+            <td>東急目黒線（日吉行）</td>
+            <td class="route">目黒 → 武藏小山</td>
+            <td class="time">4分鐘</td>
+            <td>1號月台發車</td>
+            <td class="suica">140</td>
+          </tr>
+          <tr>
+            <td><strong>戶越銀座商店街</strong></td>
+            <td colspan="2" style="color:var(--muted);font-size:0.78rem;">步行</td>
+            <td class="time">—</td>
+            <td>—</td>
+            <td>—</td>
+          </tr>
+          <tr>
+            <td><strong>高輪Gateway</strong></td>
+            <td>都營淺草線（泉岳寺行）</td>
+            <td class="route">戶越銀座 → 泉岳寺車站</td>
+            <td class="time">6分鐘</td>
+            <td>2號月台發車</td>
+            <td class="suica">178</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- DAY 4 -->
+  <div class="transport-day">
+    <div class="transport-day-header">
+      <span class="transport-day-label">Day 4</span>
+      <span class="transport-day-sub">4/19 (日)　品川 → 成田機場</span>
+    </div>
+    <div class="transport-table-wrap">
+      <table class="transport-table">
+        <thead><tr><th>目的地</th><th>路線名稱</th><th>起訖點</th><th>發車／時間</th><th>備註</th><th>🍉</th></tr></thead>
+        <tbody>
+          <tr>
+            <td><strong>機場</strong></td>
+            <td>成田特快27號（成田空港行）<span class="line-name">N'EX</span></td>
+            <td class="route">品川 → 成田機場第2航廈</td>
+            <td class="time">12:50–13:53</td>
+            <td>13號月台發車</td>
+            <td>—</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+</div>
+</div>
+
+<!-- ══ TAB 4: 美食 ══ -->
+<div id="food" class="tab-panel">
+<div style="max-width:960px;margin:0 auto;padding:2.5rem 1.5rem 4rem;">
+  <h2 style="font-size:1.1rem;font-weight:700;border-bottom:2px solid var(--ink);padding-bottom:0.5rem;margin-bottom:0.75rem;letter-spacing:0.1em;">🍽 美食清單</h2>
+  <p style="font-size:0.78rem;color:var(--muted);margin-bottom:2rem;">餐價單位：日元　｜　✅ = 已訂位　｜　🔴 = 只收現金</p>
+
+  <div class="food-table-wrap">
+    <table class="food-table">
+      <thead>
+        <tr>
+          <th>店名</th>
+          <th>營業時間</th>
+          <th>支付方式</th>
+          <th>訂位</th>
+          <th>餐點 A</th>
+          <th class="col-price">餐價A</th>
+          <th>餐點 B</th>
+          <th class="col-price">餐價B</th>
+          <th>餐點 C</th>
+          <th class="col-price">餐價C</th>
+          <th class="col-price">含稅（円）</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr class="booked-row">
+          <td class="food-name"><a href="https://maps.google.com/?q=牛たんの檸檬+新宿" target="_blank">牛たんの檸檬（新宿總本店）</a></td>
+          <td class="food-hours">17:00–22:00</td>
+          <td><span class="pay-tag pay-card">信用卡</span></td>
+          <td class="food-booked">✅</td>
+          <td>極品 厚切牛舌燒烤&鹽麴熟成舌燒定食</td>
+          <td class="col-price">3,580</td>
+          <td>厚切牛舌燒&A5黑毛和牛肋條燒</td>
+          <td class="col-price">3,580</td>
+          <td>—</td>
+          <td class="col-price">—</td>
+          <td class="col-price total-price">7,160</td>
+        </tr>
+        <tr>
+          <td class="food-name"><a href="https://maps.google.com/?q=Little+pool+coffee+Tokyo" target="_blank">Little Pool Coffee</a></td>
+          <td class="food-hours">11:00–16:30</td>
+          <td><span class="pay-tag pay-mobile">行動支付</span></td>
+          <td class="food-unbooked">□</td>
+          <td>蛋包飯</td>
+          <td class="col-price">1,200</td>
+          <td>蛋包飯</td>
+          <td class="col-price">1,200</td>
+          <td>—</td>
+          <td class="col-price">—</td>
+          <td class="col-price total-price">2,400</td>
+        </tr>
+        <tr>
+          <td class="food-name"><a href="https://maps.google.com/?q=neel神宮前+Tokyo" target="_blank">neel 神宮前</a></td>
+          <td class="food-hours">10:00–20:30</td>
+          <td><span class="pay-tag pay-mobile">行動支付</span></td>
+          <td class="food-unbooked">□</td>
+          <td>可麗餅</td>
+          <td class="col-price">610</td>
+          <td>美式</td>
+          <td class="col-price">550</td>
+          <td>拿鐵</td>
+          <td class="col-price">630</td>
+          <td class="col-price total-price">1,790</td>
+        </tr>
+        <tr>
+          <td class="food-name"><a href="https://maps.google.com/?q=dotcom+space+Tokyo" target="_blank">dotcom space</a></td>
+          <td class="food-hours">10:00–18:30</td>
+          <td><span class="pay-tag pay-mobile">行動支付</span></td>
+          <td class="food-unbooked">□</td>
+          <td>起司蛋糕</td>
+          <td class="col-price">800</td>
+          <td>拿鐵</td>
+          <td class="col-price">650</td>
+          <td>拿鐵</td>
+          <td class="col-price">650</td>
+          <td class="col-price total-price">2,100</td>
+        </tr>
+        <tr>
+          <td class="food-name">らぁ麵 はやし田 品川港南口店</td>
+          <td class="food-hours">10:00–23:00</td>
+          <td><span class="pay-tag pay-card">信用卡</span></td>
+          <td class="food-unbooked">□</td>
+          <td>特製雞白湯</td>
+          <td class="col-price">1,250</td>
+          <td>特製雞白湯</td>
+          <td class="col-price">1,250</td>
+          <td>—</td>
+          <td class="col-price">—</td>
+          <td class="col-price total-price">2,500</td>
+        </tr>
+        <tr>
+          <td class="food-name"><a href="https://maps.google.com/?q=Etomo大井町" target="_blank">En Etomo 大井町店</a></td>
+          <td class="food-hours">08:00–22:00</td>
+          <td><span class="pay-tag pay-cash">只收現金</span></td>
+          <td class="food-unbooked">□</td>
+          <td>サーモンといくらの親子</td>
+          <td class="col-price">1,100</td>
+          <td>うなぎのひつまぶし風</td>
+          <td class="col-price">1,630</td>
+          <td>—</td>
+          <td class="col-price">—</td>
+          <td class="col-price total-price">2,730</td>
+        </tr>
+        <tr class="booked-row">
+          <td class="food-name"><a href="https://maps.google.com/?q=肉と米ハジメ戸越銀座" target="_blank">肉と米 ハジメ 戶越銀座店</a></td>
+          <td class="food-hours">11:00–21:00</td>
+          <td><span class="pay-tag pay-mobile">行動支付</span></td>
+          <td class="food-booked">✅</td>
+          <td>牛排釜飯 150g</td>
+          <td class="col-price">1,600</td>
+          <td>牛排釜飯 200g</td>
+          <td class="col-price">1,950</td>
+          <td>—</td>
+          <td class="col-price">—</td>
+          <td class="col-price total-price">3,550</td>
+        </tr>
+        <tr>
+          <td class="food-name"><a href="https://maps.google.com/?q=MILK+TEA+SERVICE+NEWoMan" target="_blank">MILK TEA SERVICE</a></td>
+          <td class="food-hours">11:00–20:00</td>
+          <td><span class="pay-tag pay-mobile">行動支付</span></td>
+          <td class="food-unbooked">□</td>
+          <td>奶茶（外帶）</td>
+          <td class="col-price">756</td>
+          <td>—</td>
+          <td class="col-price">—</td>
+          <td>—</td>
+          <td class="col-price">—</td>
+          <td class="col-price total-price">756</td>
+        </tr>
+        <tr class="booked-row">
+          <td class="food-name"><a href="https://maps.google.com/?q=鰻之成瀬泉岳寺" target="_blank">鰻之成瀨 泉嶽寺店</a></td>
+          <td class="food-hours">11:00–14:00</td>
+          <td><span class="pay-tag pay-mobile">行動支付</span></td>
+          <td class="food-booked">✅</td>
+          <td>並重 梅</td>
+          <td class="col-price">1,600</td>
+          <td>上重 梅</td>
+          <td class="col-price">1,900</td>
+          <td>—</td>
+          <td class="col-price">—</td>
+          <td class="col-price total-price">3,500</td>
+        </tr>
+        <tr>
+          <td class="food-name"><a href="https://maps.google.com/?q=星巴克+NEWoMan高輪" target="_blank">星巴克 NEWoMan</a></td>
+          <td class="food-hours">10:00–22:00</td>
+          <td><span class="pay-tag pay-mobile">行動支付</span></td>
+          <td class="food-unbooked">□</td>
+          <td>—</td>
+          <td class="col-price">—</td>
+          <td>—</td>
+          <td class="col-price">—</td>
+          <td>—</td>
+          <td class="col-price">—</td>
+          <td class="col-price">—</td>
+        </tr>
+      </tbody>
+      <tfoot>
+        <tr>
+          <td colspan="10" style="text-align:right;padding:0.75rem 1rem;font-size:0.8rem;color:var(--muted);font-family:'DM Mono',monospace;letter-spacing:0.05em;">餐食小計</td>
+          <td class="col-price" style="padding:0.75rem 1rem;font-weight:900;font-size:1rem;color:var(--red);font-family:'DM Mono',monospace;background:#fff8f8;">26,486</td>
+        </tr>
+      </tfoot>
+    </table>
+  </div>
+
 </div>
 </div>
 
