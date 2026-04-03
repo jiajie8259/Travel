@@ -475,7 +475,102 @@
     font-weight: 600;
   }
 
-  /* ── FOOD TAB ── */
+  /* ── PAYMENT TAB ── */
+  .pay-section-label {
+    font-family: 'DM Mono', monospace; font-size: 0.63rem; letter-spacing: 0.14em;
+    text-transform: uppercase; color: var(--muted); margin-bottom: 0.4rem;
+  }
+  .pay-trip-badge {
+    display: inline-flex; align-items: center; gap: 0.5rem;
+    background: var(--ink); color: var(--paper);
+    font-family: 'DM Mono', monospace; font-size: 0.68rem; letter-spacing: 0.06em;
+    padding: 0.4rem 0.9rem; border-radius: 4px; margin-bottom: 1.5rem;
+  }
+  .pay-trip-badge .q-badge {
+    background: #b8860b; color: #fff; font-size: 0.6rem;
+    padding: 0.1em 0.5em; border-radius: 3px; font-weight: 700;
+  }
+  .pay-sub-tabs {
+    display: flex; gap: 0; border-bottom: 2px solid #e0d8cc; margin-bottom: 1.5rem; overflow-x: auto;
+  }
+  .pay-sub-btn {
+    background: none; border: none; font-family: 'Noto Serif TC', serif;
+    font-size: 0.82rem; padding: 0.65rem 1.2rem; cursor: pointer;
+    color: var(--muted); border-bottom: 3px solid transparent; margin-bottom: -2px;
+    transition: all 0.2s; white-space: nowrap;
+  }
+  .pay-sub-btn.active { color: var(--ink); border-bottom-color: var(--ink); font-weight: 700; }
+  .pay-sub-panel { display: none; }
+  .pay-sub-panel.active { display: block; }
+
+  /* Venue grid */
+  .pay-venue-grid {
+    display: grid; grid-template-columns: repeat(auto-fill, minmax(100px, 1fr)); gap: 0.6rem; margin-bottom: 1.2rem;
+  }
+  .pay-venue-btn {
+    background: white; border: 1.5px solid #ddd5c8; border-radius: 6px;
+    padding: 0.7rem 0.3rem; text-align: center; cursor: pointer; transition: all 0.18s;
+    font-size: 0.78rem;
+  }
+  .pay-venue-btn .icon { font-size: 1.3rem; display: block; margin-bottom: 0.2rem; }
+  .pay-venue-btn:hover { border-color: var(--blue); }
+  .pay-venue-btn.active { border-color: var(--ink); background: var(--ink); color: #f0c040; }
+  .pay-analyze-btn {
+    background: var(--ink); color: #f0c040;
+    font-family: 'DM Mono', monospace; font-size: 0.75rem; letter-spacing: 0.07em;
+    text-transform: uppercase; padding: 0.65rem 1.4rem; border: none; cursor: pointer;
+    border-radius: 4px; transition: all 0.18s;
+  }
+  .pay-analyze-btn:hover { background: #2a1e22; transform: translateY(-1px); }
+
+  /* AI result box */
+  .pay-ai-box {
+    background: var(--ink); color: var(--paper); border-radius: 8px;
+    padding: 1.3rem 1.6rem; margin: 1rem 0; position: relative; overflow: hidden;
+  }
+  .pay-ai-box::before { content: '✦'; font-size: 5rem; color: rgba(255,255,255,0.04); position: absolute; right: 1rem; top: -0.5rem; pointer-events: none; }
+  .pay-ai-title { font-family: 'DM Mono', monospace; font-size: 0.68rem; letter-spacing: 0.1em; text-transform: uppercase; color: #f0c040; margin-bottom: 0.6rem; }
+  .pay-ai-best { font-size: 1.05rem; font-weight: 900; margin-bottom: 0.4rem; }
+  .pay-ai-reason { font-size: 0.8rem; color: rgba(255,255,255,0.72); line-height: 1.7; }
+  .pay-shimmer {
+    height: 3px; background: linear-gradient(90deg, #f0c040, #c0392b, #f0c040);
+    background-size: 200%; animation: payShimmer 1.5s infinite; border-radius: 2px; margin: 0.8rem 0;
+  }
+  @keyframes payShimmer { 0%{background-position:200%} 100%{background-position:-200%} }
+  .pay-shimmer-text { font-family: 'DM Mono', monospace; font-size: 0.7rem; color: var(--muted); text-align: center; }
+
+  /* Ranking table */
+  .pay-rank-table { width: 100%; border-collapse: collapse; font-size: 0.82rem; }
+  .pay-rank-table th {
+    font-family: 'DM Mono', monospace; font-size: 0.62rem; letter-spacing: 0.1em;
+    text-transform: uppercase; color: var(--muted); text-align: left;
+    padding: 0.5rem 0.75rem; border-bottom: 2px solid #e0d8cc; white-space: nowrap;
+  }
+  .pay-rank-table td { padding: 0.65rem 0.75rem; border-bottom: 1px solid #f0e8dc; vertical-align: middle; }
+  .pay-rank-table tr:last-child td { border-bottom: none; }
+  .pay-rank-table tr:hover td { background: #fdf8f2; }
+  .pay-rank-1 td:first-child { border-left: 3px solid #b8860b; }
+  .pay-rank-2 td:first-child { border-left: 3px solid #aaa; }
+  .pay-rank-3 td:first-child { border-left: 3px solid #cd7f32; }
+
+  /* Card overview */
+  .pay-card-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 1rem; margin-bottom: 1.5rem; }
+  .pay-card-promo { background: white; border: 1.5px solid #ddd5c8; border-radius: 8px; padding: 1.1rem 1.3rem; transition: border-color 0.18s; }
+  .pay-card-promo:hover { border-color: var(--blue); }
+  .pay-card-issuer { font-family: 'DM Mono', monospace; font-size: 0.6rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 0.3rem; }
+  .pay-card-name { font-weight: 900; font-size: 0.95rem; margin-bottom: 0.6rem; }
+  .pay-promo-list { list-style: none; }
+  .pay-promo-list li { display: flex; justify-content: space-between; align-items: baseline; padding: 0.3rem 0; border-bottom: 1px dashed #e0d8cc; font-size: 0.8rem; gap: 0.5rem; }
+  .pay-promo-list li:last-child { border-bottom: none; }
+  .pay-promo-desc { color: var(--muted); flex: 1; line-height: 1.4; }
+  .pay-promo-rate { font-family: 'DM Mono', monospace; font-weight: 700; color: var(--red); white-space: nowrap; }
+  .pay-promo-cap { font-family: 'DM Mono', monospace; font-size: 0.62rem; color: var(--muted); margin-top: 0.6rem; line-height: 1.7; }
+  .pay-tip-box { background: linear-gradient(135deg, #fff8e7, #faf7f0); border: 1.5px solid #e0d8cc; border-radius: 8px; padding: 1.1rem 1.3rem; font-size: 0.82rem; line-height: 2; color: var(--muted); }
+  .pay-tip-box strong { color: var(--ink); }
+  .pay-badge { font-family: 'DM Mono', monospace; font-size: 0.6rem; padding: 0.15rem 0.5rem; border-radius: 20px; }
+  .pay-badge-gold { background: #f0c040; color: var(--ink); }
+  .pay-badge-green { background: #27ae60; color: #fff; }
+  .pay-badge-gray { background: #e0d8cc; color: var(--muted); }
   .food-table-wrap {
     overflow-x: auto;
     border-radius: 6px;
@@ -575,6 +670,7 @@
   <button class="tab-btn" onclick="switchTab('cards',this)">🃏 隨身小卡</button>
   <button class="tab-btn" onclick="switchTab('transport',this)">🚆 交通</button>
   <button class="tab-btn" onclick="switchTab('food',this)">🍽 美食</button>
+  <button class="tab-btn" onclick="switchTab('payment',this)">💳 支付優惠</button>
 </div>
 
 <!-- ══ TAB 1: ITINERARY ══ -->
@@ -1332,7 +1428,371 @@
 </div>
 </div>
 
+<!-- ══ TAB 5: 支付優惠 ══ -->
+<div id="payment" class="tab-panel">
+<div style="max-width:960px;margin:0 auto;padding:2.5rem 1.5rem 4rem;">
+  <h2 style="font-size:1.1rem;font-weight:700;border-bottom:2px solid var(--ink);padding-bottom:0.5rem;margin-bottom:1rem;letter-spacing:0.1em;">💳 支付優惠建議</h2>
+  <div class="pay-trip-badge">
+    ✈ 2026/04/16–04/19 東京四日遊
+    <span class="q-badge">Q2 優惠期間 ✓</span>
+  </div>
+
+  <!-- Sub tabs -->
+  <div class="pay-sub-tabs">
+    <button class="pay-sub-btn active" onclick="switchPayTab('advisor',this)">🎯 場域建議</button>
+    <button class="pay-sub-btn" onclick="switchPayTab('overview',this)">📋 各卡總覽</button>
+    <button class="pay-sub-btn" onclick="switchPayTab('tips',this)">💡 攻略速查</button>
+  </div>
+
+  <!-- ── Sub panel 1: 場域建議 ── -->
+  <div id="pay-panel-advisor" class="pay-sub-panel active">
+    <div style="background:white;border:1.5px solid #ddd5c8;border-radius:8px;padding:1.2rem 1.4rem;margin-bottom:1.2rem;">
+      <div class="pay-section-label" style="margin-bottom:0.75rem;">選擇消費場域</div>
+      <div class="pay-venue-grid" id="pay-venue-selector">
+        <div class="pay-venue-btn active" data-venue="drugstore" onclick="paySelectVenue(this)"><span class="icon">💊</span>藥妝電器</div>
+        <div class="pay-venue-btn" data-venue="convenience" onclick="paySelectVenue(this)"><span class="icon">🏪</span>便利商店</div>
+        <div class="pay-venue-btn" data-venue="restaurant" onclick="paySelectVenue(this)"><span class="icon">🍜</span>餐廳美食</div>
+        <div class="pay-venue-btn" data-venue="transport" onclick="paySelectVenue(this)"><span class="icon">🚃</span>交通</div>
+        <div class="pay-venue-btn" data-venue="hotel" onclick="paySelectVenue(this)"><span class="icon">🏨</span>住宿</div>
+        <div class="pay-venue-btn" data-venue="entertainment" onclick="paySelectVenue(this)"><span class="icon">⛩️</span>樂園觀光</div>
+        <div class="pay-venue-btn" data-venue="smallshop" onclick="paySelectVenue(this)"><span class="icon">🏮</span>小店現金</div>
+        <div class="pay-venue-btn" data-venue="fashion" onclick="paySelectVenue(this)"><span class="icon">👗</span>服飾購物</div>
+      </div>
+      <button class="pay-analyze-btn" onclick="payGetAdvice()">✦ 取得最佳支付建議</button>
+    </div>
+    <div id="pay-loading" style="display:none;">
+      <div class="pay-shimmer"></div>
+      <div class="pay-shimmer-text" id="pay-status">分析中...</div>
+    </div>
+    <div id="pay-result"></div>
+  </div>
+
+  <!-- ── Sub panel 2: 各卡總覽 ── -->
+  <div id="pay-panel-overview" class="pay-sub-panel">
+    <div class="pay-card-grid">
+
+      <div class="pay-card-promo">
+        <div class="pay-card-issuer">玉山銀行 · JCB</div>
+        <div class="pay-card-name">🐻 玉山熊本熊卡</div>
+        <ul class="pay-promo-list">
+          <li><span class="pay-promo-desc">日本指定通路（藥妝/電器/交通卡/餐廳）</span><span class="pay-promo-rate">8.5%</span></li>
+          <li><span class="pay-promo-desc">日本一般消費（無上限）</span><span class="pay-promo-rate">2.5%</span></li>
+          <li><span class="pay-promo-desc">玉山Wallet → PayPay 支付</span><span class="pay-promo-rate">5%</span></li>
+        </ul>
+        <div class="pay-promo-cap">⚠ 8.5%需活動期間登錄一次（不限量）<br>⚠ 加碼6%每期回饋上限NT$500（≒刷8,333元）<br>⚠ PayPay 3.5%每季上限NT$100<br>📌 指定通路：松本清、唐吉軻德、BicCamera、Yodobashi、UNIQLO、GU、壽司郎、一蘭拉麵、東京迪士尼、環球影城等<br>✅ 有效期：2026/1/1–6/30</div>
+      </div>
+
+      <div class="pay-card-promo">
+        <div class="pay-card-issuer">台新銀行 · VISA/MC/JCB</div>
+        <div class="pay-card-name">🐶 台新Richart卡</div>
+        <ul class="pay-promo-list">
+          <li><span class="pay-promo-desc">切換「玩旅刷」海外實體消費（無上限）</span><span class="pay-promo-rate">3.3%</span></li>
+          <li><span class="pay-promo-desc">日本福岡機場免稅店</span><span class="pay-promo-rate">4.3%</span></li>
+          <li><span class="pay-promo-desc">JCB卡日本消費最高</span><span class="pay-promo-rate">50%</span></li>
+        </ul>
+        <div class="pay-promo-cap">⚠ 3.3%需設定台新帳戶自動扣繳(Level 2)，每日切換一次<br>⚠ JCB 50%限量限時活動（2026/2/3–6/30）請見官網<br>✅ 玩旅刷支援Suica/ICOCA交通卡儲值<br>✅ 有效期：2026/1/1–6/30</div>
+      </div>
+
+      <div class="pay-card-promo">
+        <div class="pay-card-issuer">星展銀行（原花旗）· VISA</div>
+        <div class="pay-card-name">🌿 星展永續極簡卡</div>
+        <ul class="pay-promo-list">
+          <li><span class="pay-promo-desc">日本實體刷卡 / Apple Pay / Samsung Pay</span><span class="pay-promo-rate">5%</span></li>
+          <li><span class="pay-promo-desc">一般消費無上限（基本）</span><span class="pay-promo-rate">1%</span></li>
+          <li><span class="pay-promo-desc">完成星禧任務行動支付加碼</span><span class="pay-promo-rate">+2.5%</span></li>
+        </ul>
+        <div class="pay-promo-cap">⚠ 5%加碼每期上限NT$600（≒刷15,000元）<br>⚠ 超過15,000元仍享1%無上限<br>⚠ 注意：Suica/PASMO儲值不計入5%加碼<br>✅ 有效期：5%回饋 2026/1/1–12/31</div>
+      </div>
+
+      <div class="pay-card-promo">
+        <div class="pay-card-issuer">聯邦銀行 · VISA</div>
+        <div class="pay-card-name">📱 聯邦賴點卡</div>
+        <ul class="pay-promo-list">
+          <li><span class="pay-promo-desc">日本海外一般消費（LINE POINTS 無上限）</span><span class="pay-promo-rate">3%</span></li>
+          <li><span class="pay-promo-desc">國內LINE Pay 偶數日指定通路</span><span class="pay-promo-rate">7%</span></li>
+        </ul>
+        <div class="pay-promo-cap">⚠ 回饋為LINE POINTS（非現金）<br>⚠ 日本海外3%：無需登錄、不設門檻<br>✅ 有效期：2026/1/1–6/30</div>
+      </div>
+
+      <div class="pay-card-promo">
+        <div class="pay-card-issuer">聯邦銀行 × LINE Bank · VISA</div>
+        <div class="pay-card-name">🐻 聯邦LINE Bank熊大卡</div>
+        <ul class="pay-promo-list">
+          <li><span class="pay-promo-desc">日本海外一般消費（無上限，折抵帳單）</span><span class="pay-promo-rate">2.5%</span></li>
+          <li><span class="pay-promo-desc">指定網購（MOMO/蝦皮/Netflix等）</span><span class="pay-promo-rate">+3%</span></li>
+        </ul>
+        <div class="pay-promo-cap">⚠ 日本海外2.5%無上限、條件寬鬆<br>⚠ 指定網購+3%，每月上限NT$300<br>✅ 有效期：2025/8/1–2026/7/31</div>
+      </div>
+
+      <div class="pay-card-promo">
+        <div class="pay-card-issuer">PayPay株式会社 · 日本行動支付</div>
+        <div class="pay-card-name">🔴 PayPay（玉山Wallet）</div>
+        <ul class="pay-promo-list">
+          <li><span class="pay-promo-desc">綁玉山熊本熊卡，全場PayPay消費</span><span class="pay-promo-rate">5%</span></li>
+          <li><span class="pay-promo-desc">特定店家PayPay祭活動</span><span class="pay-promo-rate">最高20%+</span></li>
+        </ul>
+        <div class="pay-promo-cap">📌 玉山Wallet → 電子支付 → PayPay → 出示條碼<br>⚠ 每季上限NT$100（≒2,857元）<br>✅ 全家、麥當勞、居酒屋、小商家皆可用</div>
+      </div>
+
+      <div class="pay-card-promo">
+        <div class="pay-card-issuer">JR East / Apple Wallet · 電子票證</div>
+        <div class="pay-card-name">🍉 西瓜卡 Suica</div>
+        <ul class="pay-promo-list">
+          <li><span class="pay-promo-desc">加值：用玉山熊本熊卡（Apple Pay）</span><span class="pay-promo-rate">8.5%回饋</span></li>
+          <li><span class="pay-promo-desc">使用：JR/地鐵/巴士/便利商店</span><span class="pay-promo-rate">全日本通用</span></li>
+        </ul>
+        <div class="pay-promo-cap">📌 iPhone：Apple錢包新增Suica，用熊本熊卡加值最划算<br>⚠ Suica加值屬「熊好用」指定通路<br>✅ 不需現金、不需買票、閘門直接感應</div>
+      </div>
+
+    </div>
+
+    <div class="pay-section-label" style="margin-bottom:0.5rem;">優先使用順序口訣</div>
+    <div class="pay-tip-box">
+      <strong>📌 2026 Q2 日本消費策略</strong><br><br>
+      1️⃣ <strong>指定通路（藥妝/電器/Suica加值）→ 玉山熊本熊</strong>（8.5%，每期NT$8,333封頂）<br>
+      2️⃣ <strong>超出熊本熊額度 / 大額消費 → 星展eco極簡卡</strong>（5%，每期NT$15,000封頂）<br>
+      3️⃣ <strong>不收信用卡的小店 → PayPay（玉山Wallet）</strong>（5%，每季NT$2,857封頂）<br>
+      4️⃣ <strong>超出以上額度 → 聯邦LINE Bank熊大卡</strong>（2.5%無上限）<br>
+      5️⃣ <strong>交通：Suica加值用玉山熊本熊，搭車刷Suica</strong>（8.5%+零接觸便利）<br>
+      6️⃣ <strong>台新Richart 玩旅刷</strong>（3.3%無上限）大額補位最安心<br>
+      7️⃣ <strong>聯邦賴點卡</strong>（3% LINE Points）喜歡Points的人適用
+    </div>
+  </div>
+
+  <!-- ── Sub panel 3: 攻略速查 ── -->
+  <div id="pay-panel-tips" class="pay-sub-panel">
+
+    <div style="background:var(--ink);color:var(--paper);border-radius:8px;padding:1.3rem 1.6rem;margin-bottom:1rem;">
+      <div style="font-family:'DM Mono',monospace;font-size:0.68rem;letter-spacing:0.1em;text-transform:uppercase;color:#f0c040;margin-bottom:0.75rem;">⚡ 最高效率場景速查</div>
+      <table class="pay-rank-table" style="color:var(--paper);">
+        <thead><tr>
+          <th style="color:rgba(255,255,255,0.4);">消費場景</th>
+          <th style="color:rgba(255,255,255,0.4);">最佳支付</th>
+          <th style="color:rgba(255,255,255,0.4);">回饋</th>
+          <th style="color:rgba(255,255,255,0.4);">備註</th>
+        </tr></thead>
+        <tbody>
+          <tr><td>Suica加值</td><td>玉山熊本熊 + Apple Pay</td><td style="color:#f0c040;font-family:'DM Mono',monospace;font-weight:700;">8.5%</td><td style="font-size:0.72rem;color:rgba(255,255,255,0.5)">每期NT$500封頂</td></tr>
+          <tr><td>唐吉軻德 / 松本清</td><td>玉山熊本熊（實體或Apple Pay）</td><td style="color:#f0c040;font-family:'DM Mono',monospace;font-weight:700;">8.5%</td><td style="font-size:0.72rem;color:rgba(255,255,255,0.5)">指定通路</td></tr>
+          <tr><td>BicCamera / Yodobashi</td><td>玉山熊本熊（實體或Apple Pay）</td><td style="color:#f0c040;font-family:'DM Mono',monospace;font-weight:700;">8.5%</td><td style="font-size:0.72rem;color:rgba(255,255,255,0.5)">可疊加電器折扣</td></tr>
+          <tr><td>壽司郎 / 一蘭 / 鳥貴族</td><td>玉山熊本熊（實體）</td><td style="color:#f0c040;font-family:'DM Mono',monospace;font-weight:700;">8.5%</td><td style="font-size:0.72rem;color:rgba(255,255,255,0.5)">熊好吃通路</td></tr>
+          <tr><td>一般大額消費</td><td>星展eco極簡（實體）</td><td style="color:#7ec8e3;font-family:'DM Mono',monospace;font-weight:700;">5%</td><td style="font-size:0.72rem;color:rgba(255,255,255,0.5)">每期NT$15,000封頂</td></tr>
+          <tr><td>不收信用卡小店</td><td>PayPay（玉山Wallet）</td><td style="color:#7ec8e3;font-family:'DM Mono',monospace;font-weight:700;">5%</td><td style="font-size:0.72rem;color:rgba(255,255,255,0.5)">季上限NT$2,857</td></tr>
+          <tr><td>超出Richart額度</td><td>聯邦LINE Bank熊大卡</td><td style="color:#a0d4a0;font-family:'DM Mono',monospace;font-weight:700;">2.5%</td><td style="font-size:0.72rem;color:rgba(255,255,255,0.5)">無上限備用卡</td></tr>
+          <tr><td>搭電車地鐵</td><td>Suica感應（已加值）</td><td style="color:rgba(255,255,255,0.4);font-family:'DM Mono',monospace;">—</td><td style="font-size:0.72rem;color:rgba(255,255,255,0.5)">回饋在加值時已賺</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div style="background:white;border:1.5px solid #ddd5c8;border-radius:8px;padding:1.2rem 1.4rem;margin-bottom:1rem;">
+      <div style="font-weight:900;margin-bottom:0.75rem;font-size:0.95rem;">🐻 玉山熊本熊卡 — 出發前必做</div>
+      <div style="font-size:0.82rem;line-height:2;color:var(--muted);">
+        ✅ 登錄「指定日本商店加碼6%」活動（官網登錄一次即可，整期有效）<br>
+        ✅ 下載「玉山Wallet」App，開通電子支付 → 日本可用PayPay<br>
+        ✅ iPhone：Apple錢包加入Suica，綁定熊本熊卡加值享8.5%<br>
+        ⚠ 加碼6%每期上限NT$500（約可刷8,333元，滿了換其他卡）
+      </div>
+    </div>
+
+    <div style="background:white;border:1.5px solid #ddd5c8;border-radius:8px;padding:1.2rem 1.4rem;margin-bottom:1rem;">
+      <div style="font-weight:900;margin-bottom:0.75rem;font-size:0.95rem;">🐶 台新Richart卡 — 出發前必做</div>
+      <div style="font-size:0.82rem;line-height:2;color:var(--muted);">
+        ✅ 設定台新帳戶自動扣繳升級Level 2，才能享3.3%<br>
+        ✅ 出國前在Richart Life App切換到「玩旅刷」方案<br>
+        ✅ 3.3%海外消費完全無上限，適合大額購物補位<br>
+        ✅ 支援Apple Pay / Google Pay / Samsung Pay
+      </div>
+    </div>
+
+    <div style="background:white;border:1.5px solid #ddd5c8;border-radius:8px;padding:1.2rem 1.4rem;margin-bottom:1rem;">
+      <div style="font-weight:900;margin-bottom:0.75rem;font-size:0.95rem;">🔴 PayPay — 使用教學</div>
+      <div style="font-size:0.82rem;line-height:2;color:var(--muted);">
+        ✅ 玉山Wallet → 電子支付 → 綁定熊本熊卡<br>
+        ✅ 消費時：支付 → 條碼付 → 玉山電子支付 → PayPay → 出示條碼<br>
+        ✅ 適用：居酒屋、拉麵店、計程車、藥妝小店等不接受信用卡感應的地方<br>
+        ⚠ 每季回饋上限NT$100（≒NT$2,857消費）
+      </div>
+    </div>
+
+    <div style="background:white;border:1.5px solid #ddd5c8;border-radius:8px;padding:1.2rem 1.4rem;">
+      <div style="font-weight:900;margin-bottom:0.75rem;font-size:0.95rem;">🍉 Suica西瓜卡加值攻略</div>
+      <div style="font-size:0.82rem;line-height:2;color:var(--muted);">
+        ✅ iPhone：Apple錢包 → ＋ → 交通卡 → Suica → 用熊本熊卡加值 → 享8.5%<br>
+        ✅ 可提前在台灣完成Suica開卡和加值<br>
+        ✅ 適用：JR、地鐵、私鐵、巴士、全家/7-11/Lawson、自販機<br>
+        ⚠ Suica餘額建議維持3,000–5,000日圓，用完再補值繼續賺8.5%
+      </div>
+    </div>
+
+  </div>
+</div>
+</div>
+
 <script>
+// ── Payment Advisor Data ──────────────────────────────
+const PAY_VENUES = {
+  drugstore: '藥妝 / 電器',
+  convenience: '便利商店',
+  restaurant: '餐廳美食',
+  transport: '交通',
+  hotel: '住宿',
+  entertainment: '樂園觀光',
+  smallshop: '小店（現金限定）',
+  fashion: '服飾購物（UNIQLO等）'
+};
+
+const PAY_ADVICE = {
+  drugstore: {
+    best: '玉山熊本熊卡（實體 or Apple Pay）',
+    rate: '8.5%',
+    reason: '松本清、唐吉軻德、大國藥妝、BicCamera、Yodobashi 皆在指定通路，享 2.5% + 加碼6% = 8.5%，每期回饋上限 NT$500，約8,333元消費封頂。',
+    tips: '⚠ 超出額度後改刷星展eco極簡卡（5%），或聯邦LINE Bank熊大卡（2.5%無上限）補位。',
+    ranking: [
+      { pay: '玉山熊本熊卡', rate: '8.5%', note: '指定通路（松本清/唐吉軻德/BicCamera）', cap: '每期NT$500' },
+      { pay: '星展eco極簡卡', rate: '5%', note: '實體刷卡 or Apple Pay/Samsung Pay', cap: '每期NT$600' },
+      { pay: 'PayPay（玉山Wallet）', rate: '5%', note: '現金店/掃碼店適用', cap: '每季NT$100' },
+      { pay: '台新Richart（玩旅刷）', rate: '3.3%', note: '無上限保底', cap: '無上限' },
+    ]
+  },
+  convenience: {
+    best: 'Suica（西瓜卡）or 玉山熊本熊卡',
+    rate: '8.5% / 免帶現金',
+    reason: '便利商店（7-11、全家、Lawson）全面支援Suica感應付款。加值時用玉山熊本熊卡（Suica屬熊好用指定通路）可享8.5%回饋，之後持Suica消費零接觸最便利。',
+    tips: '✅ 備用：PayPay掃碼付款也通（5%，但額度有限）。',
+    ranking: [
+      { pay: 'Suica西瓜卡（加值用熊本熊）', rate: '加值8.5%', note: '搭車+超商通用，最便利', cap: '加值NT$8,333封頂' },
+      { pay: 'PayPay（玉山Wallet）', rate: '5%', note: '掃碼付款備用', cap: '每季NT$100' },
+      { pay: '玉山熊本熊卡（實體）', rate: '2.5%', note: '一般日本消費無上限', cap: '無上限' },
+    ]
+  },
+  restaurant: {
+    best: '玉山熊本熊卡（指定餐廳）',
+    rate: '8.5%（指定通路）',
+    reason: '壽司郎、藏壽司、松屋、牛角、SUKIYA、一蘭拉麵、鳥貴族、敘敘苑、Shake Shack 皆在熊好吃指定通路，享8.5%。未在指定通路的餐廳可改用PayPay（5%）或星展eco（5%）。',
+    tips: '✅ 進店前先確認該餐廳是否接受PayPay，許多居酒屋、拉麵店都支援。',
+    ranking: [
+      { pay: '玉山熊本熊卡（指定餐廳）', rate: '8.5%', note: '壽司郎/一蘭/鳥貴族/牛角等', cap: '每期NT$500' },
+      { pay: 'PayPay（玉山Wallet）', rate: '5%', note: '不收信用卡的小餐廳適用', cap: '每季NT$100' },
+      { pay: '星展eco極簡卡', rate: '5%', note: '一般餐廳實體刷卡', cap: '每期NT$600' },
+      { pay: '台新Richart（玩旅刷）', rate: '3.3%', note: '補位無上限', cap: '無上限' },
+    ]
+  },
+  transport: {
+    best: 'Suica（玉山熊本熊加值）',
+    rate: '加值8.5% + 搭車零接觸',
+    reason: 'Suica覆蓋JR、地鐵、私鐵、巴士全線。加值時以Apple Pay綁定玉山熊本熊卡，享8.5%回饋（Suica屬指定通路「熊好用」）。搭車直接感應最快速，無需買票。',
+    tips: '✅ 建議每次加值3,000–5,000日圓，餘額不足時再用熊本熊卡補值，持續賺8.5%。',
+    ranking: [
+      { pay: 'Suica（熊本熊加值）', rate: '加值8.5%', note: 'JR/地鐵/巴士全通，最便利', cap: '加值NT$8,333封頂' },
+      { pay: '玉山熊本熊卡（JR/航空）', rate: '8.5%', note: '熊好遊：JAL/JR鐵路/樂天旅遊', cap: '同上' },
+      { pay: '台新Richart（玩旅刷）', rate: '3.3%', note: '含Suica/ICOCA交通卡儲值', cap: '無上限' },
+    ]
+  },
+  hotel: {
+    best: '玉山熊本熊卡（指定住宿）',
+    rate: '8.5%',
+    reason: '樂天旅遊、東橫INN、APA飯店、星野集團皆在指定通路（熊好遊）。台新Richart玩旅刷亦支援訂房，3.3%無上限作為補位。',
+    tips: '✅ 建議預訂時即以熊本熊卡付款，而非到現場刷卡。',
+    ranking: [
+      { pay: '玉山熊本熊卡', rate: '8.5%', note: '樂天旅遊/東橫INN/APA/星野集團', cap: '每期NT$500' },
+      { pay: '星展eco極簡卡', rate: '5%', note: '實體刷卡付帳', cap: '每期NT$600' },
+      { pay: '台新Richart（玩旅刷）', rate: '3.3%', note: '補位大額住宿費用', cap: '無上限' },
+    ]
+  },
+  entertainment: {
+    best: '玉山熊本熊卡',
+    rate: '8.5%',
+    reason: '東京迪士尼樂園、日本環球影城（USJ）、豪斯登堡、富士急樂園、東京華納兄弟哈利波特影城均在熊好玩指定通路，享8.5%回饋。',
+    tips: '✅ 建議提前線上購票時即用熊本熊卡付款。',
+    ranking: [
+      { pay: '玉山熊本熊卡', rate: '8.5%', note: '迪士尼/USJ/富士急等指定通路', cap: '每期NT$500' },
+      { pay: '星展eco極簡卡', rate: '5%', note: '現場門票或其他景點', cap: '每期NT$600' },
+      { pay: '聯邦LINE Bank熊大卡', rate: '2.5%', note: '補位無上限', cap: '無上限' },
+    ]
+  },
+  smallshop: {
+    best: 'PayPay（玉山Wallet）',
+    rate: '5%',
+    reason: '許多日本小商店、居酒屋、計程車、市場攤位不接受信用卡刷卡，但大多支援PayPay掃碼。使用玉山Wallet透過電子支付方式使用PayPay，綁定熊本熊卡可享5%回饋。',
+    tips: '✅ 台灣不需另外申請PayPay，玉山Wallet出示條碼給店家掃即可。\n⚠ 每季回饋上限NT$100，超額後改用Suica（電子錢包功能）。',
+    ranking: [
+      { pay: 'PayPay（玉山Wallet）', rate: '5%', note: '小店掃碼付款神器', cap: '每季NT$100' },
+      { pay: 'Suica（電子錢包）', rate: '—', note: '便利/自販機無回饋但最便利', cap: '—' },
+    ]
+  },
+  fashion: {
+    best: '玉山熊本熊卡（UNIQLO/GU）',
+    rate: '8.5%',
+    reason: 'UNIQLO、GU 已納入指定通路（熊好買），享8.5%。niko and…、3 Coins 也在名單內。本次行程 Hands 澀谷、3 COINS @Shibuya 109 亦適用。',
+    tips: '✅ 建議在熊本熊卡8,333元額度用在購買金額較大的服飾，超額後改星展eco（5%）。',
+    ranking: [
+      { pay: '玉山熊本熊卡', rate: '8.5%', note: 'UNIQLO/GU/niko and…/3 Coins/Hands', cap: '每期NT$500' },
+      { pay: '星展eco極簡卡', rate: '5%', note: '補位大額購物', cap: '每期NT$600' },
+      { pay: '台新Richart（玩旅刷）', rate: '3.3%', note: '無上限後盾', cap: '無上限' },
+    ]
+  }
+};
+
+let currentPayVenue = 'drugstore';
+
+function paySelectVenue(el) {
+  document.querySelectorAll('.pay-venue-btn').forEach(b => b.classList.remove('active'));
+  el.classList.add('active');
+  currentPayVenue = el.dataset.venue;
+  document.getElementById('pay-result').innerHTML = '';
+}
+
+async function payGetAdvice() {
+  const loading = document.getElementById('pay-loading');
+  const status = document.getElementById('pay-status');
+  const result = document.getElementById('pay-result');
+  loading.style.display = 'block';
+  result.innerHTML = '';
+
+  const msgs = ['比對指定通路清單...', '計算2026 Q2回饋額度...', '確認各卡封頂限制...', '排序最佳支付方案...'];
+  let i = 0;
+  const interval = setInterval(() => { if (i < msgs.length) status.textContent = msgs[i++]; }, 400);
+  await new Promise(r => setTimeout(r, 1700));
+  clearInterval(interval);
+  loading.style.display = 'none';
+
+  const d = PAY_ADVICE[currentPayVenue];
+  if (!d) return;
+  const venueName = PAY_VENUES[currentPayVenue];
+  const rankColors = ['#b8860b', '#aaa', '#cd7f32', '#7a8a9a'];
+
+  result.innerHTML = `
+    <div class="pay-ai-box">
+      <div class="pay-ai-title">✦ 2026 Q2 最佳建議 — ${venueName}</div>
+      <div class="pay-ai-best">最佳選擇：${d.best} <span style="font-family:'DM Mono',monospace;color:#f0c040;font-size:0.9rem;">${d.rate}</span></div>
+      <div class="pay-ai-reason">${d.reason}<br><br>${d.tips}</div>
+    </div>
+    <div style="background:white;border:1.5px solid #ddd5c8;border-radius:8px;padding:1.2rem 1.4rem;">
+      <div class="pay-section-label" style="margin-bottom:0.75rem;">支付方式排名</div>
+      <table class="pay-rank-table">
+        <thead><tr><th>#</th><th>支付工具</th><th>回饋率</th><th>適用說明</th><th>回饋上限</th></tr></thead>
+        <tbody>
+          ${d.ranking.map((r, i) => `
+          <tr class="pay-rank-${i+1}">
+            <td style="font-weight:700;color:${rankColors[i]||'var(--muted)'}">${['🥇','🥈','🥉','4️⃣'][i]||i+1}</td>
+            <td style="font-weight:700">${r.pay}</td>
+            <td style="color:var(--red);font-weight:700;font-family:'DM Mono',monospace;white-space:nowrap">${r.rate}</td>
+            <td style="font-size:0.78rem;color:var(--muted)">${r.note}</td>
+            <td><span class="pay-badge ${r.cap==='無上限'?'pay-badge-green':'pay-badge-gray'}">${r.cap}</span></td>
+          </tr>`).join('')}
+        </tbody>
+      </table>
+    </div>`;
+}
+
+function switchPayTab(name, btn) {
+  document.querySelectorAll('.pay-sub-panel').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.pay-sub-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('pay-panel-' + name).classList.add('active');
+  btn.classList.add('active');
+}
+
+// 頁籤切換
 function switchTab(id, btn) {
   document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
   document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
