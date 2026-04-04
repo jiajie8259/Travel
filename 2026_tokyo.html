@@ -462,6 +462,31 @@
     color: var(--sage);
     font-weight: 600;
   }
+  .transport-table tr.backup-row td {
+    background: #f8f6f2;
+    color: #aaa;
+  }
+  .transport-table tr.backup-row td.route {
+    color: #bbb;
+  }
+  .transport-table tr.backup-row td.time {
+    color: #bbb;
+  }
+  .transport-table tr.backup-row td.suica {
+    color: #bbb;
+  }
+  .backup-tag {
+    display: inline-block;
+    font-size: 0.58rem;
+    font-family: 'DM Mono', monospace;
+    background: #e8e0d4;
+    color: #999;
+    padding: 0.1em 0.45em;
+    border-radius: 2px;
+    margin-left: 0.3em;
+    vertical-align: middle;
+    letter-spacing: 0.03em;
+  }
   .line-name {
     display: inline-block;
     background: #e8f0fa;
@@ -1101,7 +1126,8 @@
 
   <!-- 出發前提醒 -->
   <div style="background:#fff8e8;border:1.5px solid var(--gold);border-radius:6px;padding:1rem 1.25rem;margin-bottom:2rem;font-size:0.82rem;line-height:1.8;">
-    ⚠️ <strong>桃園機場 第一航廈</strong>　當天 AM 4:20 出門，約 6:00 以前抵達桃園機場
+    🚗 <strong>04:55 機場專車出發</strong>　臺北市文山區興隆路三段55號 → 桃園國際機場第一航廈　｜　$900<br>
+    ✈️ <strong>桃園機場 第一航廈</strong>　AM 4:55 出門，約 6:00 以前抵達桃園機場
   </div>
 
   <!-- DAY 1 -->
@@ -1116,10 +1142,18 @@
         <tbody>
           <tr>
             <td><strong>飯店</strong></td>
-            <td>成田特快30號（新宿行）<span class="line-name">N'EX</span></td>
+            <td>成田特快28號（新宿行）<span class="line-name">N'EX</span></td>
             <td class="route">成田機場 → 品川</td>
             <td class="time">14:23–15:25</td>
             <td>1號月台發車</td>
+            <td>—</td>
+          </tr>
+          <tr class="backup-row">
+            <td></td>
+            <td>成田特快30號（新宿行）<span class="line-name">N'EX</span><span class="backup-tag">備案</span></td>
+            <td class="route">成田機場 → 品川</td>
+            <td class="time">14:49–15:53</td>
+            <td>（備案）</td>
             <td>—</td>
           </tr>
           <tr>
@@ -1155,7 +1189,7 @@
   <div class="transport-day">
     <div class="transport-day-header">
       <span class="transport-day-label">Day 2</span>
-      <span class="transport-day-sub">4/17 (五)　南大塚 → 池袋 → 表參道 → 品川</span>
+      <span class="transport-day-sub">4/17 (五)　南大塚 → 池袋 → 表參道 → 銀座 → 品川</span>
     </div>
     <div class="transport-table-wrap">
       <table class="transport-table">
@@ -1201,12 +1235,36 @@
             <td>—</td>
           </tr>
           <tr>
+            <td><strong>銀座</strong></td>
+            <td>銀座線（淺草行）</td>
+            <td class="route">澀谷 → 京橋（東京）</td>
+            <td class="time">18:00–18:23</td>
+            <td>（備案）1號出口，ONE GINZA 3F</td>
+            <td class="suica">178</td>
+          </tr>
+          <tr>
             <td><strong>品川</strong></td>
             <td>山手線 內回り（品川方面行）</td>
             <td class="route">澀谷 → 品川</td>
             <td class="time">18:33–18:46</td>
             <td>2號月台發車，抵達後從港南口走3分鐘</td>
             <td class="suica">209</td>
+          </tr>
+          <tr class="backup-row">
+            <td></td>
+            <td>淺草線 + 京急本線（羽田機場行）<span class="backup-tag">備案</span></td>
+            <td class="route">貝町（東京）→ 品川</td>
+            <td class="time">20:10–20:23</td>
+            <td>（備案）港南口／東口</td>
+            <td class="suica">370</td>
+          </tr>
+          <tr class="backup-row">
+            <td></td>
+            <td>京濱東北線（大船）<span class="backup-tag">備案</span></td>
+            <td class="route">有楽町 → 品川</td>
+            <td class="time">20:10–20:23</td>
+            <td>（備案）港南口／東口</td>
+            <td class="suica">200</td>
           </tr>
         </tbody>
       </table>
@@ -1297,7 +1355,7 @@
             <td>成田特快27號（成田空港行）<span class="line-name">N'EX</span></td>
             <td class="route">品川 → 成田機場第2航廈</td>
             <td class="time">12:50–13:53</td>
-            <td>13號月台發車</td>
+            <td>13號月台發車，10車廂10號C、D</td>
             <td>—</td>
           </tr>
         </tbody>
@@ -1305,10 +1363,15 @@
     </div>
   </div>
 
-</div>
-</div>
+  <!-- 費用小計 -->
+  <div style="text-align:right;margin-top:1.5rem;padding:0.75rem 1rem;background:var(--cream);border-radius:6px;border:1px solid #e0d8cc;">
+    <span style="font-size:0.78rem;color:var(--muted);font-family:'DM Mono',monospace;letter-spacing:0.05em;">電車費小計　</span>
+    <span style="font-size:1.1rem;font-weight:900;font-family:'DM Mono',monospace;color:var(--ink);">¥ 3,388</span>
+    <span style="font-size:0.72rem;color:var(--muted);margin-left:0.75rem;">折合台幣約 NT$ 691</span>
+  </div>
 
-<!-- ══ TAB 4: 美食 ══ -->
+</div>
+</div>
 <div id="food" class="tab-panel">
 <div style="max-width:960px;margin:0 auto;padding:2.5rem 1.5rem 4rem;">
   <h2 style="font-size:1.1rem;font-weight:700;border-bottom:2px solid var(--ink);padding-bottom:0.5rem;margin-bottom:0.75rem;letter-spacing:0.1em;">🍽 美食清單</h2>
