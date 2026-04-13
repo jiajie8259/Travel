@@ -722,6 +722,13 @@
           </div>
         </div>
       </div>
+      <div class="event">
+        <div class="event-type"><span class="tag tag-transport">交通</span></div>
+        <div class="event-body">
+          <div class="event-name">✈ JX800　桃園（TPE）→ 成田（NRT）</div>
+          <div class="event-note">星宇航空　AIRBUS A350-1000　經濟艙<br>出發 08:30（第1航廈）　｜　抵達 12:55（第2航廈）　｜　飛行 3小時25分鐘</div>
+        </div>
+      </div>
     </div>
 
     <div class="period">
@@ -983,6 +990,30 @@
         <div class="event-type"><span class="tag tag-transport">交通</span></div>
         <div class="event-body">
           <div class="event-name">12:50–13:53 前往成田機場</div>
+          <div class="event-note">成田特快27號（N'EX）　品川 → 成田機場第2航廈　｜　13號月台，10車廂10號C、D</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="period">
+      <div class="period-title">下午・返程</div>
+      <div class="event">
+        <div class="event-type"><span class="tag tag-transport">交通</span></div>
+        <div class="event-body">
+          <div class="event-name">✈ JX803　成田（NRT）→ 桃園（TPE）</div>
+          <div class="event-note">星宇航空　AIRBUS A350-1000　經濟艙<br>出發 16:20（第2航廈）　｜　抵達 19:00（第1航廈）　｜　飛行 3小時40分鐘</div>
+        </div>
+      </div>
+      <div class="event">
+        <div class="event-type"><span class="tag tag-transport">交通</span></div>
+        <div class="event-body booked">
+          <div class="event-name">🚗 機場專車　桃園國際機場 第一航廈 → 臺北市文山區興德路22號</div>
+          <div class="event-note">
+            抵達接機 19:00　｜　總計 $700　｜　機場四人專車<br>
+            20吋以下行李1件、21～25吋行李1件<br>
+            訂單編號：XAeRvE-202604005057<br>
+            ⚠ 司機資訊 04/18 提供　｜　24小時前可免費取消　｜　查詢：(02) 8195-3512
+          </div>
         </div>
       </div>
     </div>
@@ -1011,6 +1042,9 @@
         <div class="item"><div class="item-dot" style="background:#aaa"></div><div class="item-text">🚗 機場專車 04:55 出發
           <span class="badge badge-booked">已訂</span>
           <div class="item-sub">興隆路三段55號 → 桃園第一航廈　$900<br>單號：zrNBwi-202603025420　司機資訊04/15提供</div>
+        </div></div>
+        <div class="item"><div class="item-dot" style="background:#aaa"></div><div class="item-text">✈ JX800　08:30 TPE → 12:55 NRT
+          <div class="item-sub">星宇航空 A350-1000　第1航廈出發 → 成田第2航廈</div>
         </div></div>
 
         <div class="mini-card-period">下午</div>
@@ -1109,7 +1143,16 @@
         </div></div>
 
         <div class="mini-card-period">出發</div>
-        <div class="item"><div class="item-dot" style="background:#aaa"></div><div class="item-text" style="font-weight:700">✈ 12:50 → 13:53　前往成田機場</div></div>
+        <div class="item"><div class="item-dot" style="background:#aaa"></div><div class="item-text" style="font-weight:700">✈ 12:50 → 13:53　前往成田機場<div class="item-sub">N'EX　13號月台，10車廂10號C、D</div></div></div>
+
+        <div class="mini-card-period">下午・返程</div>
+        <div class="item"><div class="item-dot" style="background:#aaa"></div><div class="item-text">✈ JX803　16:20 NRT → 19:00 TPE
+          <div class="item-sub">星宇航空 A350-1000　成田第2航廈出發 → 桃園第1航廈</div>
+        </div></div>
+        <div class="item"><div class="item-dot" style="background:#aaa"></div><div class="item-text">🚗 接機專車 19:00
+          <span class="badge badge-booked">已訂</span>
+          <div class="item-sub">桃園第一航廈 → 文山區興德路22號　$700<br>單號：XAeRvE-202604005057　司機資訊04/18提供</div>
+        </div></div>
       </div>
     </div>
 
@@ -1122,9 +1165,59 @@
 <div id="transport" class="tab-panel">
 <div style="max-width:960px;margin:0 auto;padding:2.5rem 1.5rem 4rem;">
   <h2 style="font-size:1.1rem;font-weight:700;border-bottom:2px solid var(--ink);padding-bottom:0.5rem;margin-bottom:0.75rem;letter-spacing:0.1em;">🚆 交通資訊</h2>
-  <p style="font-size:0.78rem;color:var(--muted);margin-bottom:2rem;">🍉 欄位數字為西瓜卡扣款金額（日元／人）</p>
+  <p style="font-size:0.78rem;color:var(--muted);margin-bottom:1.5rem;">🍉 欄位數字為西瓜卡扣款金額（日元／人）</p>
 
-  <!-- 出發前提醒 -->
+  <!-- 航班資訊 -->
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-bottom:1.5rem;">
+    <div style="background:var(--ink);color:var(--paper);border-radius:8px;padding:1.1rem 1.3rem;">
+      <div style="font-family:'DM Mono',monospace;font-size:0.6rem;letter-spacing:0.15em;text-transform:uppercase;color:#f0c040;margin-bottom:0.5rem;">去程 · OUTBOUND</div>
+      <div style="font-size:1.3rem;font-weight:900;letter-spacing:0.05em;margin-bottom:0.3rem;">JX800</div>
+      <div style="display:flex;align-items:center;gap:0.5rem;margin-bottom:0.5rem;">
+        <span style="font-size:1rem;font-family:'DM Mono',monospace;font-weight:700;">08:30</span>
+        <span style="color:#aaa;font-size:0.8rem;">TPE</span>
+        <span style="color:#555;font-size:0.7rem;">━━✈━━</span>
+        <span style="font-size:1rem;font-family:'DM Mono',monospace;font-weight:700;">12:55</span>
+        <span style="color:#aaa;font-size:0.8rem;">NRT</span>
+      </div>
+      <div style="font-size:0.72rem;color:rgba(255,255,255,0.5);line-height:1.7;">
+        2026/04/16　星宇航空<br>
+        A350-1000　經濟艙　3h 25m<br>
+        桃園第1航廈 → 成田第2航廈
+      </div>
+    </div>
+    <div style="background:var(--ink);color:var(--paper);border-radius:8px;padding:1.1rem 1.3rem;">
+      <div style="font-family:'DM Mono',monospace;font-size:0.6rem;letter-spacing:0.15em;text-transform:uppercase;color:#f0c040;margin-bottom:0.5rem;">回程 · RETURN</div>
+      <div style="font-size:1.3rem;font-weight:900;letter-spacing:0.05em;margin-bottom:0.3rem;">JX803</div>
+      <div style="display:flex;align-items:center;gap:0.5rem;margin-bottom:0.5rem;">
+        <span style="font-size:1rem;font-family:'DM Mono',monospace;font-weight:700;">16:20</span>
+        <span style="color:#aaa;font-size:0.8rem;">NRT</span>
+        <span style="color:#555;font-size:0.7rem;">━━✈━━</span>
+        <span style="font-size:1rem;font-family:'DM Mono',monospace;font-weight:700;">19:00</span>
+        <span style="color:#aaa;font-size:0.8rem;">TPE</span>
+      </div>
+      <div style="font-size:0.72rem;color:rgba(255,255,255,0.5);line-height:1.7;">
+        2026/04/19　星宇航空<br>
+        A350-1000　經濟艙　3h 40m<br>
+        成田第2航廈 → 桃園第1航廈
+      </div>
+    </div>
+  </div>
+
+  <!-- 接送車資訊 -->
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-bottom:2rem;">
+    <div style="background:#fff8e8;border:1.5px solid var(--gold);border-radius:6px;padding:1rem 1.1rem;font-size:0.8rem;line-height:1.8;">
+      <div style="font-family:'DM Mono',monospace;font-size:0.6rem;letter-spacing:0.12em;color:#b8860b;margin-bottom:0.3rem;">🚗 去程接送</div>
+      <strong>04:55</strong> 出發　$900<br>
+      興隆路三段55號 → 桃園第一航廈<br>
+      <span style="font-size:0.7rem;color:var(--muted);">單號：zrNBwi-202603025420<br>司機資訊 04/15 提供</span>
+    </div>
+    <div style="background:#fff8e8;border:1.5px solid var(--gold);border-radius:6px;padding:1rem 1.1rem;font-size:0.8rem;line-height:1.8;">
+      <div style="font-family:'DM Mono',monospace;font-size:0.6rem;letter-spacing:0.12em;color:#b8860b;margin-bottom:0.3rem;">🚗 回程接送</div>
+      <strong>19:00</strong> 抵達接機　$700<br>
+      桃園第一航廈 → 文山區興德路22號<br>
+      <span style="font-size:0.7rem;color:var(--muted);">單號：XAeRvE-202604005057<br>司機資訊 04/18 提供</span>
+    </div>
+  </div>
   <div style="background:#fff8e8;border:1.5px solid var(--gold);border-radius:6px;padding:1rem 1.25rem;margin-bottom:2rem;font-size:0.82rem;line-height:1.8;">
     🚗 <strong>04:55 機場專車出發</strong>　臺北市文山區興隆路三段55號 → 桃園國際機場第一航廈　｜　$900<br>
     ✈️ <strong>桃園機場 第一航廈</strong>　AM 4:55 出門，約 6:00 以前抵達桃園機場
