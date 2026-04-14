@@ -673,9 +673,224 @@
   .pay-card   { background: #e8f0fa; color: #2c4a7c; }
   .pay-mobile { background: #e8f4ee; color: #2e6644; }
   .pay-cash   { background: #fde8e8; color: #8b2c22; font-weight: 700; }
+
+  /* ── ITINERARY PAYMENT TAB ── */
+  .itin-day { margin-bottom: 2.6rem; }
+  .itin-day-head {
+    display: flex; align-items: center; gap: 1rem;
+    border-bottom: 2.5px solid var(--ink); padding-bottom: 0.45rem; margin-bottom: 1.1rem;
+  }
+  .itin-day-num { font-size: 2rem; font-weight: 900; line-height: 1; }
+  .itin-day-meta { flex: 1; }
+  .itin-day-title { font-size: 0.9rem; font-weight: 700; }
+  .itin-day-sub { font-family: 'DM Mono', monospace; font-size: 0.63rem; color: var(--muted); margin-top: 0.12rem; }
+  .period-lbl {
+    font-family: 'DM Mono', monospace; font-size: 0.6rem; letter-spacing: 0.18em;
+    text-transform: uppercase; color: var(--muted);
+    border-left: 2px solid #ccc; padding-left: 0.4rem; margin: 0.85rem 0 0.5rem;
+  }
+  .spot-row {
+    display: grid; grid-template-columns: 22px 1fr 100px;
+    gap: 0 0.75rem; margin-bottom: 0.5rem; align-items: start; position: relative;
+  }
+  .spot-ico { font-size: 0.95rem; padding-top: 0.1rem; }
+  .spot-body {
+    background: #fff; border: 1.5px solid #e0d8cc; border-radius: 5px;
+    padding: 0.5rem 0.85rem;
+  }
+  .spot-name { font-size: 0.86rem; font-weight: 700; line-height: 1.4; }
+  .spot-note { font-size: 0.72rem; color: var(--muted); margin-top: 0.12rem; line-height: 1.45; }
+  .spot-alert { color: var(--red); font-weight: 700; }
+  .pay-col { display: flex; flex-direction: column; gap: 0.28rem; align-items: flex-end; padding-top: 0.4rem; position: relative; }
+  .pb {
+    font-family: 'DM Mono', monospace; font-size: 0.6rem; font-weight: 700;
+    padding: 0.18em 0.55em; border-radius: 3px; white-space: nowrap; letter-spacing: 0.02em;
+  }
+  .pb-kuma  { background: #fff0d4; color: #b8680b; border: 1px solid #e8c080; }
+  .pb-eco   { background: #d4f0e0; color: #2e7d52; border: 1px solid #80c8a0; }
+  .pb-rich  { background: #d4e4f5; color: #2c5f8a; border: 1px solid #80a8d8; }
+  .pb-pay   { background: #ffe0e0; color: #cc0033; border: 1px solid #f0a0a0; }
+  .pb-suica { background: #d8f0dc; color: #3a8a4a; border: 1px solid #88cc90; }
+  .pb-cash  { background: #f0ebe5; color: #999;    border: 1px solid #ccc; }
+  .pb-rate  { font-family: 'DM Mono', monospace; font-size: 0.7rem; font-weight: 900; }
+  .pb-rate.gold   { color: #b8680b; }
+  .pb-rate.green  { color: #2e7d52; }
+  .pb-rate.blue   { color: #cc0033; }
+  .pb-rate.gray   { color: #999; }
+  .itin-note-box {
+    background: linear-gradient(135deg,#fff8e7,white);
+    border: 1.5px solid #e0d8cc; border-radius: 8px;
+    padding: 1rem 1.2rem; font-size: 0.8rem; line-height: 1.9; color: var(--muted);
+    margin-bottom: 1rem;
+  }
+  .itin-note-box strong { color: var(--ink); }
+  .itin-alert-box {
+    background: #fff0f0; border: 1.5px solid #e88; border-radius: 8px;
+    padding: 1rem 1.2rem; font-size: 0.8rem; line-height: 1.85; margin-bottom: 1rem;
+  }
+  .itin-summary-table { width:100%; border-collapse:collapse; font-size:0.81rem; margin-top:0.5rem; }
+  .itin-summary-table th { font-family:'DM Mono',monospace; font-size:0.6rem; letter-spacing:0.1em; text-transform:uppercase; color:var(--muted); padding:0.5rem 0.7rem; border-bottom:2px solid #e0d8cc; text-align:left; white-space:nowrap; }
+  .itin-summary-table td { padding:0.62rem 0.7rem; border-bottom:1px solid #f0e8dc; vertical-align:middle; }
+  .itin-summary-table tr:last-child td { border-bottom:none; }
+  .itin-summary-table tr:hover td { background:rgba(0,0,0,0.015); }
+  .cat-row td { background:var(--cream); font-weight:700; font-size:0.75rem; color:var(--muted); letter-spacing:0.04em; padding:0.4rem 0.7rem; }
+
+  /* ── TRACKER DASHBOARD (sticky) ── */
+  .tracker-bar {
+    position: sticky; top: 0; z-index: 50;
+    background: var(--ink); color: var(--paper);
+    padding: 0.85rem 2rem 0.75rem;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.25);
+    display: none;
+  }
+  .tracker-bar.visible { display: block; }
+  .tracker-bar-inner { max-width: 960px; margin: 0 auto; }
+  .tracker-title {
+    font-family: 'DM Mono', monospace; font-size: 0.6rem; letter-spacing: 0.14em;
+    text-transform: uppercase; color: #f0c040; margin-bottom: 0.6rem;
+    display: flex; justify-content: space-between; align-items: center;
+  }
+  .tracker-reset {
+    font-family: 'DM Mono', monospace; font-size: 0.58rem; color: #666;
+    background: none; border: 1px solid #444; padding: 0.15rem 0.6rem;
+    border-radius: 3px; cursor: pointer; transition: all 0.15s;
+  }
+  .tracker-reset:hover { color: #fff; border-color: #888; }
+  .tracker-cards {
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+    gap: 0.6rem;
+  }
+  .tracker-card {
+    background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 6px; padding: 0.55rem 0.75rem; transition: all 0.3s;
+  }
+  .tracker-card.exhausted { background: rgba(192,57,43,0.15); border-color: rgba(192,57,43,0.4); }
+  .tracker-card.warning { background: rgba(184,134,11,0.15); border-color: rgba(184,134,11,0.4); }
+  .tc-head { display:flex; justify-content:space-between; align-items:baseline; margin-bottom:0.35rem; }
+  .tc-name { font-size: 0.72rem; font-weight: 700; }
+  .tc-pct { font-family: 'DM Mono', monospace; font-size: 0.65rem; }
+  .tc-pct.full { color: var(--red); }
+  .tc-pct.warn { color: #f0c040; }
+  .tc-pct.ok   { color: #6ec88a; }
+  .tc-bar-track { height: 5px; background: rgba(255,255,255,0.1); border-radius: 3px; overflow: hidden; }
+  .tc-bar-fill { height: 100%; border-radius: 3px; transition: width 0.5s cubic-bezier(.4,0,.2,1); }
+  .tc-bar-fill.full { background: var(--red); }
+  .tc-bar-fill.warn { background: #f0c040; }
+  .tc-bar-fill.ok   { background: #6ec88a; }
+  .tc-amounts { display:flex; justify-content:space-between; margin-top:0.3rem; }
+  .tc-used { font-family: 'DM Mono', monospace; font-size: 0.58rem; color: #888; }
+  .tc-cap  { font-family: 'DM Mono', monospace; font-size: 0.58rem; color: #555; }
+
+  /* ── ADD BTN / LOGS ── */
+  .add-btn {
+    display: inline-flex; align-items: center; gap: 0.25rem;
+    font-family: 'DM Mono', monospace; font-size: 0.6rem; letter-spacing: 0.04em;
+    background: none; border: 1px solid #ddd5c8; color: var(--muted);
+    padding: 0.18rem 0.55rem; border-radius: 3px; cursor: pointer;
+    transition: all 0.15s; margin-top: 0.35rem; white-space: nowrap;
+  }
+  .add-btn:hover { border-color: var(--blue); color: var(--blue); background: rgba(44,74,124,0.06); }
+  .add-btn.logged { border-color: #27ae60; color: #27ae60; background: rgba(39,174,96,0.06); }
+  .log-list { margin-top: 0.3rem; }
+  .log-entry {
+    display: flex; align-items: center; gap: 0.4rem;
+    font-family: 'DM Mono', monospace; font-size: 0.62rem; color: var(--muted);
+    padding: 0.15rem 0; animation: fadeUp 0.25s ease;
+  }
+  .log-entry .log-amt { font-weight: 700; color: var(--ink); }
+  .log-entry .log-del { background:none; border:none; color:#ccc; cursor:pointer; font-size:0.75rem; padding:0 0.2rem; line-height:1; }
+  .log-entry .log-del:hover { color: var(--red); }
+  .log-entry .log-rebate { color: #27ae60; }
+  .pay-status-chip {
+    font-family: 'DM Mono', monospace; font-size: 0.55rem; font-weight: 700;
+    padding: 0.12em 0.4em; border-radius: 2px; white-space: nowrap; margin-top: 0.18rem;
+    text-align: center;
+  }
+  .chip-ok     { background: rgba(39,174,96,0.12); color: #27ae60; border: 1px solid rgba(39,174,96,0.3); }
+  .chip-warn   { background: rgba(184,134,11,0.12); color: #b8860b; border: 1px solid rgba(184,134,11,0.3); }
+  .chip-exhausted { background: rgba(192,57,43,0.12); color: var(--red); border: 1px solid rgba(192,57,43,0.3); }
+  .fallback-pay {
+    margin-top: 0.3rem; padding: 0.3rem 0.5rem;
+    background: #fff8e7; border: 1px dashed #e8c080; border-radius: 4px;
+    font-size: 0.68rem; color: #7a5a0a; font-weight: 600;
+    display: none; animation: fadeUp 0.3s;
+  }
+  .fallback-pay.show { display: block; }
+
+  /* ── MODAL ── */
+  .modal-overlay {
+    display: none; position: fixed; inset: 0;
+    background: rgba(0,0,0,0.5); z-index: 200;
+    align-items: center; justify-content: center;
+  }
+  .modal-overlay.open { display: flex; }
+  .modal-box {
+    background: var(--paper); border-radius: 10px; padding: 1.8rem;
+    max-width: 360px; width: 90%; box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+  }
+  .modal-title-tx { font-size: 1rem; font-weight: 900; margin-bottom: 0.3rem; }
+  .modal-sub-tx { font-size: 0.78rem; color: var(--muted); margin-bottom: 1.2rem; line-height: 1.5; }
+  .modal-input-wrap { display: flex; align-items: center; gap: 0.5rem; margin-bottom: 1.2rem; }
+  .modal-currency { font-family: 'DM Mono', monospace; font-size: 1rem; color: var(--muted); }
+  .modal-input-tx {
+    flex: 1; font-family: 'DM Mono', monospace; font-size: 1.4rem; font-weight: 700;
+    border: none; border-bottom: 2.5px solid var(--ink); background: transparent;
+    padding: 0.25rem 0; outline: none; color: var(--ink); text-align: right; width: 100%;
+  }
+  .modal-preview-tx {
+    background: var(--ink); color: var(--paper); border-radius: 6px;
+    padding: 0.8rem 1rem; margin-bottom: 1.2rem; font-size: 0.8rem; line-height: 1.75;
+  }
+  .modal-preview-tx .prev-rate { color: #f0c040; font-weight: 900; font-family: 'DM Mono', monospace; }
+  .modal-preview-tx .prev-rebate { color: #6ec88a; font-weight: 900; font-family: 'DM Mono', monospace; }
+  .modal-preview-tx .prev-warn { color: #f0c040; font-size: 0.72rem; }
+  .modal-btns-tx { display: flex; gap: 0.7rem; }
+  .modal-btn-tx {
+    flex: 1; font-family: 'DM Mono', monospace; font-size: 0.72rem; letter-spacing: 0.06em;
+    text-transform: uppercase; padding: 0.65rem; border: none; border-radius: 5px;
+    cursor: pointer; transition: all 0.15s; font-weight: 700;
+  }
+  .modal-btn-confirm-tx { background: var(--ink); color: #f0c040; }
+  .modal-btn-confirm-tx:hover { background: #2a1e22; }
+  .modal-btn-cancel-tx  { background: #e0d8cc; color: var(--muted); }
+  .modal-btn-cancel-tx:hover { background: #ccc5b8; }
+
+  @media (max-width: 600px) {
+    .spot-row { grid-template-columns: 18px 1fr; }
+    .pay-col { display:none; }
+    .tracker-cards { grid-template-columns: repeat(2, 1fr); }
+  }
 </style>
 </head>
 <body>
+
+<!-- ── TRACKER DASHBOARD (sticky, shown only in 行程支付對照 sub-panel) ── -->
+<div class="tracker-bar" id="tracker-bar">
+  <div class="tracker-bar-inner">
+    <div class="tracker-title">
+      <span>⚡ 回饋額度追蹤器 · 即時剩餘</span>
+      <button class="tracker-reset" onclick="trackerResetAll()">↺ 重置全部</button>
+    </div>
+    <div class="tracker-cards" id="tracker-cards"></div>
+  </div>
+</div>
+
+<!-- ── INPUT MODAL ── -->
+<div class="modal-overlay" id="tracker-modal">
+  <div class="modal-box">
+    <div class="modal-title-tx" id="tracker-modal-title">記錄消費</div>
+    <div class="modal-sub-tx" id="tracker-modal-sub"></div>
+    <div class="modal-input-wrap">
+      <span class="modal-currency">¥</span>
+      <input class="modal-input-tx" id="tracker-modal-amount" type="number" placeholder="0" min="0" oninput="trackerUpdatePreview()">
+    </div>
+    <div class="modal-preview-tx" id="tracker-modal-preview"></div>
+    <div class="modal-btns-tx">
+      <button class="modal-btn-tx modal-btn-cancel-tx" onclick="trackerCloseModal()">取消</button>
+      <button class="modal-btn-tx modal-btn-confirm-tx" onclick="trackerConfirmLog()">記帳 ✓</button>
+    </div>
+  </div>
+</div>
 
 <header>
   <div class="date-tag">2026 · April 16 Thu → 19 Sun</div>
@@ -718,6 +933,7 @@
           <div class="event-note">
             出發 04:55　｜　總計 $900　｜　機場四人專車（21～25吋行李1件）<br>
             訂單編號：zrNBwi-202603025420<br>
+            車號：RED-7022　｜　司機：邱裕煌　｜　電話：0908-766-323<br>
             ⚠ 司機資訊 04/15 提供　｜　24小時前可免費取消　｜　查詢：(02) 8195-3512
           </div>
         </div>
@@ -753,7 +969,7 @@
         <div class="event-type"><span class="tag tag-walk">逛街</span></div>
         <div class="event-body">
           <div class="event-name">HANDS 新宿店（TIMES SQUARE大樓 2～8F）</div>
-          <div class="event-note">鞋盤 4～5F，21:00前專門櫃台退稅</div>
+          <div class="event-note">鞋墊 4～5F，21:00前專門櫃台退稅</div>
         </div>
       </div>
     </div>
@@ -761,17 +977,17 @@
     <div class="period">
       <div class="period-title">晚上</div>
       <div class="event">
-        <div class="event-type"><span class="tag tag-walk">逛街</span></div>
-        <div class="event-body">
-          <div class="event-name">唐吉軻德</div>
-          <div class="event-note">買京喚羽、DHC（藥妝1840）、熱眠蓋（藥妝1170）、護唇、護手霜</div>
-        </div>
-      </div>
-      <div class="event">
         <div class="event-type"><span class="tag tag-meal">餐飲</span></div>
         <div class="event-body booked">
           <div class="event-name">牛たんの檸檬</div>
           <div class="event-note">訂位 20:00（ID：UP5YW3）</div>
+        </div>
+      </div>
+      <div class="event">
+        <div class="event-type"><span class="tag tag-walk">逛街</span></div>
+        <div class="event-body">
+          <div class="event-name">唐吉軻德 新宿東南口店</div>
+          <div class="event-note">買京喚羽、DHC（藥妝1840）、熱眠蓋（藥妝1170）、護唇、護手霜</div>
         </div>
       </div>
     </div>
@@ -796,7 +1012,7 @@
       <div class="event">
         <div class="event-type"><span class="tag tag-walk">逛街</span></div>
         <div class="event-body">
-          <div class="event-name">逛池袋（IT tower TOKYO）</div>
+          <div class="event-name">逛池袋（IT tower TOKYO、唐吉軻德 池袋西口店）</div>
         </div>
       </div>
     </div>
@@ -976,7 +1192,7 @@
         <div class="event-type"><span class="tag tag-meal">餐飲</span></div>
         <div class="event-body">
           <div class="event-name">鰻之成瀨 泉嶽寺店</div>
-          <div class="event-note">並重梅、上重梅</div>
+          <div class="event-note">並重梅、上重梅<br>[予約番号] PL7760905993792dd</div>
         </div>
       </div>
       <div class="event">
@@ -1041,7 +1257,7 @@
         <div class="mini-card-period">早上・出發</div>
         <div class="item"><div class="item-dot" style="background:#aaa"></div><div class="item-text">🚗 機場專車 04:55 出發
           <span class="badge badge-booked">已訂</span>
-          <div class="item-sub">興隆路三段55號 → 桃園第一航廈　$900<br>單號：zrNBwi-202603025420　司機資訊04/15提供</div>
+          <div class="item-sub">興隆路三段55號 → 桃園第一航廈　$900<br>單號：zrNBwi-202603025420　車號：RED-7022　司機：邱裕煌　電話：0908-766-323</div>
         </div></div>
         <div class="item"><div class="item-dot" style="background:#aaa"></div><div class="item-text">✈ JX800　08:30 TPE → 12:55 NRT
           <div class="item-sub">星宇航空 A350-1000　第1航廈出發 → 成田第2航廈</div>
@@ -1050,15 +1266,15 @@
         <div class="mini-card-period">下午</div>
         <div class="item"><div class="item-dot" style="background:#aaa"></div><div class="item-text">N'EX 機場 → 品川 → 高輪<div class="item-sub">飯店 ≈ 16:15</div></div></div>
         <div class="item"><div class="item-dot" style="background:#7ba7bc"></div><div class="item-text">伊勢丹本館 B1F　noix de beurre<div class="item-sub">走新宿東口</div></div></div>
-        <div class="item"><div class="item-dot" style="background:#7ba7bc"></div><div class="item-text">HANDS 新宿店（TIMES SQUARE 2～8F）<div class="item-sub">鞋盤4～5F，21:00前退稅</div></div></div>
+        <div class="item"><div class="item-dot" style="background:#7ba7bc"></div><div class="item-text">HANDS 新宿店（TIMES SQUARE 2～8F）<div class="item-sub">鞋墊4～5F，21:00前退稅</div></div></div>
 
         <div class="mini-card-period">晚上</div>
-        <div class="item"><div class="item-dot" style="background:#7ba7bc"></div><div class="item-text">唐吉軻德<div class="item-sub">京喚羽、DHC(1840)、熱眠蓋(1170)、護唇、護手霜</div></div></div>
         <div class="item"><div class="item-dot" style="background:#c0392b"></div><div class="item-text">
           🍽 牛たんの檸檬
           <span class="badge badge-booked">已訂位</span>
           <div class="item-sub">20:00　ID：UP5YW3</div>
         </div></div>
+        <div class="item"><div class="item-dot" style="background:#7ba7bc"></div><div class="item-text">唐吉軻德 新宿東南口店<div class="item-sub">京喚羽、DHC(1840)、熱眠蓋(1170)、護唇、護手霜</div></div></div>
       </div>
     </div>
 
@@ -1074,7 +1290,7 @@
       <div class="mini-card-body">
         <div class="mini-card-period">上午</div>
         <div class="item"><div class="item-dot" style="background:#6b7c5e"></div><div class="item-text">🌸 南大塚三丁目櫻並木通<div class="item-sub">西巢鴨中學前</div></div></div>
-        <div class="item"><div class="item-dot" style="background:#7ba7bc"></div><div class="item-text">逛池袋（IT tower TOKYO）</div></div>
+        <div class="item"><div class="item-dot" style="background:#7ba7bc"></div><div class="item-text">逛池袋（IT tower TOKYO、唐吉軻德 池袋西口店）</div></div>
         <div class="item"><div class="item-dot" style="background:#c0392b"></div><div class="item-text">🍽 Little Pool Coffee　蛋包飯
           <span class="badge badge-must">必</span>
           <div class="item-sub">午餐 11:00～</div>
@@ -1209,7 +1425,7 @@
       <div style="font-family:'DM Mono',monospace;font-size:0.6rem;letter-spacing:0.12em;color:#b8860b;margin-bottom:0.3rem;">🚗 去程接送</div>
       <strong>04:55</strong> 出發　$900<br>
       興隆路三段55號 → 桃園第一航廈<br>
-      <span style="font-size:0.7rem;color:var(--muted);">單號：zrNBwi-202603025420<br>司機資訊 04/15 提供</span>
+      <span style="font-size:0.7rem;color:var(--muted);">單號：zrNBwi-202603025420<br>車號：RED-7022　｜　司機：邱裕煌　｜　電話：0908-766-323<br>司機資訊 04/15 提供</span>
     </div>
     <div style="background:#fff8e8;border:1.5px solid var(--gold);border-radius:6px;padding:1rem 1.1rem;font-size:0.8rem;line-height:1.8;">
       <div style="font-family:'DM Mono',monospace;font-size:0.6rem;letter-spacing:0.12em;color:#b8860b;margin-bottom:0.3rem;">🚗 回程接送</div>
@@ -1220,6 +1436,7 @@
   </div>
   <div style="background:#fff8e8;border:1.5px solid var(--gold);border-radius:6px;padding:1rem 1.25rem;margin-bottom:2rem;font-size:0.82rem;line-height:1.8;">
     🚗 <strong>04:55 機場專車出發</strong>　臺北市文山區興隆路三段55號 → 桃園國際機場第一航廈　｜　$900<br>
+    🪪 車號：RED-7022　｜　司機：邱裕煌　｜　電話：0908-766-323<br>
     ✈️ <strong>桃園機場 第一航廈</strong>　AM 4:55 出門，約 6:00 以前抵達桃園機場
   </div>
 
@@ -1566,11 +1783,11 @@
           <td class="col-price">—</td>
           <td class="col-price total-price">2,730</td>
         </tr>
-        <tr class="booked-row">
+        <tr>
           <td class="food-name"><a href="https://maps.google.com/?q=肉と米ハジメ戸越銀座" target="_blank">肉と米 ハジメ 戶越銀座店</a></td>
           <td class="food-hours">11:00–21:00</td>
           <td><span class="pay-tag pay-mobile">行動支付</span></td>
-          <td class="food-booked">✅</td>
+          <td class="food-unbooked">□</td>
           <td>牛排釜飯 150g</td>
           <td class="col-price">1,600</td>
           <td>牛排釜飯 200g</td>
@@ -1640,15 +1857,430 @@
     <span class="q-badge">Q2 優惠期間 ✓</span>
   </div>
 
-  <!-- Sub tabs -->
+  <!-- Sub tabs (4 tabs now) -->
   <div class="pay-sub-tabs">
-    <button class="pay-sub-btn active" onclick="switchPayTab('advisor',this)">🎯 場域建議</button>
-    <button class="pay-sub-btn" onclick="switchPayTab('overview',this)">📋 各卡總覽</button>
-    <button class="pay-sub-btn" onclick="switchPayTab('tips',this)">💡 攻略速查</button>
+    <button class="pay-sub-btn active" onclick="switchPayTab('itinerary',this)">📍 行程支付對照</button>
+    <button class="pay-sub-btn" onclick="switchPayTab('advisor',this)">🎯 場域支付建議</button>
+    <button class="pay-sub-btn" onclick="switchPayTab('overview',this)">📋 各卡優惠總覽</button>
+    <button class="pay-sub-btn" onclick="switchPayTab('tips',this)">💡 使用攻略</button>
+  </div>
+
+  <!-- ── Sub panel 0: 東京行程支付對照 ── -->
+  <div id="pay-panel-itinerary" class="pay-sub-panel active">
+    <div style="font-family:'DM Mono',monospace;font-size:0.63rem;letter-spacing:0.14em;text-transform:uppercase;color:var(--muted);margin-bottom:0.4rem;">Tokyo Itinerary · 2026/04/16–04/19 · 逐據點支付建議</div>
+
+    <!-- 色碼說明 -->
+    <div style="display:flex;flex-wrap:wrap;gap:0.5rem;margin-bottom:0.9rem;font-size:0.75rem;">
+      <span class="pb pb-kuma">🐻 熊本熊 8.5%</span>
+      <span class="pb pb-eco">🌿 星展eco 5%</span>
+      <span class="pb pb-pay">🔴 PayPay 5%</span>
+      <span class="pb pb-suica">🍉 Suica</span>
+      <span class="pb pb-rich">🐶 Richart 3.3%</span>
+      <span class="pb pb-cash">💴 現金</span>
+    </div>
+
+    <!-- 啟動追蹤器 -->
+    <div style="background:linear-gradient(135deg,var(--ink),#2a1828);border-radius:8px;padding:1rem 1.3rem;margin-bottom:1.2rem;display:flex;align-items:center;justify-content:space-between;gap:1rem;flex-wrap:wrap;">
+      <div>
+        <div style="font-family:'DM Mono',monospace;font-size:0.62rem;letter-spacing:0.1em;text-transform:uppercase;color:#f0c040;margin-bottom:0.3rem;">⚡ 動態回饋追蹤器</div>
+        <div style="font-size:0.8rem;color:rgba(255,255,255,0.75);line-height:1.55;">在每個據點按「＋記帳」輸入消費金額，即時計算剩餘回饋額度，額度耗盡時自動建議次優支付方式。</div>
+      </div>
+      <button style="font-family:'DM Mono',monospace;font-size:0.72rem;letter-spacing:0.06em;text-transform:uppercase;padding:0.55rem 1.2rem;border:none;border-radius:4px;cursor:pointer;background:var(--ink);color:#f0c040;border:1px solid #444;white-space:nowrap;" onclick="trackerActivate()">開始追蹤 →</button>
+    </div>
+
+    <!-- ⚠ 現金警示 -->
+    <div class="itin-alert-box">
+      ⚠️ <strong style="color:var(--red);">D3 早餐「En Etomo 大井町」只收現金！</strong>
+      請出發前備好 ¥3,000–5,000 日幣現金（預估¥2,730）。<br>
+      武藏小山、戶越銀座商店街部分小攤亦可能只收現金，建議備 ¥10,000。
+    </div>
+
+    <!-- D1 -->
+    <div class="itin-day">
+      <div class="itin-day-head">
+        <div class="itin-day-num">D1</div>
+        <div class="itin-day-meta">
+          <div class="itin-day-title">4/16（四）抵達東京 · 新宿</div>
+          <div class="itin-day-sub">成田入境 → N'EX → 品川飯店 → 新宿伊勢丹 → HANDS → 牛たん → 唐吉軻德 新宿東南口店</div>
+        </div>
+      </div>
+      <div class="period-lbl">交通</div>
+      <div class="spot-row">
+        <div class="spot-ico">🚃</div>
+        <div class="spot-body">
+          <div class="spot-name">N'EX 成田特快（14:23）→ 品川，山手線各段往返新宿</div>
+          <div class="spot-note">全程 Suica 感應。加值時請用熊本熊卡（Apple Pay）→ 享8.5%回饋</div>
+        </div>
+        <div class="pay-col"><span class="pb pb-suica">🍉 Suica</span><span class="pb-rate gold">加值8.5%</span></div>
+      </div>
+      <div class="period-lbl">下午・逛街</div>
+      <div class="spot-row">
+        <div class="spot-ico">🛍️</div>
+        <div class="spot-body" data-spot="d1-isetan">
+          <div class="spot-name">新宿伊勢丹本館 B1F — noix de beurre</div>
+          <div class="spot-note">百貨館內，非熊本熊指定通路 → 刷星展eco 5%</div>
+          <button class="add-btn" id="btn-d1-isetan" onclick="trackerOpenModal('d1-isetan')" style="display:none">＋ 記帳</button>
+          <div class="log-list" id="logs-d1-isetan"></div>
+        </div>
+        <div class="pay-col" id="paycol-d1-isetan"><span class="pb pb-eco">🌿 星展eco</span><span class="pb-rate green">5%</span></div>
+      </div>
+      <div class="spot-row">
+        <div class="spot-ico">🛍️</div>
+        <div class="spot-body" data-spot="d1-hands-shinjuku">
+          <div class="spot-name">HANDS 新宿店（TIMES SQUARE 2–8F）</div>
+          <div class="spot-note">雜貨/生活用品，21:00前退稅。HANDS 非指定通路 → 星展eco 5%</div>
+          <button class="add-btn" id="btn-d1-hands-shinjuku" onclick="trackerOpenModal('d1-hands-shinjuku')" style="display:none">＋ 記帳</button>
+          <div class="log-list" id="logs-d1-hands-shinjuku"></div>
+        </div>
+        <div class="pay-col" id="paycol-d1-hands-shinjuku"><span class="pb pb-eco">🌿 星展eco</span><span class="pb-rate green">5%</span></div>
+      </div>
+      <div class="period-lbl">晚上・購物＋晚餐</div>
+      <div class="spot-row">
+        <div class="spot-ico">💊</div>
+        <div class="spot-body" data-spot="d1-donki">
+          <div class="spot-name">唐吉軻德 新宿東南口店 ⭐ 熊本熊指定通路！</div>
+          <div class="spot-note">京喚羽、DHC(¥1,840)、熱眠蓋(¥1,170)等。唐吉軻德屬「熊好買」指定通路 → <strong>優先刷熊本熊 8.5%</strong></div>
+          <button class="add-btn" id="btn-d1-donki" onclick="trackerOpenModal('d1-donki')" style="display:none">＋ 記帳</button>
+          <div class="log-list" id="logs-d1-donki"></div>
+        </div>
+        <div class="pay-col" id="paycol-d1-donki"><span class="pb pb-kuma">🐻 熊本熊</span><span class="pb-rate gold">8.5%</span></div>
+      </div>
+      <div class="spot-row">
+        <div class="spot-ico">🍽️</div>
+        <div class="spot-body" data-spot="d1-gyutan">
+          <div class="spot-name">牛たんの檸檬 新宿總本站 ✅已訂 20:00 (ID:UP5YW3)</div>
+          <div class="spot-note">預計 ¥7,160（兩份定食）。接受信用卡。非熊本熊指定餐廳 → 星展eco 5%</div>
+          <button class="add-btn" id="btn-d1-gyutan" onclick="trackerOpenModal('d1-gyutan')" style="display:none">＋ 記帳</button>
+          <div class="log-list" id="logs-d1-gyutan"></div>
+        </div>
+        <div class="pay-col" id="paycol-d1-gyutan"><span class="pb pb-eco">🌿 星展eco</span><span class="pb-rate green">5%</span></div>
+      </div>
+    </div>
+
+    <!-- D2 -->
+    <div class="itin-day">
+      <div class="itin-day-head">
+        <div class="itin-day-num">D2</div>
+        <div class="itin-day-meta">
+          <div class="itin-day-title">4/17（五）澀谷 · 代代木 · 品川</div>
+          <div class="itin-day-sub">南大塚櫻花 → 池袋 → 原宿 → 表參道 → 奧澀谷 → 品川</div>
+        </div>
+      </div>
+      <div class="period-lbl">交通</div>
+      <div class="spot-row">
+        <div class="spot-ico">🚃</div>
+        <div class="spot-body">
+          <div class="spot-name">山手線・副都心線・千代田線各段</div>
+          <div class="spot-note">全程 Suica 感應最方便</div>
+        </div>
+        <div class="pay-col"><span class="pb pb-suica">🍉 Suica</span><span class="pb-rate gray">感應</span></div>
+      </div>
+      <div class="period-lbl">上午・池袋</div>
+      <div class="spot-row">
+        <div class="spot-ico">🌸</div>
+        <div class="spot-body">
+          <div class="spot-name">南大塚三丁目 櫻花隧道（西巢鴨中學前）</div>
+          <div class="spot-note">免費景點，無消費</div>
+        </div>
+        <div class="pay-col"><span class="pb pb-cash" style="color:#aaa;">—</span></div>
+      </div>
+      <div class="spot-row">
+        <div class="spot-ico">🏙️</div>
+        <div class="spot-body" data-spot="d2-ikebukuro">
+          <div class="spot-name">逛池袋（IT tower TOKYO）</div>
+          <div class="spot-note">視消費而定，一般商場刷星展eco 5%</div>
+          <button class="add-btn" id="btn-d2-ikebukuro" onclick="trackerOpenModal('d2-ikebukuro')" style="display:none">＋ 記帳</button>
+          <div class="log-list" id="logs-d2-ikebukuro"></div>
+        </div>
+        <div class="pay-col" id="paycol-d2-ikebukuro"><span class="pb pb-eco">🌿 星展eco</span><span class="pb-rate green">5%</span></div>
+      </div>
+      <div class="spot-row">
+        <div class="spot-ico">🍳</div>
+        <div class="spot-body" data-spot="d2-littlepool">
+          <div class="spot-name">Little Pool Coffee — 蛋包飯 ⭐必吃（11:00–）</div>
+          <div class="spot-note">預計¥2,400。小咖啡館，支援行動支付 → PayPay 掃碼 5%</div>
+          <button class="add-btn" id="btn-d2-littlepool" onclick="trackerOpenModal('d2-littlepool')" style="display:none">＋ 記帳</button>
+          <div class="log-list" id="logs-d2-littlepool"></div>
+        </div>
+        <div class="pay-col" id="paycol-d2-littlepool"><span class="pb pb-pay">🔴 PayPay</span><span class="pb-rate blue">5%</span></div>
+      </div>
+      <div class="period-lbl">下午・原宿 / 澀谷</div>
+      <div class="spot-row">
+        <div class="spot-ico">🏠</div>
+        <div class="spot-body" data-spot="d2-hay">
+          <div class="spot-name">HAY TOKYO（GYRE商場 B1F）</div>
+          <div class="spot-note">北歐設計雜貨，百貨館內，信用卡可刷 → 星展eco 5%</div>
+          <button class="add-btn" id="btn-d2-hay" onclick="trackerOpenModal('d2-hay')" style="display:none">＋ 記帳</button>
+          <div class="log-list" id="logs-d2-hay"></div>
+        </div>
+        <div class="pay-col" id="paycol-d2-hay"><span class="pb pb-eco">🌿 星展eco</span><span class="pb-rate green">5%</span></div>
+      </div>
+      <div class="spot-row">
+        <div class="spot-ico">🪙</div>
+        <div class="spot-body" data-spot="d2-3coins-harajuku">
+          <div class="spot-name">3COINS 原宿旗艦店 ⭐ 熊本熊指定通路！</div>
+          <div class="spot-note">3 Coins 屬「熊好買」指定通路 → <strong>優先刷熊本熊 8.5%</strong>（若D1唐吉軻德後還有額度）</div>
+          <button class="add-btn" id="btn-d2-3coins-harajuku" onclick="trackerOpenModal('d2-3coins-harajuku')" style="display:none">＋ 記帳</button>
+          <div class="log-list" id="logs-d2-3coins-harajuku"></div>
+        </div>
+        <div class="pay-col" id="paycol-d2-3coins-harajuku"><span class="pb pb-kuma">🐻 熊本熊</span><span class="pb-rate gold">8.5%</span></div>
+      </div>
+      <div class="spot-row">
+        <div class="spot-ico">👗</div>
+        <div class="spot-body" data-spot="d2-andst">
+          <div class="spot-name">and ST TOKYO（11:00–21:00）</div>
+          <div class="spot-note">服飾選品，信用卡可刷 → 星展eco 5%</div>
+          <button class="add-btn" id="btn-d2-andst" onclick="trackerOpenModal('d2-andst')" style="display:none">＋ 記帳</button>
+          <div class="log-list" id="logs-d2-andst"></div>
+        </div>
+        <div class="pay-col" id="paycol-d2-andst"><span class="pb pb-eco">🌿 星展eco</span><span class="pb-rate green">5%</span></div>
+      </div>
+      <div class="spot-row">
+        <div class="spot-ico">🥐</div>
+        <div class="spot-body" data-spot="d2-neel">
+          <div class="spot-name">neel 神宮前（1順位）／ dotcom space（2順位）</div>
+          <div class="spot-note">可麗餅/咖啡，預計¥1,790–2,100。小型甜點咖啡館，PayPay掃碼最通</div>
+          <button class="add-btn" id="btn-d2-neel" onclick="trackerOpenModal('d2-neel')" style="display:none">＋ 記帳</button>
+          <div class="log-list" id="logs-d2-neel"></div>
+        </div>
+        <div class="pay-col" id="paycol-d2-neel"><span class="pb pb-pay">🔴 PayPay</span><span class="pb-rate blue">5%</span></div>
+      </div>
+      <div class="spot-row">
+        <div class="spot-ico">🌿</div>
+        <div class="spot-body" data-spot="d2-seam">
+          <div class="spot-name">SEAM GINZA（11:00–19:00，買京喚羽）</div>
+          <div class="spot-note">小型選品店，信用卡可刷則用星展eco 5%</div>
+          <button class="add-btn" id="btn-d2-seam" onclick="trackerOpenModal('d2-seam')" style="display:none">＋ 記帳</button>
+          <div class="log-list" id="logs-d2-seam"></div>
+        </div>
+        <div class="pay-col" id="paycol-d2-seam"><span class="pb pb-eco">🌿 星展eco</span><span class="pb-rate green">5%</span></div>
+      </div>
+      <div class="spot-row">
+        <div class="spot-ico">🛍️</div>
+        <div class="spot-body" data-spot="d2-hands-shibuya">
+          <div class="spot-name">HANDS 澀谷店（20:30前退稅）</div>
+          <div class="spot-note">同新宿HANDS，非熊本熊通路 → 星展eco 5%</div>
+          <button class="add-btn" id="btn-d2-hands-shibuya" onclick="trackerOpenModal('d2-hands-shibuya')" style="display:none">＋ 記帳</button>
+          <div class="log-list" id="logs-d2-hands-shibuya"></div>
+        </div>
+        <div class="pay-col" id="paycol-d2-hands-shibuya"><span class="pb pb-eco">🌿 星展eco</span><span class="pb-rate green">5%</span></div>
+      </div>
+      <div class="spot-row">
+        <div class="spot-ico">🪙</div>
+        <div class="spot-body" data-spot="d2-3coins-109">
+          <div class="spot-name">3 COINS @Shibuya 109（買口蓋＋收納袋）⭐ 熊本熊指定通路！</div>
+          <div class="spot-note">同為3 Coins，熊本熊8.5%。若額度用完，改星展eco 5%</div>
+          <button class="add-btn" id="btn-d2-3coins-109" onclick="trackerOpenModal('d2-3coins-109')" style="display:none">＋ 記帳</button>
+          <div class="log-list" id="logs-d2-3coins-109"></div>
+        </div>
+        <div class="pay-col" id="paycol-d2-3coins-109"><span class="pb pb-kuma">🐻 熊本熊</span><span class="pb-rate gold">8.5%</span><span style="font-size:0.58rem;color:var(--muted);text-align:right;">額度優先</span></div>
+      </div>
+      <div class="period-lbl">晚上・品川</div>
+      <div class="spot-row">
+        <div class="spot-ico">🍜</div>
+        <div class="spot-body" data-spot="d2-hayashida">
+          <div class="spot-name">らぁ麵 はやし田 品川港南口店 ⭐必吃</div>
+          <div class="spot-note">預計¥2,500（特製雞白湯×2）。接受信用卡 → 星展eco 5%</div>
+          <button class="add-btn" id="btn-d2-hayashida" onclick="trackerOpenModal('d2-hayashida')" style="display:none">＋ 記帳</button>
+          <div class="log-list" id="logs-d2-hayashida"></div>
+        </div>
+        <div class="pay-col" id="paycol-d2-hayashida"><span class="pb pb-eco">🌿 星展eco</span><span class="pb-rate green">5%</span></div>
+      </div>
+      <div class="spot-row">
+        <div class="spot-ico">🗼</div>
+        <div class="spot-body">
+          <div class="spot-name">品川 SEASON TERRACE（2F戶外賞東京鐵塔）</div>
+          <div class="spot-note">免費景點，無消費</div>
+        </div>
+        <div class="pay-col"><span class="pb pb-cash" style="color:#aaa;">—</span></div>
+      </div>
+    </div>
+
+    <!-- D3 -->
+    <div class="itin-day">
+      <div class="itin-day-head">
+        <div class="itin-day-num">D3</div>
+        <div class="itin-day-meta">
+          <div class="itin-day-title">4/18（六）天王洲 → 大井町 → 高輪</div>
+          <div class="itin-day-sub">天王洲島 → Etomo大井町（⚠現金）→ 武藏小山 → 戶越銀座 → NEWoMan</div>
+        </div>
+      </div>
+      <div class="period-lbl">交通</div>
+      <div class="spot-row">
+        <div class="spot-ico">🚃</div>
+        <div class="spot-body">
+          <div class="spot-name">天王洲島・大井町・武藏小山・戶越銀座・高輪各段</div>
+          <div class="spot-note">全程 Suica 感應最方便</div>
+        </div>
+        <div class="pay-col"><span class="pb pb-suica">🍉 Suica</span><span class="pb-rate gray">感應</span></div>
+      </div>
+      <div class="period-lbl">上午</div>
+      <div class="spot-row">
+        <div class="spot-ico">⛵</div>
+        <div class="spot-body" data-spot="d3-tennozu">
+          <div class="spot-name">天王洲島（散步藝文街區）</div>
+          <div class="spot-note">小攤/咖啡若不收信用卡 → PayPay 掃碼 5%</div>
+          <button class="add-btn" id="btn-d3-tennozu" onclick="trackerOpenModal('d3-tennozu')" style="display:none">＋ 記帳</button>
+          <div class="log-list" id="logs-d3-tennozu"></div>
+        </div>
+        <div class="pay-col" id="paycol-d3-tennozu"><span class="pb pb-pay">🔴 PayPay</span><span class="pb-rate blue">5%</span></div>
+      </div>
+      <div class="spot-row">
+        <div class="spot-ico">🍵</div>
+        <div class="spot-body">
+          <div class="spot-name">En Etomo 大井町（茶泡飯 8:00起）</div>
+          <div class="spot-note"><span class="spot-alert">⚠ 只收現金！預計¥2,730，請提前備好現金。</span></div>
+        </div>
+        <div class="pay-col"><span class="pb pb-cash">💴 現金</span><span class="pb-rate gray">必備</span></div>
+      </div>
+      <div class="period-lbl">下午・高輪 / 武藏小山 / 戶越銀座</div>
+      <div class="spot-row">
+        <div class="spot-ico">🏬</div>
+        <div class="spot-body" data-spot="d3-wing">
+          <div class="spot-name">Wing 高輪（～20:00）</div>
+          <div class="spot-note">購物中心，信用卡可刷 → 星展eco 5%</div>
+          <button class="add-btn" id="btn-d3-wing" onclick="trackerOpenModal('d3-wing')" style="display:none">＋ 記帳</button>
+          <div class="log-list" id="logs-d3-wing"></div>
+        </div>
+        <div class="pay-col" id="paycol-d3-wing"><span class="pb pb-eco">🌿 星展eco</span><span class="pb-rate green">5%</span></div>
+      </div>
+      <div class="spot-row">
+        <div class="spot-ico">🛒</div>
+        <div class="spot-body" data-spot="d3-musashi">
+          <div class="spot-name">武藏小山 Palms 商店街（甜點・雜貨・熟食・超市）</div>
+          <div class="spot-note">商店街小店多支援 PayPay；大型店可刷星展eco</div>
+          <button class="add-btn" id="btn-d3-musashi" onclick="trackerOpenModal('d3-musashi')" style="display:none">＋ 記帳</button>
+          <div class="log-list" id="logs-d3-musashi"></div>
+        </div>
+        <div class="pay-col" id="paycol-d3-musashi"><span class="pb pb-pay">🔴 PayPay</span><span class="pb-rate blue">5%</span></div>
+      </div>
+      <div class="spot-row">
+        <div class="spot-ico">🥩</div>
+        <div class="spot-body" data-spot="d3-togoshi">
+          <div class="spot-name">戶越銀座商店街 — 肉と米 ハジメ ✅已訂位</div>
+          <div class="spot-note">預計¥3,550（牛排釜飯）。支援行動支付 → PayPay 5%</div>
+          <button class="add-btn" id="btn-d3-togoshi" onclick="trackerOpenModal('d3-togoshi')" style="display:none">＋ 記帳</button>
+          <div class="log-list" id="logs-d3-togoshi"></div>
+        </div>
+        <div class="pay-col" id="paycol-d3-togoshi"><span class="pb pb-pay">🔴 PayPay</span><span class="pb-rate blue">5%</span></div>
+      </div>
+      <div class="period-lbl">晚上・NEWoMan 高輪</div>
+      <div class="spot-row">
+        <div class="spot-ico">🧋</div>
+        <div class="spot-body" data-spot="d3-milktea">
+          <div class="spot-name">MILK TEA SERVICE（NEWoMan 北館 4F）</div>
+          <div class="spot-note">預計¥756，行動支付可 → PayPay 或 星展eco</div>
+          <button class="add-btn" id="btn-d3-milktea" onclick="trackerOpenModal('d3-milktea')" style="display:none">＋ 記帳</button>
+          <div class="log-list" id="logs-d3-milktea"></div>
+        </div>
+        <div class="pay-col" id="paycol-d3-milktea"><span class="pb pb-pay">🔴 PayPay</span><span class="pb-rate blue">5%</span></div>
+      </div>
+      <div class="spot-row">
+        <div class="spot-ico">🌃</div>
+        <div class="spot-body" data-spot="d3-luftbaum">
+          <div class="spot-name">NEWoMan 南館 28F LUFTBAUM 空中庭園（至24:00）</div>
+          <div class="spot-note">館內大型商場，有消費則刷星展eco 5%</div>
+          <button class="add-btn" id="btn-d3-luftbaum" onclick="trackerOpenModal('d3-luftbaum')" style="display:none">＋ 記帳</button>
+          <div class="log-list" id="logs-d3-luftbaum"></div>
+        </div>
+        <div class="pay-col" id="paycol-d3-luftbaum"><span class="pb pb-eco">🌿 星展eco</span><span class="pb-rate green">5%</span></div>
+      </div>
+    </div>
+
+    <!-- D4 -->
+    <div class="itin-day">
+      <div class="itin-day-head">
+        <div class="itin-day-num">D4</div>
+        <div class="itin-day-meta">
+          <div class="itin-day-title">4/19（日）返程日</div>
+          <div class="itin-day-sub">鰻魚飯早餐 → 星巴克 → 前往成田 12:50</div>
+        </div>
+      </div>
+      <div class="period-lbl">早上</div>
+      <div class="spot-row">
+        <div class="spot-ico">🐟</div>
+        <div class="spot-body" data-spot="d4-unagi">
+          <div class="spot-name">鰻之成瀨 泉嶽寺店 ✅已訂位</div>
+          <div class="spot-note">預計¥3,500（並重梅＋上重梅）。支援行動支付 → PayPay 掃碼 5%</div>
+          <button class="add-btn" id="btn-d4-unagi" onclick="trackerOpenModal('d4-unagi')" style="display:none">＋ 記帳</button>
+          <div class="log-list" id="logs-d4-unagi"></div>
+        </div>
+        <div class="pay-col" id="paycol-d4-unagi"><span class="pb pb-pay">🔴 PayPay</span><span class="pb-rate blue">5%</span></div>
+      </div>
+      <div class="spot-row">
+        <div class="spot-ico">☕</div>
+        <div class="spot-body" data-spot="d4-starbucks">
+          <div class="spot-name">星巴克 NEWoMan 高輪北館 5F（可互換或外帶）</div>
+          <div class="spot-note">信用卡可刷 → 星展eco 5%</div>
+          <button class="add-btn" id="btn-d4-starbucks" onclick="trackerOpenModal('d4-starbucks')" style="display:none">＋ 記帳</button>
+          <div class="log-list" id="logs-d4-starbucks"></div>
+        </div>
+        <div class="pay-col" id="paycol-d4-starbucks"><span class="pb pb-eco">🌿 星展eco</span><span class="pb-rate green">5%</span></div>
+      </div>
+      <div class="spot-row">
+        <div class="spot-ico">🚃</div>
+        <div class="spot-body">
+          <div class="spot-name">前往成田機場（12:50–13:53）</div>
+          <div class="spot-note">泉嶽寺→品川→成田。Suica 感應或 N'EX 票券</div>
+        </div>
+        <div class="pay-col"><span class="pb pb-suica">🍉 Suica</span><span class="pb-rate gray">感應</span></div>
+      </div>
+      <div class="spot-row">
+        <div class="spot-ico">🛫</div>
+        <div class="spot-body" data-spot="d4-airport-tax">
+          <div class="spot-name">成田機場免稅店（若有餘裕購物）</div>
+          <div class="spot-note">星展eco仍有額度先刷5%；超出後改台新Richart玩旅刷（3.3%無上限）</div>
+          <button class="add-btn" id="btn-d4-airport-tax" onclick="trackerOpenModal('d4-airport-tax')" style="display:none">＋ 記帳</button>
+          <div class="log-list" id="logs-d4-airport-tax"></div>
+        </div>
+        <div class="pay-col" id="paycol-d4-airport-tax"><span class="pb pb-eco">🌿 星展eco</span><span class="pb-rate green">5%</span><span class="pb pb-rich" style="margin-top:0.2rem;">🐶 Richart</span><span class="pb-rate blue" style="font-size:0.62rem;">3.3%補位</span></div>
+      </div>
+    </div>
+
+    <!-- 行程支付彙總表 -->
+    <hr style="border:none;border-top:2px solid #e0d8cc;margin:1.5rem 0;">
+    <div style="font-family:'DM Mono',monospace;font-size:0.63rem;letter-spacing:0.14em;text-transform:uppercase;color:var(--muted);margin-bottom:0.5rem;">行程支付彙總 · 依支付工具分組</div>
+    <div style="background:white;border:1.5px solid #ddd5c8;border-radius:8px;overflow:hidden;margin-bottom:1rem;">
+      <table class="itin-summary-table">
+        <thead><tr><th>據點</th><th>日次</th><th>最佳支付</th><th>回饋</th><th>理由</th></tr></thead>
+        <tbody>
+          <tr class="cat-row"><td colspan="5">🐻 玉山熊本熊 8.5% — 指定通路優先</td></tr>
+          <tr><td><strong>唐吉軻德 新宿</strong></td><td style="font-family:'DM Mono',monospace;font-size:0.72rem;">D1</td><td><span class="pb pb-kuma">🐻 熊本熊</span></td><td style="font-weight:900;color:#b8680b;font-family:'DM Mono',monospace;">8.5%</td><td style="font-size:0.75rem;color:var(--muted);">「熊好買」指定通路</td></tr>
+          <tr><td><strong>3COINS 原宿 旗艦店</strong></td><td style="font-family:'DM Mono',monospace;font-size:0.72rem;">D2</td><td><span class="pb pb-kuma">🐻 熊本熊</span></td><td style="font-weight:900;color:#b8680b;font-family:'DM Mono',monospace;">8.5%</td><td style="font-size:0.75rem;color:var(--muted);">「熊好買」指定通路</td></tr>
+          <tr><td><strong>3 COINS @Shibuya 109</strong></td><td style="font-family:'DM Mono',monospace;font-size:0.72rem;">D2</td><td><span class="pb pb-kuma">🐻 熊本熊</span></td><td style="font-weight:900;color:#b8680b;font-family:'DM Mono',monospace;">8.5%</td><td style="font-size:0.75rem;color:var(--muted);">同3 Coins，額度用完改星展eco</td></tr>
+          <tr><td><strong>Suica 加值（全程）</strong></td><td style="font-family:'DM Mono',monospace;font-size:0.72rem;">全程</td><td><span class="pb pb-kuma">🐻 熊本熊</span></td><td style="font-weight:900;color:#b8680b;font-family:'DM Mono',monospace;">8.5%</td><td style="font-size:0.75rem;color:var(--muted);">「熊好用」交通卡加值，iPhone Apple Pay</td></tr>
+          <tr class="cat-row"><td colspan="5">🌿 星展eco 5% — 一般商場、餐廳、百貨</td></tr>
+          <tr><td><strong>新宿伊勢丹 B1F</strong></td><td style="font-family:'DM Mono',monospace;font-size:0.72rem;">D1</td><td><span class="pb pb-eco">🌿 星展eco</span></td><td style="font-weight:900;color:#2e7d52;font-family:'DM Mono',monospace;">5%</td><td style="font-size:0.75rem;color:var(--muted);">百貨，非指定通路</td></tr>
+          <tr><td><strong>HANDS 新宿 ／ 澀谷</strong></td><td style="font-family:'DM Mono',monospace;font-size:0.72rem;">D1/D2</td><td><span class="pb pb-eco">🌿 星展eco</span></td><td style="font-weight:900;color:#2e7d52;font-family:'DM Mono',monospace;">5%</td><td style="font-size:0.75rem;color:var(--muted);">雜貨，非指定通路</td></tr>
+          <tr><td><strong>牛たんの檸檬</strong></td><td style="font-family:'DM Mono',monospace;font-size:0.72rem;">D1</td><td><span class="pb pb-eco">🌿 星展eco</span></td><td style="font-weight:900;color:#2e7d52;font-family:'DM Mono',monospace;">5%</td><td style="font-size:0.75rem;color:var(--muted);">¥7,160，信用卡可刷</td></tr>
+          <tr><td><strong>HAY TOKYO / and ST / SEAM GINZA</strong></td><td style="font-family:'DM Mono',monospace;font-size:0.72rem;">D2</td><td><span class="pb pb-eco">🌿 星展eco</span></td><td style="font-weight:900;color:#2e7d52;font-family:'DM Mono',monospace;">5%</td><td style="font-size:0.75rem;color:var(--muted);">選品店，信用卡可刷</td></tr>
+          <tr><td><strong>らぁ麵 はやし田（品川）</strong></td><td style="font-family:'DM Mono',monospace;font-size:0.72rem;">D2</td><td><span class="pb pb-eco">🌿 星展eco</span></td><td style="font-weight:900;color:#2e7d52;font-family:'DM Mono',monospace;">5%</td><td style="font-size:0.75rem;color:var(--muted);">¥2,500，信用卡可刷</td></tr>
+          <tr><td><strong>Wing高輪 / NEWoMan / 星巴克</strong></td><td style="font-family:'DM Mono',monospace;font-size:0.72rem;">D3/D4</td><td><span class="pb pb-eco">🌿 星展eco</span></td><td style="font-weight:900;color:#2e7d52;font-family:'DM Mono',monospace;">5%</td><td style="font-size:0.75rem;color:var(--muted);">館內大型商場</td></tr>
+          <tr><td><strong>成田機場免稅（星展額度內）</strong></td><td style="font-family:'DM Mono',monospace;font-size:0.72rem;">D4</td><td><span class="pb pb-eco">🌿 星展eco</span></td><td style="font-weight:900;color:#2e7d52;font-family:'DM Mono',monospace;">5%</td><td style="font-size:0.75rem;color:var(--muted);">每期¥30,000封頂，超出改Richart</td></tr>
+          <tr class="cat-row"><td colspan="5">🔴 PayPay 5% — 小店、商店街、行動支付店</td></tr>
+          <tr><td><strong>Little Pool Coffee（蛋包飯）</strong></td><td style="font-family:'DM Mono',monospace;font-size:0.72rem;">D2</td><td><span class="pb pb-pay">🔴 PayPay</span></td><td style="font-weight:900;color:#cc0033;font-family:'DM Mono',monospace;">5%</td><td style="font-size:0.75rem;color:var(--muted);">小咖啡館，行動支付掃碼</td></tr>
+          <tr><td><strong>neel 神宮前 / dotcom space</strong></td><td style="font-family:'DM Mono',monospace;font-size:0.72rem;">D2</td><td><span class="pb pb-pay">🔴 PayPay</span></td><td style="font-weight:900;color:#cc0033;font-family:'DM Mono',monospace;">5%</td><td style="font-size:0.75rem;color:var(--muted);">甜點咖啡小店</td></tr>
+          <tr><td><strong>武藏小山 / 天王洲 小攤</strong></td><td style="font-family:'DM Mono',monospace;font-size:0.72rem;">D3</td><td><span class="pb pb-pay">🔴 PayPay</span></td><td style="font-weight:900;color:#cc0033;font-family:'DM Mono',monospace;">5%</td><td style="font-size:0.75rem;color:var(--muted);">商店街普遍支援PayPay</td></tr>
+          <tr><td><strong>肉と米 ハジメ / MILK TEA SERVICE</strong></td><td style="font-family:'DM Mono',monospace;font-size:0.72rem;">D3</td><td><span class="pb pb-pay">🔴 PayPay</span></td><td style="font-weight:900;color:#cc0033;font-family:'DM Mono',monospace;">5%</td><td style="font-size:0.75rem;color:var(--muted);">行動支付友善</td></tr>
+          <tr><td><strong>鰻之成瀨 泉嶽寺</strong></td><td style="font-family:'DM Mono',monospace;font-size:0.72rem;">D4</td><td><span class="pb pb-pay">🔴 PayPay</span></td><td style="font-weight:900;color:#cc0033;font-family:'DM Mono',monospace;">5%</td><td style="font-size:0.75rem;color:var(--muted);">行動支付可</td></tr>
+          <tr class="cat-row"><td colspan="5">🍉 Suica — 全程交通</td></tr>
+          <tr><td><strong>N'EX / 山手線 / 所有電車</strong></td><td style="font-family:'DM Mono',monospace;font-size:0.72rem;">全程</td><td><span class="pb pb-suica">🍉 Suica</span></td><td style="font-weight:900;color:#3a8a4a;font-family:'DM Mono',monospace;">加值8.5%</td><td style="font-size:0.75rem;color:var(--muted);">加值用熊本熊卡，搭車刷Suica</td></tr>
+          <tr class="cat-row"><td colspan="5">💴 現金 — 只收現金店家</td></tr>
+          <tr><td><strong style="color:var(--red);">⚠ En Etomo 大井町（茶泡飯）</strong></td><td style="font-family:'DM Mono',monospace;font-size:0.72rem;">D3</td><td><span class="pb pb-cash">💴 現金</span></td><td style="font-family:'DM Mono',monospace;color:#999;">—</td><td style="font-size:0.75rem;color:var(--red);font-weight:700;">只收現金！備¥3,000以上</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="itin-note-box">
+      <strong>💡 四天額度分配建議</strong><br>
+      🐻 熊本熊 8.5% 每期上限 NT$500（≒¥25,000）→ D1 唐吉軻德＋D2 3Coins 兩處＋Suica加值<br>
+      🌿 星展eco 5% 每期上限 NT$600（≒¥30,000）→ HANDS×2、牛たん(¥7,160)、拉麵、百貨消費<br>
+      🔴 PayPay 每季上限 NT$100（≒¥5,000）→ Little Pool、neel、鰻魚飯、商店街小店<br>
+      🐶 Richart 3.3% 無上限 → 超出以上所有額度的補底卡，機場免稅店大額消費
+    </div>
   </div>
 
   <!-- ── Sub panel 1: 場域建議 ── -->
-  <div id="pay-panel-advisor" class="pay-sub-panel active">
+  <div id="pay-panel-advisor" class="pay-sub-panel">
     <div style="background:white;border:1.5px solid #ddd5c8;border-radius:8px;padding:1.2rem 1.4rem;margin-bottom:1.2rem;">
       <div class="pay-section-label" style="margin-bottom:0.75rem;">選擇消費場域</div>
       <div class="pay-venue-grid" id="pay-venue-selector">
@@ -2036,6 +2668,12 @@ function switchPayTab(name, btn) {
   document.querySelectorAll('.pay-sub-btn').forEach(b => b.classList.remove('active'));
   document.getElementById('pay-panel-' + name).classList.add('active');
   btn.classList.add('active');
+  // Show tracker bar only on itinerary sub-tab
+  if (name === 'itinerary' && trackerActive) {
+    document.getElementById('tracker-bar').classList.add('visible');
+  } else {
+    document.getElementById('tracker-bar').classList.remove('visible');
+  }
 }
 
 // 頁籤切換
@@ -2044,11 +2682,308 @@ function switchTab(id, btn) {
   document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
   document.getElementById(id).classList.add('active');
   btn.classList.add('active');
+  // Hide tracker bar when leaving payment tab
+  if (id !== 'payment') {
+    document.getElementById('tracker-bar').classList.remove('visible');
+  } else if (trackerActive) {
+    document.getElementById('tracker-bar').classList.add('visible');
+  }
 }
 
 // staggered animation
 document.querySelectorAll('.event').forEach((el, i) => {
   el.style.animationDelay = (i * 0.04) + 's';
+});
+
+// ═══════════════════════════════════════════════════════
+//  TRACKER — 動態回饋追蹤器
+// ═══════════════════════════════════════════════════════
+const TRACKER_CAPS = {
+  kuma:  { label: '🐻 熊本熊',   cap: 500,   rate: 0.085, color: '#b8680b', unlimited: false },
+  eco:   { label: '🌿 星展eco',  cap: 600,   rate: 0.05,  color: '#2e7d52', unlimited: false },
+  pay:   { label: '🔴 PayPay',  cap: 100,   rate: 0.05,  color: '#cc0033', unlimited: false },
+  rich:  { label: '🐶 Richart', cap: 99999, rate: 0.033, color: '#2c5f8a', unlimited: true  },
+};
+const TRACKER_JPY_TWD = 0.215;
+const TRACKER_SPOTS = {
+  'd1-isetan':          { name: '新宿伊勢丹',      primary: 'eco',  fallback: 'rich' },
+  'd1-hands-shinjuku':  { name: 'HANDS 新宿',      primary: 'eco',  fallback: 'rich' },
+  'd1-donki':           { name: '唐吉軻德 新宿',   primary: 'kuma', fallback: 'eco'  },
+  'd1-gyutan':          { name: '牛たんの檸檬',    primary: 'eco',  fallback: 'rich' },
+  'd2-ikebukuro':       { name: '逛池袋',          primary: 'eco',  fallback: 'rich' },
+  'd2-littlepool':      { name: 'Little Pool Coffee', primary: 'pay', fallback: 'eco' },
+  'd2-hay':             { name: 'HAY TOKYO',       primary: 'eco',  fallback: 'rich' },
+  'd2-3coins-harajuku': { name: '3COINS 原宿',     primary: 'kuma', fallback: 'eco'  },
+  'd2-andst':           { name: 'and ST TOKYO',    primary: 'eco',  fallback: 'rich' },
+  'd2-neel':            { name: 'neel 神宮前',     primary: 'pay',  fallback: 'eco'  },
+  'd2-seam':            { name: 'SEAM GINZA',      primary: 'eco',  fallback: 'rich' },
+  'd2-hands-shibuya':   { name: 'HANDS 澀谷',      primary: 'eco',  fallback: 'rich' },
+  'd2-3coins-109':      { name: '3 COINS @109',    primary: 'kuma', fallback: 'eco'  },
+  'd2-hayashida':       { name: 'らぁ麵 はやし田', primary: 'eco',  fallback: 'rich' },
+  'd3-tennozu':         { name: '天王洲島',         primary: 'pay',  fallback: 'eco'  },
+  'd3-wing':            { name: 'Wing 高輪',        primary: 'eco',  fallback: 'rich' },
+  'd3-musashi':         { name: '武藏小山商店街',   primary: 'pay',  fallback: 'eco'  },
+  'd3-togoshi':         { name: '肉と米ハジメ',     primary: 'pay',  fallback: 'eco'  },
+  'd3-milktea':         { name: 'MILK TEA SERVICE', primary: 'pay', fallback: 'eco'  },
+  'd3-luftbaum':        { name: 'NEWoMan 高輪',     primary: 'eco',  fallback: 'rich' },
+  'd4-unagi':           { name: '鰻之成瀨',         primary: 'pay',  fallback: 'eco'  },
+  'd4-starbucks':       { name: '星巴克',           primary: 'eco',  fallback: 'rich' },
+  'd4-airport-tax':     { name: '成田機場免稅',     primary: 'eco',  fallback: 'rich' },
+};
+
+let trackerUsed = { kuma: 0, eco: 0, pay: 0, rich: 0 };
+let trackerLogs = {};
+let trackerPendingSpot = null;
+let trackerActive = false;
+
+function trackerSaveState() {
+  try { localStorage.setItem('tokyo26_tracker_used', JSON.stringify(trackerUsed)); } catch(e){}
+  try { localStorage.setItem('tokyo26_tracker_logs', JSON.stringify(trackerLogs)); } catch(e){}
+}
+function trackerLoadState() {
+  try { const u = localStorage.getItem('tokyo26_tracker_used'); if(u) trackerUsed = JSON.parse(u); } catch(e){}
+  try { const l = localStorage.getItem('tokyo26_tracker_logs'); if(l) trackerLogs = JSON.parse(l); } catch(e){}
+}
+
+function trackerActivate() {
+  trackerActive = true;
+  trackerLoadState();
+  document.getElementById('tracker-bar').classList.add('visible');
+  trackerRenderDashboard();
+  trackerRenderAllSpotStatuses();
+  document.querySelectorAll('.add-btn').forEach(b => b.style.display = 'inline-flex');
+  trackerRenderAllLogs();
+}
+
+function trackerRenderDashboard() {
+  const container = document.getElementById('tracker-cards');
+  container.innerHTML = Object.entries(TRACKER_CAPS).map(([key, cfg]) => {
+    const u = trackerUsed[key] || 0;
+    const pct = cfg.unlimited ? 0 : Math.min(100, (u / cfg.cap) * 100);
+    const remaining = cfg.unlimited ? '∞' : Math.max(0, cfg.cap - u);
+    const barCls = cfg.unlimited ? 'ok' : (pct >= 100 ? 'full' : pct >= 70 ? 'warn' : 'ok');
+    const cardCls = cfg.unlimited ? '' : (pct >= 100 ? 'exhausted' : pct >= 70 ? 'warning' : '');
+    const pctLabel = cfg.unlimited ? '無上限' : (pct >= 100 ? '已用盡' : `${Math.round(pct)}%`);
+    return `
+    <div class="tracker-card ${cardCls}" id="tc-${key}">
+      <div class="tc-head">
+        <span class="tc-name">${cfg.label}</span>
+        <span class="tc-pct ${barCls}">${pctLabel}</span>
+      </div>
+      ${!cfg.unlimited ? `
+      <div class="tc-bar-track"><div class="tc-bar-fill ${barCls}" id="tbar-${key}" style="width:${pct}%"></div></div>
+      <div class="tc-amounts">
+        <span class="tc-used">已用 NT$${u.toFixed(0)}</span>
+        <span class="tc-cap">上限 NT$${cfg.cap}</span>
+      </div>` : `
+      <div style="font-size:0.62rem;color:#555;margin-top:0.25rem;font-family:'DM Mono',monospace;">無回饋上限 · 已記 NT$${u.toFixed(0)}</div>`}
+    </div>`;
+  }).join('');
+}
+
+function trackerUpdateDashboard(key) {
+  const cfg = TRACKER_CAPS[key];
+  const u = trackerUsed[key] || 0;
+  const pct = cfg.unlimited ? 0 : Math.min(100, (u / cfg.cap) * 100);
+  const barCls = cfg.unlimited ? 'ok' : (pct >= 100 ? 'full' : pct >= 70 ? 'warn' : 'ok');
+  const pctLabel = cfg.unlimited ? '無上限' : (pct >= 100 ? '已用盡' : `${Math.round(pct)}%`);
+  const cardEl = document.getElementById(`tc-${key}`);
+  if (!cardEl) return;
+  cardEl.className = `tracker-card ${cfg.unlimited ? '' : (pct>=100?'exhausted':pct>=70?'warning':'')}`;
+  cardEl.querySelector('.tc-pct').textContent = pctLabel;
+  cardEl.querySelector('.tc-pct').className = `tc-pct ${barCls}`;
+  const barEl = document.getElementById(`tbar-${key}`);
+  if (barEl) { barEl.style.width = pct + '%'; barEl.className = `tc-bar-fill ${barCls}`; }
+  const usedEl = cardEl.querySelector('.tc-used');
+  if (usedEl) usedEl.textContent = `已用 NT$${u.toFixed(0)}`;
+}
+
+function trackerGetEffectivePay(spotId) {
+  const s = TRACKER_SPOTS[spotId];
+  if (!s) return null;
+  const priCfg = TRACKER_CAPS[s.primary];
+  if (!priCfg.unlimited && (trackerUsed[s.primary]||0) >= priCfg.cap) {
+    const fbCfg = TRACKER_CAPS[s.fallback];
+    if (!fbCfg.unlimited && (trackerUsed[s.fallback]||0) >= fbCfg.cap) {
+      return { pay: 'rich', primaryExhausted: true, fallbackExhausted: true };
+    }
+    return { pay: s.fallback, primaryExhausted: true, fallbackExhausted: false };
+  }
+  return { pay: s.primary, primaryExhausted: false, fallbackExhausted: false };
+}
+
+function trackerRenderSpotStatus(spotId) {
+  const s = TRACKER_SPOTS[spotId];
+  if (!s) return;
+  const col = document.getElementById(`paycol-${spotId}`);
+  if (!col) return;
+  const eff = trackerGetEffectivePay(spotId);
+  const priCfg = TRACKER_CAPS[s.primary];
+  const u = trackerUsed[s.primary] || 0;
+  const remaining = priCfg.unlimited ? Infinity : Math.max(0, priCfg.cap - u);
+
+  let statusHtml = '';
+  let fallbackHtml = '';
+  if (eff.primaryExhausted) {
+    statusHtml = `<span class="pay-status-chip chip-exhausted">額度已用盡</span>`;
+    const fbCfg = TRACKER_CAPS[s.fallback];
+    const fbRate = s.fallback === 'rich' ? '3.3%' : s.fallback === 'eco' ? '5%' : '5%';
+    fallbackHtml = `<div class="fallback-pay show">↪ 改用 ${fbCfg.label}<br><span style="font-family:'DM Mono',monospace;font-weight:700;color:#b8860b;">${fbRate}</span></div>`;
+  } else {
+    const pct = priCfg.unlimited ? 0 : (u / priCfg.cap) * 100;
+    statusHtml = pct >= 70
+      ? `<span class="pay-status-chip chip-warn">剩 NT$${remaining.toFixed(0)}</span>`
+      : `<span class="pay-status-chip chip-ok">剩 NT$${remaining.toFixed(0)}</span>`;
+  }
+
+  const existingPb = col.querySelectorAll('.pb:not(.pay-status-chip), .pb-rate');
+  let pbHtml = '';
+  existingPb.forEach(el => { pbHtml += el.outerHTML; });
+  col.innerHTML = pbHtml + statusHtml + fallbackHtml;
+}
+
+function trackerRenderAllSpotStatuses() {
+  Object.keys(TRACKER_SPOTS).forEach(id => trackerRenderSpotStatus(id));
+}
+
+function trackerRenderLogs(spotId) {
+  const el = document.getElementById(`logs-${spotId}`);
+  if (!el) return;
+  const entries = trackerLogs[spotId] || [];
+  if (entries.length === 0) { el.innerHTML = ''; return; }
+  el.innerHTML = entries.map((e, i) => `
+    <div class="log-entry">
+      <span>¥${e.jpy.toLocaleString()}</span>
+      <span>→</span>
+      <span class="log-amt">NT$${e.twd.toFixed(0)}</span>
+      <span class="log-rebate">回饋 NT$${e.rebate.toFixed(1)}</span>
+      <span style="font-size:0.58rem;color:#aaa;">(${TRACKER_CAPS[e.payUsed]?.label||e.payUsed})</span>
+      <button class="log-del" onclick="trackerDeleteLog('${spotId}',${i})" title="刪除">✕</button>
+    </div>`).join('');
+  const btn = document.getElementById(`btn-${spotId}`);
+  if (btn) { btn.classList.add('logged'); btn.textContent = `＋ 記帳 (${entries.length}筆)`; }
+}
+
+function trackerRenderAllLogs() {
+  Object.keys(trackerLogs).forEach(spotId => trackerRenderLogs(spotId));
+}
+
+function trackerOpenModal(spotId) {
+  if (!trackerActive) { trackerActivate(); }
+  trackerPendingSpot = spotId;
+  const s = TRACKER_SPOTS[spotId];
+  const eff = trackerGetEffectivePay(spotId);
+  const payCfg = TRACKER_CAPS[eff.pay];
+  document.getElementById('tracker-modal-title').textContent = s.name;
+  document.getElementById('tracker-modal-sub').innerHTML =
+    `<span style="font-family:'DM Mono',monospace;">使用支付：${payCfg.label}</span>` +
+    (eff.primaryExhausted ? `<br><span style="color:var(--red);font-size:0.72rem;">⚠ ${TRACKER_CAPS[s.primary].label} 額度已用盡，已自動切換</span>` : '') +
+    `<br>回饋率：<strong>${(payCfg.rate*100).toFixed(1)}%</strong>` +
+    (payCfg.unlimited ? '' : `，剩餘額度 NT$${Math.max(0,payCfg.cap-(trackerUsed[eff.pay]||0)).toFixed(0)}`);
+  document.getElementById('tracker-modal-amount').value = '';
+  trackerUpdatePreview();
+  document.getElementById('tracker-modal').classList.add('open');
+  setTimeout(() => document.getElementById('tracker-modal-amount').focus(), 100);
+}
+
+function trackerUpdatePreview() {
+  if (!trackerPendingSpot) return;
+  const s = TRACKER_SPOTS[trackerPendingSpot];
+  const eff = trackerGetEffectivePay(trackerPendingSpot);
+  const payCfg = TRACKER_CAPS[eff.pay];
+  const jpy = parseFloat(document.getElementById('tracker-modal-amount').value) || 0;
+  const twd = jpy * TRACKER_JPY_TWD;
+  const maxRebate = payCfg.unlimited ? Infinity : Math.max(0, payCfg.cap - (trackerUsed[eff.pay]||0));
+  const rebate = Math.min(twd * payCfg.rate, maxRebate);
+  const newTotal = (trackerUsed[eff.pay]||0) + rebate;
+  const pctAfter = payCfg.unlimited ? 0 : Math.min(100, (newTotal / payCfg.cap) * 100);
+  let warnHtml = '';
+  if (!payCfg.unlimited && pctAfter >= 100) {
+    const fbCfg = TRACKER_CAPS[s.fallback];
+    warnHtml = `<div class="prev-warn">⚠ 此筆後 ${payCfg.label} 額度將用盡，下筆請改用 ${fbCfg.label}</div>`;
+  } else if (!payCfg.unlimited && pctAfter >= 70) {
+    warnHtml = `<div class="prev-warn">⚠ 此筆後剩餘額度 NT$${Math.max(0,payCfg.cap-newTotal).toFixed(0)}</div>`;
+  }
+  document.getElementById('tracker-modal-preview').innerHTML = jpy === 0
+    ? '<span style="color:#888;font-size:0.78rem;">輸入消費金額（日圓）後預覽回饋</span>'
+    : `消費 ¥${jpy.toLocaleString()} ≒ NT$${twd.toFixed(0)}<br>
+       回饋率 <span class="prev-rate">${(payCfg.rate*100).toFixed(1)}%</span><br>
+       預估回饋 <span class="prev-rebate">NT$${rebate.toFixed(1)}</span>
+       ${warnHtml}`;
+}
+
+function trackerCloseModal() {
+  document.getElementById('tracker-modal').classList.remove('open');
+  trackerPendingSpot = null;
+}
+
+function trackerConfirmLog() {
+  const jpy = parseFloat(document.getElementById('tracker-modal-amount').value);
+  if (!jpy || jpy <= 0 || !trackerPendingSpot) return;
+  const s = TRACKER_SPOTS[trackerPendingSpot];
+  const eff = trackerGetEffectivePay(trackerPendingSpot);
+  const payCfg = TRACKER_CAPS[eff.pay];
+  const twd = jpy * TRACKER_JPY_TWD;
+  const maxRebate = payCfg.unlimited ? twd * payCfg.rate : Math.max(0, payCfg.cap - (trackerUsed[eff.pay]||0));
+  const rebate = Math.min(twd * payCfg.rate, maxRebate);
+  if (!trackerUsed[eff.pay]) trackerUsed[eff.pay] = 0;
+  trackerUsed[eff.pay] += rebate;
+  if (!trackerLogs[trackerPendingSpot]) trackerLogs[trackerPendingSpot] = [];
+  trackerLogs[trackerPendingSpot].push({ jpy, twd, rebate, payUsed: eff.pay });
+  trackerSaveState();
+  trackerCloseModal();
+  trackerUpdateDashboard(eff.pay);
+  trackerRenderAllSpotStatuses();
+  trackerRenderLogs(trackerPendingSpot);
+}
+
+function trackerDeleteLog(spotId, idx) {
+  const e = trackerLogs[spotId][idx];
+  if (!e) return;
+  trackerUsed[e.payUsed] = Math.max(0, (trackerUsed[e.payUsed]||0) - e.rebate);
+  trackerLogs[spotId].splice(idx, 1);
+  trackerSaveState();
+  trackerUpdateDashboard(e.payUsed);
+  trackerRenderAllSpotStatuses();
+  trackerRenderLogs(spotId);
+}
+
+function trackerResetAll() {
+  if (!confirm('確定要清除所有記帳記錄？')) return;
+  trackerUsed = { kuma: 0, eco: 0, pay: 0, rich: 0 };
+  trackerLogs = {};
+  trackerSaveState();
+  trackerRenderDashboard();
+  trackerRenderAllSpotStatuses();
+  document.querySelectorAll('.log-list').forEach(el => el.innerHTML = '');
+  document.querySelectorAll('.add-btn').forEach(b => {
+    b.classList.remove('logged');
+    b.textContent = '＋ 記帳';
+  });
+}
+
+// Close modal on overlay click
+document.getElementById('tracker-modal').addEventListener('click', function(e) {
+  if (e.target === this) trackerCloseModal();
+});
+// Enter key confirms modal
+document.getElementById('tracker-modal-amount').addEventListener('keydown', function(e) {
+  if (e.key === 'Enter') trackerConfirmLog();
+});
+
+// Auto-restore tracker state on load
+window.addEventListener('load', () => {
+  try {
+    const saved = localStorage.getItem('tokyo26_tracker_used');
+    if (saved) {
+      const parsed = JSON.parse(saved);
+      if (Object.values(parsed).some(v => v > 0)) trackerActivate();
+    }
+  } catch(e) {}
+  // Hide all add-btns by default
+  document.querySelectorAll('.add-btn').forEach(b => {
+    if (!trackerActive) b.style.display = 'none';
+  });
 });
 </script>
 </body>
