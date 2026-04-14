@@ -869,7 +869,10 @@
   <div class="tracker-bar-inner">
     <div class="tracker-title">
       <span>⚡ 回饋額度追蹤器 · 即時剩餘</span>
-      <button class="tracker-reset" onclick="trackerResetAll()">↺ 重置全部</button>
+      <div style="display:flex;align-items:center;gap:0.75rem;">
+        <span id="tracker-rate-display" style="font-family:'DM Mono',monospace;font-size:0.58rem;color:#aaa;">匯率載入中...</span>
+        <button class="tracker-reset" onclick="trackerResetAll()">↺ 重置全部</button>
+      </div>
     </div>
     <div class="tracker-cards" id="tracker-cards"></div>
   </div>
@@ -2704,7 +2707,7 @@ const TRACKER_CAPS = {
   pay:   { label: '🔴 PayPay',  cap: 100,   rate: 0.05,  color: '#cc0033', unlimited: false },
   rich:  { label: '🐶 Richart', cap: 99999, rate: 0.033, color: '#2c5f8a', unlimited: true  },
 };
-const TRACKER_JPY_TWD = 0.215;
+
 const TRACKER_SPOTS = {
   'd1-isetan':          { name: '新宿伊勢丹',      primary: 'eco',  fallback: 'rich' },
   'd1-hands-shinjuku':  { name: 'HANDS 新宿',      primary: 'eco',  fallback: 'rich' },
@@ -2735,6 +2738,37 @@ let trackerUsed = { kuma: 0, eco: 0, pay: 0, rich: 0 };
 let trackerLogs = {};
 let trackerPendingSpot = null;
 let trackerActive = false;
+let TRACKER_JPY_TWD_LIVE = 0.215; // fallback，啟動時會嘗試更新
+
+// ── 台銀即期匯率（JPY買入） ──
+async function fetchBOTRate() {
+  try {
+    const res = await fetch('https://api.allorigins.win/get?url=' + encodeURIComponent('https://rate.bot.com.tw/xrt/flcsv/0/day'));
+    const json = await res.json();
+    const lines = json.contents.split('\n');
+    for (const line of lines) {
+      if (line.includes('JPY') || line.includes('日圓')) {
+        const cols = line.split(',');
+        // 台銀CSV格式: 幣別,現金買入,現金賣出,即期買入,即期賣出,...
+        // 即期買入在第4欄(index 3)，即期賣出在第5欄(index 4)
+        // 取即期賣出（刷卡消費參考賣出價）
+        const sell = parseFloat(cols[4]);
+        if (sell && sell > 0) {
+          TRACKER_JPY_TWD_LIVE = sell / 100; // 台銀是每百日圓報價
+          updateRateDisplay();
+          return;
+        }
+      }
+    }
+  } catch(e) {
+    // 若無法取得，保持預設值
+  }
+}
+
+function updateRateDisplay() {
+  const el = document.getElementById('tracker-rate-display');
+  if (el) el.textContent = `匯率 ¥100 = NT$${(TRACKER_JPY_TWD_LIVE * 100).toFixed(2)}（台銀即期）`;
+}
 
 function trackerSaveState() {
   try { localStorage.setItem('tokyo26_tracker_used', JSON.stringify(trackerUsed)); } catch(e){}
@@ -2748,6 +2782,7 @@ function trackerLoadState() {
 function trackerActivate() {
   trackerActive = true;
   trackerLoadState();
+  fetchBOTRate(); // 取得台銀即期匯率
   document.getElementById('tracker-bar').classList.add('visible');
   trackerRenderDashboard();
   trackerRenderAllSpotStatuses();
@@ -2820,7 +2855,10 @@ function trackerRenderSpotStatus(spotId) {
   const eff = trackerGetEffectivePay(spotId);
   const priCfg = TRACKER_CAPS[s.primary];
   const u = trackerUsed[s.primary] || 0;
-  const remaining = priCfg.unlimited ? Infinity : Math.max(0, priCfg.cap - u);
+  // remaining = 剩餘回饋額度（NT$）
+  const rebateRemaining = priCfg.unlimited ? Infinity : Math.max(0, priCfg.cap - u);
+  // 還能享有回饋的消費上限（NT$）= 剩餘回饋 / 回饋率
+  const spendRemaining = priCfg.unlimited ? Infinity : Math.round(rebateRemaining / priCfg.rate);
 
   let statusHtml = '';
   let fallbackHtml = '';
@@ -2831,9 +2869,8 @@ function trackerRenderSpotStatus(spotId) {
     fallbackHtml = `<div class="fallback-pay show">↪ 改用 ${fbCfg.label}<br><span style="font-family:'DM Mono',monospace;font-weight:700;color:#b8860b;">${fbRate}</span></div>`;
   } else {
     const pct = priCfg.unlimited ? 0 : (u / priCfg.cap) * 100;
-    statusHtml = pct >= 70
-      ? `<span class="pay-status-chip chip-warn">剩 NT$${remaining.toFixed(0)}</span>`
-      : `<span class="pay-status-chip chip-ok">剩 NT$${remaining.toFixed(0)}</span>`;
+    const chipCls = pct >= 70 ? 'chip-warn' : 'chip-ok';
+    statusHtml = `<span class="pay-status-chip ${chipCls}" title="回饋剩餘 NT$${rebateRemaining.toFixed(0)}">可刷 NT$${spendRemaining.toLocaleString()}</span>`;
   }
 
   const existingPb = col.querySelectorAll('.pb:not(.pay-status-chip), .pb-rate');
@@ -2879,7 +2916,11 @@ function trackerOpenModal(spotId) {
     `<span style="font-family:'DM Mono',monospace;">使用支付：${payCfg.label}</span>` +
     (eff.primaryExhausted ? `<br><span style="color:var(--red);font-size:0.72rem;">⚠ ${TRACKER_CAPS[s.primary].label} 額度已用盡，已自動切換</span>` : '') +
     `<br>回饋率：<strong>${(payCfg.rate*100).toFixed(1)}%</strong>` +
-    (payCfg.unlimited ? '' : `，剩餘額度 NT$${Math.max(0,payCfg.cap-(trackerUsed[eff.pay]||0)).toFixed(0)}`);
+    (payCfg.unlimited ? '' : (() => {
+      const rebateLeft = Math.max(0, payCfg.cap - (trackerUsed[eff.pay]||0));
+      const spendLeft = Math.round(rebateLeft / payCfg.rate);
+      return `，尚可刷 NT$${spendLeft.toLocaleString()}（回饋剩 NT$${rebateLeft.toFixed(0)}）`;
+    })());
   document.getElementById('tracker-modal-amount').value = '';
   trackerUpdatePreview();
   document.getElementById('tracker-modal').classList.add('open');
@@ -2892,7 +2933,7 @@ function trackerUpdatePreview() {
   const eff = trackerGetEffectivePay(trackerPendingSpot);
   const payCfg = TRACKER_CAPS[eff.pay];
   const jpy = parseFloat(document.getElementById('tracker-modal-amount').value) || 0;
-  const twd = jpy * TRACKER_JPY_TWD;
+  const twd = jpy * TRACKER_JPY_TWD_LIVE;
   const maxRebate = payCfg.unlimited ? Infinity : Math.max(0, payCfg.cap - (trackerUsed[eff.pay]||0));
   const rebate = Math.min(twd * payCfg.rate, maxRebate);
   const newTotal = (trackerUsed[eff.pay]||0) + rebate;
@@ -2902,7 +2943,9 @@ function trackerUpdatePreview() {
     const fbCfg = TRACKER_CAPS[s.fallback];
     warnHtml = `<div class="prev-warn">⚠ 此筆後 ${payCfg.label} 額度將用盡，下筆請改用 ${fbCfg.label}</div>`;
   } else if (!payCfg.unlimited && pctAfter >= 70) {
-    warnHtml = `<div class="prev-warn">⚠ 此筆後剩餘額度 NT$${Math.max(0,payCfg.cap-newTotal).toFixed(0)}</div>`;
+    const rebateLeft = Math.max(0, payCfg.cap - newTotal);
+    const spendLeft = Math.round(rebateLeft / payCfg.rate);
+    warnHtml = `<div class="prev-warn">⚠ 此筆後尚可刷 NT$${spendLeft.toLocaleString()}（回饋剩 NT$${rebateLeft.toFixed(0)}）</div>`;
   }
   document.getElementById('tracker-modal-preview').innerHTML = jpy === 0
     ? '<span style="color:#888;font-size:0.78rem;">輸入消費金額（日圓）後預覽回饋</span>'
@@ -2923,7 +2966,7 @@ function trackerConfirmLog() {
   const s = TRACKER_SPOTS[trackerPendingSpot];
   const eff = trackerGetEffectivePay(trackerPendingSpot);
   const payCfg = TRACKER_CAPS[eff.pay];
-  const twd = jpy * TRACKER_JPY_TWD;
+  const twd = jpy * TRACKER_JPY_TWD_LIVE;
   const maxRebate = payCfg.unlimited ? twd * payCfg.rate : Math.max(0, payCfg.cap - (trackerUsed[eff.pay]||0));
   const rebate = Math.min(twd * payCfg.rate, maxRebate);
   if (!trackerUsed[eff.pay]) trackerUsed[eff.pay] = 0;
@@ -2973,6 +3016,7 @@ document.getElementById('tracker-modal-amount').addEventListener('keydown', func
 
 // Auto-restore tracker state on load
 window.addEventListener('load', () => {
+  fetchBOTRate(); // 頁面載入時即取得台銀匯率
   try {
     const saved = localStorage.getItem('tokyo26_tracker_used');
     if (saved) {
