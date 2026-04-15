@@ -881,10 +881,110 @@
     opacity: 0.7;
   }
 
+  /* ── 重置確認 modal ── */
+  .reset-confirm-overlay {
+    display: none; position: fixed; inset: 0; z-index: 200;
+    background: rgba(0,0,0,0.55); align-items: center; justify-content: center;
+  }
+  .reset-confirm-overlay.open { display: flex; }
+  .reset-confirm-box {
+    background: white; border-radius: 10px; padding: 1.6rem 1.8rem;
+    max-width: 320px; width: 90%; box-shadow: 0 20px 60px rgba(0,0,0,0.25);
+    text-align: center;
+  }
+  .reset-confirm-icon { font-size: 2rem; margin-bottom: 0.6rem; }
+  .reset-confirm-title { font-size: 1rem; font-weight: 800; color: var(--ink); margin-bottom: 0.4rem; }
+  .reset-confirm-body { font-size: 0.8rem; color: var(--muted); line-height: 1.6; margin-bottom: 1.2rem; }
+  .reset-confirm-btns { display: flex; gap: 0.6rem; }
+  .reset-confirm-btns button { flex: 1; padding: 0.65rem; border-radius: 6px; border: none; font-family: 'Noto Serif TC',serif; font-size: 0.82rem; font-weight: 700; cursor: pointer; transition: all 0.15s; }
+  .reset-btn-cancel { background: #f0ead8; color: var(--muted); }
+  .reset-btn-cancel:hover { background: #e0d8cc; }
+  .reset-btn-confirm { background: #c0392b; color: white; }
+  .reset-btn-confirm:hover { background: #a93226; }
+
+  /* ── 消費明細 modal ── */
+  .ledger-overlay {
+    display: none; position: fixed; inset: 0; z-index: 200;
+    background: rgba(0,0,0,0.55); align-items: flex-start; justify-content: center;
+    padding: 2rem 1rem; overflow-y: auto;
+  }
+  .ledger-overlay.open { display: flex; }
+  .ledger-box {
+    background: var(--paper); border-radius: 12px; width: 100%; max-width: 560px;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.3); overflow: hidden;
+    margin: auto;
+  }
+  .ledger-header {
+    background: var(--ink); color: var(--paper);
+    padding: 1.1rem 1.4rem; display: flex; justify-content: space-between; align-items: center;
+  }
+  .ledger-header-title { font-size: 0.95rem; font-weight: 800; letter-spacing: 0.05em; }
+  .ledger-header-close {
+    background: none; border: 1px solid rgba(255,255,255,0.25); color: rgba(255,255,255,0.7);
+    border-radius: 4px; padding: 0.2rem 0.6rem; cursor: pointer; font-size: 0.75rem;
+    font-family: 'DM Mono',monospace; transition: all 0.15s;
+  }
+  .ledger-header-close:hover { background: rgba(255,255,255,0.1); color: white; }
+  .ledger-body { padding: 1.2rem 1.4rem; max-height: 70vh; overflow-y: auto; }
+  .ledger-summary-bar {
+    display: grid; grid-template-columns: repeat(2, 1fr); gap: 0.6rem;
+    margin-bottom: 1.2rem;
+  }
+  .ledger-sum-card {
+    background: white; border: 1.5px solid #e0d8cc; border-radius: 8px;
+    padding: 0.7rem 0.9rem;
+  }
+  .ledger-sum-label { font-family: 'DM Mono',monospace; font-size: 0.58rem; color: var(--muted); letter-spacing: 0.08em; text-transform: uppercase; margin-bottom: 0.2rem; }
+  .ledger-sum-val { font-family: 'DM Mono',monospace; font-size: 1.05rem; font-weight: 900; color: var(--ink); }
+  .ledger-sum-sub { font-family: 'DM Mono',monospace; font-size: 0.6rem; color: var(--muted); margin-top: 0.1rem; }
+  .ledger-day-block { margin-bottom: 1.1rem; }
+  .ledger-day-label {
+    font-family: 'DM Mono',monospace; font-size: 0.65rem; font-weight: 700;
+    letter-spacing: 0.12em; text-transform: uppercase;
+    color: var(--paper); background: var(--ink);
+    display: inline-block; padding: 0.18em 0.7em; border-radius: 3px;
+    margin-bottom: 0.5rem;
+  }
+  .ledger-row {
+    display: grid; grid-template-columns: 1fr auto auto auto;
+    gap: 0 0.6rem; align-items: center;
+    padding: 0.45rem 0.6rem; border-radius: 5px;
+    font-size: 0.78rem; border-bottom: 1px solid #f0e8dc;
+  }
+  .ledger-row:last-child { border-bottom: none; }
+  .ledger-row:hover { background: #fdf8f2; }
+  .ledger-spot { font-weight: 600; color: var(--ink); line-height: 1.35; }
+  .ledger-spot-pay { font-family: 'DM Mono',monospace; font-size: 0.6rem; color: var(--muted); font-weight: 400; }
+  .ledger-jpy { font-family: 'DM Mono',monospace; font-weight: 700; color: var(--ink); white-space: nowrap; }
+  .ledger-twd { font-family: 'DM Mono',monospace; font-size: 0.7rem; color: var(--muted); white-space: nowrap; }
+  .ledger-rebate { font-family: 'DM Mono',monospace; font-size: 0.68rem; color: #27ae60; font-weight: 700; white-space: nowrap; }
+  .ledger-del { background: none; border: none; color: #ccc; cursor: pointer; font-size: 0.8rem; padding: 0 0.2rem; transition: color 0.15s; }
+  .ledger-del:hover { color: var(--red); }
+  .ledger-day-total {
+    display: flex; justify-content: space-between;
+    padding: 0.35rem 0.6rem; margin-top: 0.2rem;
+    font-family: 'DM Mono',monospace; font-size: 0.68rem;
+    color: var(--muted); border-top: 1.5px dashed #e0d8cc;
+  }
+  .ledger-card-breakdown {
+    display: flex; flex-wrap: wrap; gap: 0.4rem;
+    padding: 0.6rem; background: white; border-radius: 8px;
+    margin-bottom: 1rem; border: 1.5px solid #e0d8cc;
+  }
+  .ledger-card-chip {
+    font-family: 'DM Mono',monospace; font-size: 0.65rem; font-weight: 700;
+    padding: 0.25em 0.65em; border-radius: 20px; white-space: nowrap;
+  }
+  .ledger-empty {
+    text-align: center; padding: 2rem; color: var(--muted);
+    font-family: 'DM Mono',monospace; font-size: 0.8rem;
+  }
+
   @media (max-width: 600px) {
     .spot-row { grid-template-columns: 18px 1fr; }
     .pay-col { display:none; }
     .tracker-cards { grid-template-columns: repeat(2, 1fr); }
+    .ledger-summary-bar { grid-template-columns: 1fr 1fr; }
   }
 </style>
 </head>
@@ -895,12 +995,37 @@
   <div class="tracker-bar-inner">
     <div class="tracker-title">
       <span>⚡ 回饋額度追蹤器 · 即時剩餘</span>
-      <div style="display:flex;align-items:center;gap:0.75rem;">
+      <div style="display:flex;align-items:center;gap:0.5rem;">
         <span id="tracker-rate-display" style="font-family:'DM Mono',monospace;font-size:0.58rem;color:#aaa;">匯率載入中...</span>
-        <button class="tracker-reset" onclick="trackerResetAll()">↺ 重置全部</button>
+        <button class="tracker-reset" onclick="ledgerOpen()" style="color:#f0c040;border-color:#555;">📋 明細</button>
+        <button class="tracker-reset" onclick="resetConfirmOpen()">↺ 重置</button>
       </div>
     </div>
     <div class="tracker-cards" id="tracker-cards"></div>
+  </div>
+</div>
+
+<!-- ── 重置確認 MODAL ── -->
+<div class="reset-confirm-overlay" id="reset-confirm-overlay">
+  <div class="reset-confirm-box">
+    <div class="reset-confirm-icon">⚠️</div>
+    <div class="reset-confirm-title">確定要重置全部記帳？</div>
+    <div class="reset-confirm-body">所有消費記錄與回饋額度將被清除，且<strong>無法復原</strong>。</div>
+    <div class="reset-confirm-btns">
+      <button class="reset-btn-cancel" onclick="resetConfirmClose()">取消，繼續保留</button>
+      <button class="reset-btn-confirm" onclick="resetConfirmDo()">確定清除</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── 消費明細 MODAL ── -->
+<div class="ledger-overlay" id="ledger-overlay">
+  <div class="ledger-box">
+    <div class="ledger-header">
+      <div class="ledger-header-title">📋 消費明細總覽</div>
+      <button class="ledger-header-close" onclick="ledgerClose()">✕ 關閉</button>
+    </div>
+    <div class="ledger-body" id="ledger-body"></div>
   </div>
 </div>
 
@@ -3116,8 +3241,18 @@ function trackerDeleteLog(spotId, idx) {
   trackerRenderLogs(spotId);
 }
 
+// ── 重置確認 ──────────────────────────────────────────
+function resetConfirmOpen() {
+  document.getElementById('reset-confirm-overlay').classList.add('open');
+}
+function resetConfirmClose() {
+  document.getElementById('reset-confirm-overlay').classList.remove('open');
+}
+function resetConfirmDo() {
+  resetConfirmClose();
+  trackerResetAll();
+}
 function trackerResetAll() {
-  if (!confirm('確定要清除所有記帳記錄？')) return;
   trackerUsed = { kuma: 0, eco: 0, pay: 0, rich: 0 };
   trackerLogs = {};
   trackerSaveState();
@@ -3130,13 +3265,155 @@ function trackerResetAll() {
   });
 }
 
+// ── 消費明細 ──────────────────────────────────────────
+// spotId → Day 標籤 對應表
+const SPOT_DAY_MAP = (() => {
+  const map = {};
+  Object.keys(TRACKER_SPOTS).forEach(id => {
+    const d = id.startsWith('d1') ? 'D1 · 4/16（四）新宿' :
+              id.startsWith('d2') ? 'D2 · 4/17（五）澀谷・池袋' :
+              id.startsWith('d3') ? 'D3 · 4/18（六）品川・戶越' :
+              id.startsWith('d4') ? 'D4 · 4/19（日）返程日' : '其他';
+    map[id] = d;
+  });
+  return map;
+})();
+
+const CARD_CHIP_STYLE = {
+  kuma: 'background:#fff0d4;color:#b8680b;border:1px solid #e8c080;',
+  eco:  'background:#d4f0e0;color:#2e7d52;border:1px solid #80c8a0;',
+  pay:  'background:#ffe0e0;color:#cc0033;border:1px solid #f0a0a0;',
+  rich: 'background:#d4e4f5;color:#2c5f8a;border:1px solid #80a8d8;',
+};
+
+function ledgerOpen() {
+  ledgerRender();
+  document.getElementById('ledger-overlay').classList.add('open');
+}
+function ledgerClose() {
+  document.getElementById('ledger-overlay').classList.remove('open');
+}
+
+function ledgerRender() {
+  const body = document.getElementById('ledger-body');
+
+  // 收集所有記帳，展平為列表
+  let allEntries = [];
+  Object.entries(trackerLogs).forEach(([spotId, entries]) => {
+    entries.forEach((e, idx) => {
+      allEntries.push({ spotId, idx, ...e, day: SPOT_DAY_MAP[spotId] || '其他', spotName: TRACKER_SPOTS[spotId]?.name || spotId });
+    });
+  });
+
+  if (allEntries.length === 0) {
+    body.innerHTML = `<div class="ledger-empty">📭 尚無記帳記錄<br><span style="font-size:0.7rem;">按各據點的「＋ 記帳」開始記錄</span></div>`;
+    return;
+  }
+
+  // 總計
+  const totalJPY = allEntries.reduce((s, e) => s + e.jpy, 0);
+  const totalTWD = allEntries.reduce((s, e) => s + e.twd, 0);
+  const totalRebate = allEntries.reduce((s, e) => s + e.rebate, 0);
+  const totalCount = allEntries.length;
+
+  // 各卡回饋小計
+  const cardRebate = {};
+  allEntries.forEach(e => { cardRebate[e.payUsed] = (cardRebate[e.payUsed]||0) + e.rebate; });
+
+  // 摘要卡
+  let summaryHtml = `
+    <div class="ledger-summary-bar">
+      <div class="ledger-sum-card">
+        <div class="ledger-sum-label">總消費（日圓）</div>
+        <div class="ledger-sum-val">¥${totalJPY.toLocaleString()}</div>
+        <div class="ledger-sum-sub">≒ NT$${Math.round(totalTWD).toLocaleString()}</div>
+      </div>
+      <div class="ledger-sum-card">
+        <div class="ledger-sum-label">累積回饋</div>
+        <div class="ledger-sum-val" style="color:#27ae60;">NT$${totalRebate.toFixed(1)}</div>
+        <div class="ledger-sum-sub">共 ${totalCount} 筆消費</div>
+      </div>
+    </div>
+    <div class="ledger-card-breakdown">
+      ${Object.entries(cardRebate).map(([key, val]) => {
+        const cfg = TRACKER_CAPS[key];
+        return `<span class="ledger-card-chip" style="${CARD_CHIP_STYLE[key]||''}">${cfg?.label||key} 回饋 NT$${val.toFixed(1)}</span>`;
+      }).join('')}
+    </div>`;
+
+  // 按天分組
+  const dayOrder = ['D1 · 4/16（四）新宿','D2 · 4/17（五）澀谷・池袋','D3 · 4/18（六）品川・戶越','D4 · 4/19（日）返程日','其他'];
+  const byDay = {};
+  allEntries.forEach(e => { (byDay[e.day] = byDay[e.day]||[]).push(e); });
+
+  let daysHtml = '';
+  dayOrder.forEach(day => {
+    const entries = byDay[day];
+    if (!entries) return;
+    const dayJPY = entries.reduce((s,e)=>s+e.jpy,0);
+    const dayRebate = entries.reduce((s,e)=>s+e.rebate,0);
+
+    const rowsHtml = entries.map(e => {
+      const cfg = TRACKER_CAPS[e.payUsed];
+      return `<div class="ledger-row">
+        <div>
+          <div class="ledger-spot">${e.spotName}</div>
+          <div class="ledger-spot-pay" style="${CARD_CHIP_STYLE[e.payUsed]||''}; padding:0.1em 0.4em; border-radius:3px; display:inline-block; margin-top:0.15rem;">${cfg?.label||e.payUsed}</div>
+        </div>
+        <div class="ledger-jpy">¥${e.jpy.toLocaleString()}</div>
+        <div class="ledger-rebate">+NT$${e.rebate.toFixed(1)}</div>
+        <button class="ledger-del" onclick="ledgerDeleteEntry('${e.spotId}',${e.idx})" title="刪除此筆">✕</button>
+      </div>`;
+    }).join('');
+
+    daysHtml += `<div class="ledger-day-block">
+      <div class="ledger-day-label">${day}</div>
+      ${rowsHtml}
+      <div class="ledger-day-total">
+        <span>小計</span>
+        <span>¥${dayJPY.toLocaleString()} &nbsp;｜&nbsp; 回饋 NT$${dayRebate.toFixed(1)}</span>
+      </div>
+    </div>`;
+  });
+
+  body.innerHTML = summaryHtml + daysHtml;
+}
+
+function ledgerDeleteEntry(spotId, idx) {
+  // 找到這筆在 trackerLogs 中的正確 index（因為 idx 是渲染時的 snapshot index）
+  if (!trackerLogs[spotId] || !trackerLogs[spotId][idx]) return;
+  const e = trackerLogs[spotId][idx];
+  trackerUsed[e.payUsed] = Math.max(0, (trackerUsed[e.payUsed]||0) - e.rebate);
+  trackerLogs[spotId].splice(idx, 1);
+  if (trackerLogs[spotId].length === 0) delete trackerLogs[spotId];
+  trackerSaveState();
+  trackerUpdateDashboard(e.payUsed);
+  trackerRenderAllSpotStatuses();
+  trackerRenderLogs(spotId);
+  ledgerRender(); // 重新渲染明細
+}
+
 // Close modal on overlay click
 document.getElementById('tracker-modal').addEventListener('click', function(e) {
   if (e.target === this) trackerCloseModal();
 });
+document.getElementById('reset-confirm-overlay').addEventListener('click', function(e) {
+  if (e.target === this) resetConfirmClose();
+});
+document.getElementById('ledger-overlay').addEventListener('click', function(e) {
+  if (e.target === this) ledgerClose();
+});
 // Enter key confirms modal
 document.getElementById('tracker-modal-amount').addEventListener('keydown', function(e) {
   if (e.key === 'Enter') trackerConfirmLog();
+});
+// ESC closes all modals
+document.addEventListener('keydown', function(e) {
+  if (e.key === 'Escape') {
+    trackerCloseModal();
+    resetConfirmClose();
+    ledgerClose();
+  }
 });
 
 // Auto-restore tracker state on load
