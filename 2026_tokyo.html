@@ -855,6 +855,32 @@
   .modal-btn-cancel-tx  { background: #e0d8cc; color: var(--muted); }
   .modal-btn-cancel-tx:hover { background: #ccc5b8; }
 
+  /* 支付方式選擇按鈕 */
+  .pay-sel-btn {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.68rem;
+    font-weight: 600;
+    padding: 0.32em 0.75em;
+    border-radius: 20px;
+    border: 1.5px solid #ddd5c8;
+    background: white;
+    color: var(--muted);
+    cursor: pointer;
+    transition: all 0.15s;
+    white-space: nowrap;
+    line-height: 1.6;
+  }
+  .pay-sel-btn:hover { border-color: var(--ink); color: var(--ink); }
+  .pay-sel-btn.active-kuma { background: #fff0d4; color: #b8680b; border-color: #e8c080; }
+  .pay-sel-btn.active-eco  { background: #d4f0e0; color: #2e7d52; border-color: #80c8a0; }
+  .pay-sel-btn.active-pay  { background: #ffe0e0; color: #cc0033; border-color: #f0a0a0; }
+  .pay-sel-btn.active-rich { background: #d4e4f5; color: #2c5f8a; border-color: #80a8d8; }
+  .pay-sel-btn.recommended::after {
+    content: ' ★';
+    font-size: 0.6rem;
+    opacity: 0.7;
+  }
+
   @media (max-width: 600px) {
     .spot-row { grid-template-columns: 18px 1fr; }
     .pay-col { display:none; }
@@ -883,6 +909,13 @@
   <div class="modal-box">
     <div class="modal-title-tx" id="tracker-modal-title">記錄消費</div>
     <div class="modal-sub-tx" id="tracker-modal-sub"></div>
+
+    <!-- 支付方式選擇器 -->
+    <div style="margin:0.6rem 0 0.5rem;">
+      <div style="font-family:'DM Mono',monospace;font-size:0.6rem;letter-spacing:0.1em;text-transform:uppercase;color:#888;margin-bottom:0.45rem;">選擇支付方式</div>
+      <div id="tracker-pay-selector" style="display:flex;flex-wrap:wrap;gap:0.4rem;"></div>
+    </div>
+
     <div class="modal-input-wrap">
       <span class="modal-currency">¥</span>
       <input class="modal-input-tx" id="tracker-modal-amount" type="number" placeholder="0" min="0" oninput="trackerUpdatePreview()">
@@ -2754,6 +2787,36 @@ let trackerUsed = { kuma: 0, eco: 0, pay: 0, rich: 0 };
 let trackerLogs = {};
 let trackerPendingSpot = null;
 let trackerActive = false;
+let trackerSelectedPay = null; // 使用者手動選取的支付方式（null = 跟隨推薦）
+
+// 取得目前 modal 中選取的支付方式 key
+function trackerGetSelectedPayKey() {
+  return trackerSelectedPay || (trackerPendingSpot ? trackerGetEffectivePay(trackerPendingSpot).pay : null);
+}
+
+// 渲染支付方式選擇器
+function trackerRenderPaySelector(recommendedKey) {
+  const container = document.getElementById('tracker-pay-selector');
+  if (!container) return;
+  const activeKey = trackerSelectedPay || recommendedKey;
+  container.innerHTML = Object.entries(TRACKER_CAPS).map(([key, cfg]) => {
+    const isRec = key === recommendedKey;
+    const isActive = key === activeKey;
+    const rateLabel = key === 'rich' ? '淨1.8%' : `${(cfg.rate*100).toFixed(1)}%`;
+    return `<button
+      class="pay-sel-btn${isActive ? ` active-${key}` : ''}${isRec ? ' recommended' : ''}"
+      onclick="trackerSelectPay('${key}')"
+      title="${cfg.feeNote||''}"
+    >${cfg.label} ${rateLabel}${isRec ? ' ★推薦' : ''}</button>`;
+  }).join('');
+}
+
+function trackerSelectPay(key) {
+  trackerSelectedPay = key;
+  const eff = trackerGetEffectivePay(trackerPendingSpot);
+  trackerRenderPaySelector(eff.pay);
+  trackerUpdatePreview();
+}
 let TRACKER_JPY_TWD_LIVE = 0.201; // 備援預設值（¥100 = NT$20.10）
 
 // ── 即時匯率：多來源備援，無需 API Key ──
@@ -2965,20 +3028,14 @@ function trackerRenderAllLogs() {
 function trackerOpenModal(spotId) {
   if (!trackerActive) { trackerActivate(); }
   trackerPendingSpot = spotId;
+  trackerSelectedPay = null; // 重置為推薦方式
   const s = TRACKER_SPOTS[spotId];
   const eff = trackerGetEffectivePay(spotId);
   const payCfg = TRACKER_CAPS[eff.pay];
   document.getElementById('tracker-modal-title').textContent = s.name;
   document.getElementById('tracker-modal-sub').innerHTML =
-    `<span style="font-family:'DM Mono',monospace;">使用支付：${payCfg.label}</span>` +
-    (eff.primaryExhausted ? `<br><span style="color:var(--red);font-size:0.72rem;">⚠ ${TRACKER_CAPS[s.primary].label} 額度已用盡，已自動切換</span>` : '') +
-    `<br>回饋率：<strong>${(payCfg.rate*100).toFixed(1)}%</strong>` +
-    (payCfg.unlimited ? '' : (() => {
-      const rebateLeft = Math.max(0, payCfg.cap - (trackerUsed[eff.pay]||0));
-      const spendLeftTWD = Math.round(rebateLeft / payCfg.rate);
-      const spendLeftJPY = Math.round(spendLeftTWD / TRACKER_JPY_TWD_LIVE);
-      return `，還能刷約 <strong>¥${spendLeftJPY.toLocaleString()}</strong>（回饋剩 NT$${rebateLeft.toFixed(0)}）`;
-    })());
+    (eff.primaryExhausted ? `<span style="color:var(--red);font-size:0.72rem;">⚠ ${TRACKER_CAPS[s.primary].label} 額度已用盡，推薦已自動切換</span><br>` : '');
+  trackerRenderPaySelector(eff.pay);
   document.getElementById('tracker-modal-amount').value = '';
   trackerUpdatePreview();
   document.getElementById('tracker-modal').classList.add('open');
@@ -2988,54 +3045,64 @@ function trackerOpenModal(spotId) {
 function trackerUpdatePreview() {
   if (!trackerPendingSpot) return;
   const s = TRACKER_SPOTS[trackerPendingSpot];
-  const eff = trackerGetEffectivePay(trackerPendingSpot);
-  const payCfg = TRACKER_CAPS[eff.pay];
+  const selectedKey = trackerGetSelectedPayKey();
+  const payCfg = TRACKER_CAPS[selectedKey];
   const jpy = parseFloat(document.getElementById('tracker-modal-amount').value) || 0;
   const twd = jpy * TRACKER_JPY_TWD_LIVE;
-  const maxRebate = payCfg.unlimited ? Infinity : Math.max(0, payCfg.cap - (trackerUsed[eff.pay]||0));
+  const maxRebate = payCfg.unlimited ? Infinity : Math.max(0, payCfg.cap - (trackerUsed[selectedKey]||0));
   const rebate = Math.min(twd * payCfg.rate, maxRebate);
-  const newTotal = (trackerUsed[eff.pay]||0) + rebate;
+  const newTotal = (trackerUsed[selectedKey]||0) + rebate;
   const pctAfter = payCfg.unlimited ? 0 : Math.min(100, (newTotal / payCfg.cap) * 100);
+
+  // 剩餘可刷（以日幣顯示）
+  const rebateLeft = payCfg.unlimited ? Infinity : Math.max(0, payCfg.cap - (trackerUsed[selectedKey]||0));
+  const spendLeftJPY = payCfg.unlimited ? null : Math.round((rebateLeft / payCfg.rate) / TRACKER_JPY_TWD_LIVE);
+  const remainHtml = payCfg.unlimited
+    ? `<span style="color:#6ec88a;font-size:0.72rem;">無上限</span>`
+    : `還能刷 <strong>¥${spendLeftJPY.toLocaleString()}</strong>（回饋剩 NT$${rebateLeft.toFixed(0)}）`;
+
   let warnHtml = '';
   if (!payCfg.unlimited && pctAfter >= 100) {
-    const fbCfg = TRACKER_CAPS[s.fallback];
-    warnHtml = `<div class="prev-warn">⚠ 此筆後 ${payCfg.label} 額度將用盡，下筆請改用 ${fbCfg.label}</div>`;
+    warnHtml = `<div class="prev-warn">⚠ 此筆後 ${payCfg.label} 額度將用盡</div>`;
   } else if (!payCfg.unlimited && pctAfter >= 70) {
-    const rebateLeft = Math.max(0, payCfg.cap - newTotal);
-    const spendLeftJPY = Math.round((rebateLeft / payCfg.rate) / TRACKER_JPY_TWD_LIVE);
-    warnHtml = `<div class="prev-warn">⚠ 此筆後還能刷約 <strong>¥${spendLeftJPY.toLocaleString()}</strong>（回饋剩 NT$${rebateLeft.toFixed(0)}）</div>`;
+    const afterLeft = Math.max(0, payCfg.cap - newTotal);
+    const afterJPY = Math.round((afterLeft / payCfg.rate) / TRACKER_JPY_TWD_LIVE);
+    warnHtml = `<div class="prev-warn">⚠ 此筆後還能刷約 <strong>¥${afterJPY.toLocaleString()}</strong>（回饋剩 NT$${afterLeft.toFixed(0)}）</div>`;
   }
+
   document.getElementById('tracker-modal-preview').innerHTML = jpy === 0
-    ? '<span style="color:#888;font-size:0.78rem;">輸入消費金額（日圓）後預覽回饋</span>'
+    ? `<span style="color:#888;font-size:0.78rem;">${remainHtml}<br>輸入日幣金額預覽回饋</span>`
     : `消費 ¥${jpy.toLocaleString()} ≒ NT$${twd.toFixed(0)}<br>
-       回饋率 <span class="prev-rate">${(payCfg.rate*100).toFixed(1)}%</span><br>
-       預估回饋 <span class="prev-rebate">NT$${rebate.toFixed(1)}</span>
+       回饋率 <span class="prev-rate">${(payCfg.rate*100).toFixed(1)}%</span>　
+       預估回饋 <span class="prev-rebate">NT$${rebate.toFixed(1)}</span><br>
+       ${remainHtml}
        ${warnHtml}`;
 }
 
 function trackerCloseModal() {
   document.getElementById('tracker-modal').classList.remove('open');
   trackerPendingSpot = null;
+  trackerSelectedPay = null;
 }
 
 function trackerConfirmLog() {
   const jpy = parseFloat(document.getElementById('tracker-modal-amount').value);
   if (!jpy || jpy <= 0 || !trackerPendingSpot) return;
-  const s = TRACKER_SPOTS[trackerPendingSpot];
-  const eff = trackerGetEffectivePay(trackerPendingSpot);
-  const payCfg = TRACKER_CAPS[eff.pay];
+  const selectedKey = trackerGetSelectedPayKey();
+  const payCfg = TRACKER_CAPS[selectedKey];
   const twd = jpy * TRACKER_JPY_TWD_LIVE;
-  const maxRebate = payCfg.unlimited ? twd * payCfg.rate : Math.max(0, payCfg.cap - (trackerUsed[eff.pay]||0));
+  const maxRebate = payCfg.unlimited ? twd * payCfg.rate : Math.max(0, payCfg.cap - (trackerUsed[selectedKey]||0));
   const rebate = Math.min(twd * payCfg.rate, maxRebate);
-  if (!trackerUsed[eff.pay]) trackerUsed[eff.pay] = 0;
-  trackerUsed[eff.pay] += rebate;
+  if (!trackerUsed[selectedKey]) trackerUsed[selectedKey] = 0;
+  trackerUsed[selectedKey] += rebate;
   if (!trackerLogs[trackerPendingSpot]) trackerLogs[trackerPendingSpot] = [];
-  trackerLogs[trackerPendingSpot].push({ jpy, twd, rebate, payUsed: eff.pay });
+  trackerLogs[trackerPendingSpot].push({ jpy, twd, rebate, payUsed: selectedKey });
   trackerSaveState();
+  const spot = trackerPendingSpot;
   trackerCloseModal();
-  trackerUpdateDashboard(eff.pay);
+  trackerUpdateDashboard(selectedKey);
   trackerRenderAllSpotStatuses();
-  trackerRenderLogs(trackerPendingSpot);
+  trackerRenderLogs(spot);
 }
 
 function trackerDeleteLog(spotId, idx) {
