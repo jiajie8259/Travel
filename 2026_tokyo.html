@@ -1878,8 +1878,17 @@
       <span class="pb pb-eco">🌿 星展eco 5%</span>
       <span class="pb pb-pay">🔴 PayPay 5%</span>
       <span class="pb pb-suica">🍉 Suica</span>
-      <span class="pb pb-rich">🐶 Richart 3.3%</span>
+      <span class="pb pb-rich">🐶 Richart 淨1.8%</span>
       <span class="pb pb-cash">💴 現金</span>
+    </div>
+
+    <!-- ⚠ 海外手續費說明 -->
+    <div style="background:#fff8e7;border:1.5px solid #e0c060;border-radius:8px;padding:0.85rem 1.1rem;margin-bottom:0.9rem;font-size:0.78rem;line-height:1.85;color:var(--muted);">
+      💳 <strong style="color:var(--ink);">國外交易手續費說明</strong><br>
+      <strong>🐻 熊本熊</strong>：2025/7起雙幣卡也收1.5%手續費，但玉山同時將基本回饋從1%升至2.5%，<strong>宣稱8.5%已含手續費結構</strong>，帳面回饋不變。<br>
+      <strong>🌿 星展eco</strong>：帳單會列示國外交易手續費，但5%回饋是在此條件下計算，<strong>宣稱5%已為含手續費後的帳面值</strong>。<br>
+      <strong>🔴 PayPay</strong>：透過玉山Wallet走行動支付通道，<strong>不收海外交易手續費</strong>，5%為實際淨回饋。✅<br>
+      <strong>🐶 Richart 玩旅刷</strong>：宣稱3.3%，但仍收1.5%手續費，<strong>實際淨回饋僅約1.8%</strong>（備用卡，僅在其他卡額度用盡時使用）。⚠️
     </div>
 
     <!-- 啟動追蹤器 -->
@@ -2232,11 +2241,11 @@
         <div class="spot-ico">🛫</div>
         <div class="spot-body" data-spot="d4-airport-tax">
           <div class="spot-name">成田機場免稅店（若有餘裕購物）</div>
-          <div class="spot-note">星展eco仍有額度先刷5%；超出後改台新Richart玩旅刷（3.3%無上限）</div>
+          <div class="spot-note">星展eco仍有額度先刷5%；超出後改台新Richart玩旅刷（3.3%宣稱，淨回饋約1.8%）</div>
           <button class="add-btn" id="btn-d4-airport-tax" onclick="trackerOpenModal('d4-airport-tax')" style="display:none">＋ 記帳</button>
           <div class="log-list" id="logs-d4-airport-tax"></div>
         </div>
-        <div class="pay-col" id="paycol-d4-airport-tax"><span class="pb pb-eco">🌿 星展eco</span><span class="pb-rate green">5%</span><span class="pb pb-rich" style="margin-top:0.2rem;">🐶 Richart</span><span class="pb-rate blue" style="font-size:0.62rem;">3.3%補位</span></div>
+        <div class="pay-col" id="paycol-d4-airport-tax"><span class="pb pb-eco">🌿 星展eco</span><span class="pb-rate green">5%</span><span class="pb pb-rich" style="margin-top:0.2rem;">🐶 Richart</span><span class="pb-rate blue" style="font-size:0.62rem;">淨1.8%補位</span></div>
       </div>
     </div>
 
@@ -2278,7 +2287,7 @@
       🐻 熊本熊 8.5% 每期上限 NT$500（≒¥25,000）→ D1 唐吉軻德＋D2 3Coins 兩處＋Suica加值<br>
       🌿 星展eco 5% 每期上限 NT$600（≒¥30,000）→ HANDS×2、牛たん(¥7,160)、拉麵、百貨消費<br>
       🔴 PayPay 每季上限 NT$100（≒¥5,000）→ Little Pool、neel、鰻魚飯、商店街小店<br>
-      🐶 Richart 3.3% 無上限 → 超出以上所有額度的補底卡，機場免稅店大額消費
+      🐶 Richart 玩旅刷 3.3%（含1.5%手續費，淨回饋約1.8%） → 超出以上所有額度的補底卡，機場免稅店大額消費
     </div>
   </div>
 
@@ -2478,7 +2487,7 @@
       <div style="font-size:0.82rem;line-height:2;color:var(--muted);">
         ✅ 設定台新帳戶自動扣繳升級Level 2，才能享3.3%<br>
         ✅ 出國前在Richart Life App切換到「玩旅刷」方案<br>
-        ✅ 3.3%海外消費完全無上限，適合大額購物補位<br>
+        ⚠ 玩旅刷宣稱3.3%，但仍收1.5%手續費，實際淨回饋約1.8%（補底備用）<br>
         ✅ 支援Apple Pay / Google Pay / Samsung Pay
       </div>
     </div>
@@ -2530,7 +2539,7 @@ const PAY_ADVICE = {
       { pay: '玉山熊本熊卡', rate: '8.5%', note: '指定通路（松本清/唐吉軻德/BicCamera）', cap: '每期NT$500' },
       { pay: '星展eco極簡卡', rate: '5%', note: '實體刷卡 or Apple Pay/Samsung Pay', cap: '每期NT$600' },
       { pay: 'PayPay（玉山Wallet）', rate: '5%', note: '現金店/掃碼店適用', cap: '每季NT$100' },
-      { pay: '台新Richart（玩旅刷）', rate: '3.3%', note: '無上限保底', cap: '無上限' },
+      { pay: '台新Richart（玩旅刷）', rate: '3.3%（淨1.8%）', note: '無上限保底', cap: '無上限' },
     ]
   },
   convenience: {
@@ -2554,7 +2563,7 @@ const PAY_ADVICE = {
       { pay: '玉山熊本熊卡（指定餐廳）', rate: '8.5%', note: '壽司郎/一蘭/鳥貴族/牛角等（有上限）', cap: '每期NT$500' },
       { pay: 'PayPay（玉山Wallet）', rate: '5%', note: '不收信用卡的小餐廳適用', cap: '每季NT$100' },
       { pay: '星展eco極簡卡', rate: '5%', note: '一般餐廳實體刷卡', cap: '每期NT$600' },
-      { pay: '台新Richart（玩旅刷）', rate: '3.3%', note: '補位無上限', cap: '無上限' },
+      { pay: '台新Richart（玩旅刷）', rate: '3.3%（淨1.8%）', note: '補位無上限', cap: '無上限' },
     ]
   },
   transport: {
@@ -2565,7 +2574,7 @@ const PAY_ADVICE = {
     ranking: [
       { pay: 'Suica（熊本熊加值）', rate: '加值8.5%', note: 'JR/地鐵/巴士全通，最便利', cap: '加值NT$8,333封頂' },
       { pay: '玉山熊本熊卡（JR/航空）', rate: '8.5%', note: '熊好遊：JAL/JR鐵路/樂天旅遊', cap: '同上' },
-      { pay: '台新Richart（玩旅刷）', rate: '3.3%', note: '含Suica/ICOCA交通卡儲值', cap: '無上限' },
+      { pay: '台新Richart（玩旅刷）', rate: '3.3%（淨1.8%）', note: '含Suica/ICOCA交通卡儲值', cap: '無上限' },
     ]
   },
   hotel: {
@@ -2576,7 +2585,7 @@ const PAY_ADVICE = {
     ranking: [
       { pay: '玉山熊本熊卡', rate: '8.5%', note: '樂天旅遊/東橫INN/APA/星野集團', cap: '每期NT$500' },
       { pay: '星展eco極簡卡', rate: '5%', note: '實體刷卡付帳', cap: '每期NT$600' },
-      { pay: '台新Richart（玩旅刷）', rate: '3.3%', note: '補位大額住宿費用', cap: '無上限' },
+      { pay: '台新Richart（玩旅刷）', rate: '3.3%（淨1.8%）', note: '補位大額住宿費用', cap: '無上限' },
     ]
   },
   entertainment: {
@@ -2609,7 +2618,7 @@ const PAY_ADVICE = {
       { pay: '國泰CUBE卡【日本賞】', rate: '3.5%', note: '日本實體消費無上限保底', cap: '無上限' },
       { pay: '玉山熊本熊卡', rate: '8.5%', note: 'UNIQLO/GU/niko and…/3 Coins/Hands', cap: '每期NT$500' },
       { pay: '星展eco極簡卡', rate: '5%', note: '補位大額購物', cap: '每期NT$600' },
-      { pay: '台新Richart（玩旅刷）', rate: '3.3%', note: '無上限後盾', cap: '無上限' },
+      { pay: '台新Richart（玩旅刷）', rate: '3.3%（淨1.8%）', note: '無上限後盾', cap: '無上限' },
     ]
   }
 };
@@ -2698,14 +2707,21 @@ document.querySelectorAll('.event').forEach((el, i) => {
   el.style.animationDelay = (i * 0.04) + 's';
 });
 
-// ═══════════════════════════════════════════════════════
-//  TRACKER — 動態回饋追蹤器
-// ═══════════════════════════════════════════════════════
+// ─── 回饋率說明（含國外手續費扣除後的「實際淨回饋」）─────────────────
+// 熊本熊卡：帳面8.5%，但2025/7起雙幣卡也收1.5%手續費
+//           → 玉山已將基本回饋從1%升至2.5%以「吸收」手續費
+//           → 官方以8.5%作為宣稱回饋，追蹤器沿用 8.5%（帳面值）
+// 星展eco：  5% 是在「帳單同時列示手續費」條件下計算
+//           → 官方宣稱5%為含手續費的帳面值，追蹤器沿用 5%
+// Richart玩旅刷：宣稱3.3%，但仍收1.5%手續費
+//           → 實際淨回饋 = 3.3% - 1.5% = 1.8%（追蹤器使用淨值）
+// PayPay(玉山Wallet)：日本PayPay不走信用卡刷卡流程，不收海外交易手續費
+//           → 5% 為實際淨回饋
 const TRACKER_CAPS = {
-  kuma:  { label: '🐻 熊本熊',   cap: 500,   rate: 0.085, color: '#b8680b', unlimited: false },
-  eco:   { label: '🌿 星展eco',  cap: 600,   rate: 0.05,  color: '#2e7d52', unlimited: false },
-  pay:   { label: '🔴 PayPay',  cap: 100,   rate: 0.05,  color: '#cc0033', unlimited: false },
-  rich:  { label: '🐶 Richart', cap: 99999, rate: 0.033, color: '#2c5f8a', unlimited: true  },
+  kuma:  { label: '🐻 熊本熊',   cap: 500,   rate: 0.085, color: '#b8680b', unlimited: false, feeNote: '含1.5%手續費（已含於回饋結構中）' },
+  eco:   { label: '🌿 星展eco',  cap: 600,   rate: 0.05,  color: '#2e7d52', unlimited: false, feeNote: '含1.5%手續費（已含於回饋結構中）' },
+  pay:   { label: '🔴 PayPay',  cap: 100,   rate: 0.05,  color: '#cc0033', unlimited: false, feeNote: '免收海外手續費（行動支付通道）' },
+  rich:  { label: '🐶 Richart', cap: 99999, rate: 0.018, color: '#2c5f8a', unlimited: true,  feeNote: '玩旅刷3.3%－手續費1.5%＝淨回饋1.8%' },
 };
 
 const TRACKER_SPOTS = {
@@ -2738,7 +2754,7 @@ let trackerUsed = { kuma: 0, eco: 0, pay: 0, rich: 0 };
 let trackerLogs = {};
 let trackerPendingSpot = null;
 let trackerActive = false;
-let TRACKER_JPY_TWD_LIVE = 0.215; // 備援預設值（約當前市場值）
+let TRACKER_JPY_TWD_LIVE = 0.201; // 備援預設值（¥100 = NT$20.10）
 
 // ── 即時匯率：多來源備援，無需 API Key ──
 async function fetchBOTRate() {
@@ -2831,10 +2847,11 @@ function trackerRenderDashboard() {
     const barCls = cfg.unlimited ? 'ok' : (pct >= 100 ? 'full' : pct >= 70 ? 'warn' : 'ok');
     const cardCls = cfg.unlimited ? '' : (pct >= 100 ? 'exhausted' : pct >= 70 ? 'warning' : '');
     const pctLabel = cfg.unlimited ? '無上限' : (pct >= 100 ? '已用盡' : `${Math.round(pct)}%`);
+    const rateDisplay = key === 'rich' ? '淨1.8%' : `${(cfg.rate*100).toFixed(1)}%`;
     return `
     <div class="tracker-card ${cardCls}" id="tc-${key}">
       <div class="tc-head">
-        <span class="tc-name">${cfg.label}</span>
+        <span class="tc-name">${cfg.label} <span style="font-size:0.58rem;opacity:0.7;">${rateDisplay}</span></span>
         <span class="tc-pct ${barCls}">${pctLabel}</span>
       </div>
       ${!cfg.unlimited ? `
@@ -2898,7 +2915,7 @@ function trackerRenderSpotStatus(spotId) {
   if (eff.primaryExhausted) {
     statusHtml = `<span class="pay-status-chip chip-exhausted">額度已用盡</span>`;
     const fbCfg = TRACKER_CAPS[s.fallback];
-    const fbRate = s.fallback === 'rich' ? '3.3%' : '5%';
+    const fbRate = s.fallback === 'rich' ? '淨1.8%' : '5%';
     fallbackHtml = `<div class="fallback-pay show">↪ 改用 ${fbCfg.label}<br><span style="font-family:'DM Mono',monospace;font-weight:700;color:#b8860b;">${fbRate}</span></div>`;
   } else {
     const pct = priCfg.unlimited ? 0 : (u / priCfg.cap) * 100;
