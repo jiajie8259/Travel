@@ -871,10 +871,12 @@
     line-height: 1.6;
   }
   .pay-sel-btn:hover { border-color: var(--ink); color: var(--ink); }
-  .pay-sel-btn.active-kuma { background: #fff0d4; color: #b8680b; border-color: #e8c080; }
-  .pay-sel-btn.active-eco  { background: #d4f0e0; color: #2e7d52; border-color: #80c8a0; }
-  .pay-sel-btn.active-pay  { background: #ffe0e0; color: #cc0033; border-color: #f0a0a0; }
-  .pay-sel-btn.active-rich { background: #d4e4f5; color: #2c5f8a; border-color: #80a8d8; }
+  .pay-sel-btn.active-kuma  { background: #fff0d4; color: #b8680b; border-color: #e8c080; }
+  .pay-sel-btn.active-eco   { background: #d4f0e0; color: #2e7d52; border-color: #80c8a0; }
+  .pay-sel-btn.active-pay   { background: #ffe0e0; color: #cc0033; border-color: #f0a0a0; }
+  .pay-sel-btn.active-rich  { background: #d4e4f5; color: #2c5f8a; border-color: #80a8d8; }
+  .pay-sel-btn.active-suica { background: #d8f0dc; color: #3a8a4a; border-color: #88cc90; }
+  .pay-sel-btn.active-cash  { background: #f0ebe5; color: #777;    border-color: #ccc; }
   .pay-sel-btn.recommended::after {
     content: ' ★';
     font-size: 0.6rem;
@@ -2043,7 +2045,11 @@
     <!-- ⚠ 海外手續費說明 -->
     <div style="background:#fff8e7;border:1.5px solid #e0c060;border-radius:8px;padding:0.85rem 1.1rem;margin-bottom:0.9rem;font-size:0.78rem;line-height:1.85;color:var(--muted);">
       💳 <strong style="color:var(--ink);">國外交易手續費說明</strong><br>
-      <strong>🐻 熊本熊</strong>：2025/7起雙幣卡也收1.5%手續費，但玉山同時將基本回饋從1%升至2.5%，<strong>宣稱8.5%已含手續費結構</strong>，帳面回饋不變。<br>
+      <strong>🐻 熊本熊 8.5%</strong>（加碼回饋6%，每期上限NT$500）需同時滿足三個條件：<br>
+      &nbsp;&nbsp;① <strong>完成活動登錄</strong>（每期帳單週期登錄一次，官網或App均可）<br>
+      &nbsp;&nbsp;② <strong>於指定商店消費</strong>（熊好買：唐吉軻德/松本清/BicCamera/UNIQLO/3Coins等；熊好用：Suica/PASMO/ICOCA儲值；<a href="https://event.esunbank.com.tw/credit/kumamon-card/japan-discount.html#!" target="_blank" style="color:var(--blue);">完整清單</a>）<br>
+      &nbsp;&nbsp;③ <strong>持熊本熊實體卡刷卡</strong>（不可綁定玉山Wallet電子支付消費）<br>
+      未符合條件時，一般日本消費仍享2.5%無上限基本回饋。
       <strong>🌿 星展eco</strong>：帳單會列示國外交易手續費，但5%回饋是在此條件下計算，<strong>宣稱5%已為含手續費後的帳面值</strong>。<br>
       <strong>🔴 PayPay</strong>：透過玉山Wallet走行動支付通道，<strong>不收海外交易手續費</strong>，5%為實際淨回饋。✅<br>
       <strong>🐶 Richart 玩旅刷</strong>：宣稱3.3%，但仍收1.5%手續費，<strong>實際淨回饋僅約1.8%</strong>（備用卡，僅在其他卡額度用盡時使用）。⚠️
@@ -2866,20 +2872,31 @@ document.querySelectorAll('.event').forEach((el, i) => {
 });
 
 // ─── 回饋率說明（含國外手續費扣除後的「實際淨回饋」）─────────────────
-// 熊本熊卡：帳面8.5%，但2025/7起雙幣卡也收1.5%手續費
-//           → 玉山已將基本回饋從1%升至2.5%以「吸收」手續費
-//           → 官方以8.5%作為宣稱回饋，追蹤器沿用 8.5%（帳面值）
+// 熊本熊卡：帳面8.5%，但須滿足條件：① 指定通路（熊好買/熊好遊/熊好吃等）
+//           ② 活動期間完成登錄（每期僅需登錄1次）
+//           ③ 加碼6%每歸戶每期回饋上限NT$500（≈ NT$8,333消費封頂）
+//           ④ 超過上限後一般日本消費仍享2.5%無上限
+//           → 追蹤器顯示8.5%（含登錄＋指定通路條件）
 // 星展eco：  5% 是在「帳單同時列示手續費」條件下計算
 //           → 官方宣稱5%為含手續費的帳面值，追蹤器沿用 5%
 // Richart玩旅刷：宣稱3.3%，但仍收1.5%手續費
 //           → 實際淨回饋 = 3.3% - 1.5% = 1.8%（追蹤器使用淨值）
 // PayPay(玉山Wallet)：日本PayPay不走信用卡刷卡流程，不收海外交易手續費
-//           → 5% 為實際淨回饋
+//           → 5% 為實際淨回饋；每季回饋上限NT$100
+// Suica：   電子票券儲值消費，無信用卡回饋，僅作消費記帳用
+// 日幣現金：現金消費，無回饋，僅作消費記帳用
 const TRACKER_CAPS = {
-  kuma:  { label: '🐻 熊本熊',   cap: 500,   rate: 0.085, color: '#b8680b', unlimited: false, feeNote: '含1.5%手續費（已含於回饋結構中）' },
+  kuma:  {
+    label: '🐻 熊本熊',
+    cap: 500, rate: 0.085, color: '#b8680b', unlimited: false,
+    condNote: '須：① 指定通路（唐吉軻德/松本清/BicCamera/UNIQLO/Suica儲值等）② 活動登錄1次 ③ 加碼6%每期上限NT$500（≈¥40,000封頂），超過上限後一般日本消費仍享2.5%',
+    feeNote: '含1.5%手續費（已含於回饋結構中）'
+  },
   eco:   { label: '🌿 星展eco',  cap: 600,   rate: 0.05,  color: '#2e7d52', unlimited: false, feeNote: '含1.5%手續費（已含於回饋結構中）' },
-  pay:   { label: '🔴 PayPay',  cap: 100,   rate: 0.05,  color: '#cc0033', unlimited: false, feeNote: '免收海外手續費（行動支付通道）' },
+  pay:   { label: '🔴 PayPay',  cap: 100,   rate: 0.05,  color: '#cc0033', unlimited: false, feeNote: '免收海外手續費（行動支付通道）；每季上限NT$100' },
   rich:  { label: '🐶 Richart', cap: 99999, rate: 0.018, color: '#2c5f8a', unlimited: true,  feeNote: '玩旅刷3.3%－手續費1.5%＝淨回饋1.8%' },
+  suica: { label: '🍉 Suica',   cap: 0,     rate: 0,     color: '#3a8a4a', unlimited: true,  noRebate: true, feeNote: '交通卡消費，無回饋，僅作支出記帳' },
+  cash:  { label: '💴 日幣現金', cap: 0,     rate: 0,     color: '#888',    unlimited: true,  noRebate: true, feeNote: '現金消費，無回饋，僅作支出記帳' },
 };
 
 const TRACKER_SPOTS = {
@@ -2927,12 +2944,19 @@ function trackerRenderPaySelector(recommendedKey) {
   container.innerHTML = Object.entries(TRACKER_CAPS).map(([key, cfg]) => {
     const isRec = key === recommendedKey;
     const isActive = key === activeKey;
-    const rateLabel = key === 'rich' ? '淨1.8%' : `${(cfg.rate*100).toFixed(1)}%`;
+    let rateLabel;
+    if (cfg.noRebate)        rateLabel = '無回饋';
+    else if (key === 'rich') rateLabel = '淨1.8%';
+    else if (key === 'kuma') rateLabel = '8.5%⚠';
+    else                     rateLabel = `${(cfg.rate*100).toFixed(1)}%`;
+    const tooltipTitle = key === 'kuma'
+      ? '⚠ 須滿足：① 完成活動登錄 ② 指定商店通路 ③ 持實體卡刷（非玉山Wallet）'
+      : (cfg.feeNote || '');
     return `<button
       class="pay-sel-btn${isActive ? ` active-${key}` : ''}${isRec ? ' recommended' : ''}"
       onclick="trackerSelectPay('${key}')"
-      title="${cfg.feeNote||''}"
-    >${cfg.label} ${rateLabel}${isRec ? ' ★推薦' : ''}</button>`;
+      title="${tooltipTitle}"
+    >${cfg.label} ${rateLabel}${isRec ? ' ★' : ''}</button>`;
   }).join('');
 }
 
@@ -3028,7 +3052,9 @@ function trackerActivate() {
 
 function trackerRenderDashboard() {
   const container = document.getElementById('tracker-cards');
-  container.innerHTML = Object.entries(TRACKER_CAPS).map(([key, cfg]) => {
+  container.innerHTML = Object.entries(TRACKER_CAPS)
+    .filter(([key, cfg]) => !cfg.noRebate)   // suica/cash 不顯示在儀表板
+    .map(([key, cfg]) => {
     const u = trackerUsed[key] || 0;
     const pct = cfg.unlimited ? 0 : Math.min(100, (u / cfg.cap) * 100);
     const remaining = cfg.unlimited ? '∞' : Math.max(0, cfg.cap - u);
@@ -3174,17 +3200,33 @@ function trackerUpdatePreview() {
   const payCfg = TRACKER_CAPS[selectedKey];
   const jpy = parseFloat(document.getElementById('tracker-modal-amount').value) || 0;
   const twd = jpy * TRACKER_JPY_TWD_LIVE;
+
+  // 無回饋卡（Suica / 日幣現金）
+  if (payCfg.noRebate) {
+    document.getElementById('tracker-modal-preview').innerHTML = jpy === 0
+      ? `<span style="color:#888;font-size:0.72rem;">此支付方式無回饋，僅記錄支出金額</span>`
+      : `消費 ¥${jpy.toLocaleString()} ≒ NT$${Math.round(twd).toLocaleString()}<br>
+         <span style="color:#aaa;font-size:0.72rem;">無回饋 · 僅作支出記帳</span>`;
+    return;
+  }
+
   const maxRebate = payCfg.unlimited ? Infinity : Math.max(0, payCfg.cap - (trackerUsed[selectedKey]||0));
   const rebate = Math.min(twd * payCfg.rate, maxRebate);
   const newTotal = (trackerUsed[selectedKey]||0) + rebate;
   const pctAfter = payCfg.unlimited ? 0 : Math.min(100, (newTotal / payCfg.cap) * 100);
 
-  // 剩餘可刷（以日幣顯示）
+  // 剩餘可刷（日幣）
   const rebateLeft = payCfg.unlimited ? Infinity : Math.max(0, payCfg.cap - (trackerUsed[selectedKey]||0));
   const spendLeftJPY = payCfg.unlimited ? null : Math.round((rebateLeft / payCfg.rate) / TRACKER_JPY_TWD_LIVE);
   const remainHtml = payCfg.unlimited
     ? `<span style="color:#6ec88a;font-size:0.72rem;">無上限</span>`
     : `還能刷 <strong>¥${spendLeftJPY.toLocaleString()}</strong>（回饋剩 NT$${rebateLeft.toFixed(0)}）`;
+
+  // 熊本熊條件提醒
+  const kumaWarn = selectedKey === 'kuma'
+    ? `<div style="font-size:0.68rem;color:#b8680b;margin-top:0.3rem;line-height:1.5;">
+         ⚠ 須：① 完成活動登錄 ② 指定商店通路 ③ 持實體卡刷（非玉山Wallet）
+       </div>` : '';
 
   let warnHtml = '';
   if (!payCfg.unlimited && pctAfter >= 100) {
@@ -3196,12 +3238,12 @@ function trackerUpdatePreview() {
   }
 
   document.getElementById('tracker-modal-preview').innerHTML = jpy === 0
-    ? `<span style="color:#888;font-size:0.78rem;">${remainHtml}<br>輸入日幣金額預覽回饋</span>`
-    : `消費 ¥${jpy.toLocaleString()} ≒ NT$${twd.toFixed(0)}<br>
+    ? `<span style="color:#888;font-size:0.78rem;">${remainHtml}<br>輸入日幣金額預覽回饋</span>${kumaWarn}`
+    : `消費 ¥${jpy.toLocaleString()} ≒ NT$${Math.round(twd).toLocaleString()}<br>
        回饋率 <span class="prev-rate">${(payCfg.rate*100).toFixed(1)}%</span>　
        預估回饋 <span class="prev-rebate">NT$${rebate.toFixed(1)}</span><br>
        ${remainHtml}
-       ${warnHtml}`;
+       ${warnHtml}${kumaWarn}`;
 }
 
 function trackerCloseModal() {
@@ -3216,16 +3258,21 @@ function trackerConfirmLog() {
   const selectedKey = trackerGetSelectedPayKey();
   const payCfg = TRACKER_CAPS[selectedKey];
   const twd = jpy * TRACKER_JPY_TWD_LIVE;
-  const maxRebate = payCfg.unlimited ? twd * payCfg.rate : Math.max(0, payCfg.cap - (trackerUsed[selectedKey]||0));
-  const rebate = Math.min(twd * payCfg.rate, maxRebate);
-  if (!trackerUsed[selectedKey]) trackerUsed[selectedKey] = 0;
-  trackerUsed[selectedKey] += rebate;
+
+  let rebate = 0;
+  if (!payCfg.noRebate) {
+    const maxRebate = payCfg.unlimited ? twd * payCfg.rate : Math.max(0, payCfg.cap - (trackerUsed[selectedKey]||0));
+    rebate = Math.min(twd * payCfg.rate, maxRebate);
+    if (!trackerUsed[selectedKey]) trackerUsed[selectedKey] = 0;
+    trackerUsed[selectedKey] += rebate;
+  }
+
   if (!trackerLogs[trackerPendingSpot]) trackerLogs[trackerPendingSpot] = [];
   trackerLogs[trackerPendingSpot].push({ jpy, twd, rebate, payUsed: selectedKey });
   trackerSaveState();
   const spot = trackerPendingSpot;
   trackerCloseModal();
-  trackerUpdateDashboard(selectedKey);
+  if (!payCfg.noRebate) trackerUpdateDashboard(selectedKey);
   trackerRenderAllSpotStatuses();
   trackerRenderLogs(spot);
 }
@@ -3233,10 +3280,13 @@ function trackerConfirmLog() {
 function trackerDeleteLog(spotId, idx) {
   const e = trackerLogs[spotId][idx];
   if (!e) return;
-  trackerUsed[e.payUsed] = Math.max(0, (trackerUsed[e.payUsed]||0) - e.rebate);
+  const cfg = TRACKER_CAPS[e.payUsed];
+  if (!cfg?.noRebate) {
+    trackerUsed[e.payUsed] = Math.max(0, (trackerUsed[e.payUsed]||0) - e.rebate);
+  }
   trackerLogs[spotId].splice(idx, 1);
   trackerSaveState();
-  trackerUpdateDashboard(e.payUsed);
+  if (!cfg?.noRebate) trackerUpdateDashboard(e.payUsed);
   trackerRenderAllSpotStatuses();
   trackerRenderLogs(spotId);
 }
@@ -3253,7 +3303,7 @@ function resetConfirmDo() {
   trackerResetAll();
 }
 function trackerResetAll() {
-  trackerUsed = { kuma: 0, eco: 0, pay: 0, rich: 0 };
+  trackerUsed = { kuma: 0, eco: 0, pay: 0, rich: 0, suica: 0, cash: 0 };
   trackerLogs = {};
   trackerSaveState();
   trackerRenderDashboard();
@@ -3280,10 +3330,12 @@ const SPOT_DAY_MAP = (() => {
 })();
 
 const CARD_CHIP_STYLE = {
-  kuma: 'background:#fff0d4;color:#b8680b;border:1px solid #e8c080;',
-  eco:  'background:#d4f0e0;color:#2e7d52;border:1px solid #80c8a0;',
-  pay:  'background:#ffe0e0;color:#cc0033;border:1px solid #f0a0a0;',
-  rich: 'background:#d4e4f5;color:#2c5f8a;border:1px solid #80a8d8;',
+  kuma:  'background:#fff0d4;color:#b8680b;border:1px solid #e8c080;',
+  eco:   'background:#d4f0e0;color:#2e7d52;border:1px solid #80c8a0;',
+  pay:   'background:#ffe0e0;color:#cc0033;border:1px solid #f0a0a0;',
+  rich:  'background:#d4e4f5;color:#2c5f8a;border:1px solid #80a8d8;',
+  suica: 'background:#d8f0dc;color:#3a8a4a;border:1px solid #88cc90;',
+  cash:  'background:#f0ebe5;color:#777;border:1px solid #ccc;',
 };
 
 function ledgerOpen() {
@@ -3316,9 +3368,11 @@ function ledgerRender() {
   const totalRebate = allEntries.reduce((s, e) => s + e.rebate, 0);
   const totalCount = allEntries.length;
 
-  // 各卡回饋小計
+  // 各卡回饋小計（排除無回饋項目）
   const cardRebate = {};
-  allEntries.forEach(e => { cardRebate[e.payUsed] = (cardRebate[e.payUsed]||0) + e.rebate; });
+  allEntries.forEach(e => {
+    if (e.rebate > 0) cardRebate[e.payUsed] = (cardRebate[e.payUsed]||0) + e.rebate;
+  });
 
   // 摘要卡
   let summaryHtml = `
@@ -3355,13 +3409,16 @@ function ledgerRender() {
 
     const rowsHtml = entries.map(e => {
       const cfg = TRACKER_CAPS[e.payUsed];
+      const rebateDisplay = cfg?.noRebate
+        ? `<span style="color:#bbb;font-size:0.65rem;">無回饋</span>`
+        : `<span class="ledger-rebate">+NT$${e.rebate.toFixed(1)}</span>`;
       return `<div class="ledger-row">
         <div>
           <div class="ledger-spot">${e.spotName}</div>
           <div class="ledger-spot-pay" style="${CARD_CHIP_STYLE[e.payUsed]||''}; padding:0.1em 0.4em; border-radius:3px; display:inline-block; margin-top:0.15rem;">${cfg?.label||e.payUsed}</div>
         </div>
         <div class="ledger-jpy">¥${e.jpy.toLocaleString()}</div>
-        <div class="ledger-rebate">+NT$${e.rebate.toFixed(1)}</div>
+        ${rebateDisplay}
         <button class="ledger-del" onclick="ledgerDeleteEntry('${e.spotId}',${e.idx})" title="刪除此筆">✕</button>
       </div>`;
     }).join('');
@@ -3380,17 +3437,19 @@ function ledgerRender() {
 }
 
 function ledgerDeleteEntry(spotId, idx) {
-  // 找到這筆在 trackerLogs 中的正確 index（因為 idx 是渲染時的 snapshot index）
   if (!trackerLogs[spotId] || !trackerLogs[spotId][idx]) return;
   const e = trackerLogs[spotId][idx];
-  trackerUsed[e.payUsed] = Math.max(0, (trackerUsed[e.payUsed]||0) - e.rebate);
+  const cfg = TRACKER_CAPS[e.payUsed];
+  if (!cfg?.noRebate) {
+    trackerUsed[e.payUsed] = Math.max(0, (trackerUsed[e.payUsed]||0) - e.rebate);
+  }
   trackerLogs[spotId].splice(idx, 1);
   if (trackerLogs[spotId].length === 0) delete trackerLogs[spotId];
   trackerSaveState();
-  trackerUpdateDashboard(e.payUsed);
+  if (!cfg?.noRebate) trackerUpdateDashboard(e.payUsed);
   trackerRenderAllSpotStatuses();
   trackerRenderLogs(spotId);
-  ledgerRender(); // 重新渲染明細
+  ledgerRender();
 }
 
 // Close modal on overlay click
