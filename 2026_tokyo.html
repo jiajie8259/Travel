@@ -696,8 +696,52 @@
   .spot-ico { font-size: 0.95rem; padding-top: 0.1rem; }
   .spot-body {
     background: #fff; border: 1.5px solid #e0d8cc; border-radius: 5px;
-    padding: 0.5rem 0.85rem;
+    padding: 0.5rem 0.85rem; position: relative; transition: opacity 0.2s, border-color 0.2s;
   }
+
+  /* ── 略過狀態 ── */
+  .spot-row.skipped .spot-body {
+    opacity: 0.38;
+    border-color: #ccc;
+    background: #f8f6f3;
+  }
+  .spot-row.skipped .spot-ico { opacity: 0.3; }
+  .spot-row.skipped .pay-col  { opacity: 0.3; pointer-events: none; }
+  /* 斜線塗鴉效果 */
+  .spot-row.skipped .spot-body::after {
+    content: '';
+    position: absolute; inset: 0;
+    border-radius: 4px;
+    background: repeating-linear-gradient(
+      -52deg,
+      transparent,
+      transparent 7px,
+      rgba(0,0,0,0.055) 7px,
+      rgba(0,0,0,0.055) 8.5px
+    );
+    pointer-events: none;
+  }
+  /* 略過標籤 */
+  .skip-badge {
+    position: absolute; top: 0.3rem; right: 0.5rem;
+    font-family: 'DM Mono', monospace; font-size: 0.58rem; font-weight: 700;
+    letter-spacing: 0.06em; color: #aaa; background: #f0ece6;
+    border: 1px solid #ccc; border-radius: 3px;
+    padding: 0.1em 0.45em; pointer-events: none;
+  }
+  /* 略過切換按鈕（hover 才顯示，或追蹤器啟動後常駐） */
+  .skip-btn {
+    display: none;
+    font-family: 'DM Mono', monospace; font-size: 0.55rem; letter-spacing: 0.04em;
+    background: none; border: 1px dashed #ccc; color: #bbb;
+    padding: 0.15rem 0.45rem; border-radius: 3px; cursor: pointer;
+    transition: all 0.15s; white-space: nowrap; margin-top: 0.3rem;
+    line-height: 1.5;
+  }
+  .skip-btn:hover { border-color: #999; color: #777; background: #f8f5f0; }
+  .skip-btn.active { border-color: #27ae60; color: #27ae60; background: rgba(39,174,96,0.07); }
+  .tracker-on .skip-btn { display: inline-block; }
+  .spot-row.skipped .skip-btn { display: inline-block; color: #27ae60; border-color: #27ae60; background: rgba(39,174,96,0.07); }
   .spot-name { font-size: 0.86rem; font-weight: 700; line-height: 1.4; }
   .spot-note { font-size: 0.72rem; color: var(--muted); margin-top: 0.12rem; line-height: 1.45; }
   .spot-alert { color: var(--red); font-weight: 700; }
@@ -883,7 +927,106 @@
     opacity: 0.7;
   }
 
-  /* ── 重置確認 modal ── */
+  /* ── 自由記帳帶 ── */
+  .free-log-strip {
+    display: none;
+    margin: 0.6rem 0 0.2rem;
+    padding: 0.5rem 0.65rem;
+    background: repeating-linear-gradient(
+      -45deg, transparent, transparent 4px,
+      rgba(0,0,0,0.018) 4px, rgba(0,0,0,0.018) 8px
+    );
+    border: 1.5px dashed #d0c8bc;
+    border-radius: 6px;
+  }
+  .free-log-strip.tracker-on { display: block; }
+  .free-log-strip-header {
+    display: flex; align-items: center; justify-content: space-between;
+    margin-bottom: 0.3rem;
+  }
+  .free-log-strip-label {
+    font-family: 'DM Mono', monospace; font-size: 0.58rem;
+    letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted);
+  }
+  .free-add-btn {
+    display: inline-flex; align-items: center; gap: 0.3rem;
+    font-family: 'DM Mono', monospace; font-size: 0.6rem; letter-spacing: 0.04em;
+    background: white; border: 1.5px solid #b8a898; color: #7a6a5a;
+    padding: 0.22rem 0.65rem; border-radius: 4px; cursor: pointer;
+    transition: all 0.15s; white-space: nowrap;
+  }
+  .free-add-btn:hover { border-color: var(--ink); color: var(--ink); background: #faf7f2; }
+  .free-add-btn.has-logs { border-color: #27ae60; color: #27ae60; background: rgba(39,174,96,0.05); }
+  .free-log-list { margin-top: 0.25rem; }
+  .free-log-entry {
+    display: flex; align-items: center; gap: 0.4rem; flex-wrap: wrap;
+    font-family: 'DM Mono', monospace; font-size: 0.62rem; color: var(--muted);
+    padding: 0.15rem 0; border-bottom: 1px dashed #ece4da; animation: fadeUp 0.2s ease;
+  }
+  .free-log-entry:last-child { border-bottom: none; }
+  .free-log-entry .fle-name { font-weight: 700; color: var(--ink); flex: 1; min-width: 80px; }
+  .free-log-entry .fle-jpy  { font-weight: 700; color: var(--ink); white-space: nowrap; }
+  .free-log-entry .fle-rebate { color: #27ae60; font-weight: 700; white-space: nowrap; }
+  .free-log-entry .fle-norebate { color: #bbb; font-size: 0.6rem; }
+  .free-log-entry .log-del { background:none; border:none; color:#ccc; cursor:pointer; font-size:0.75rem; padding:0 0.15rem; }
+  .free-log-entry .log-del:hover { color: var(--red); }
+
+  /* ── 自由記帳 modal ── */
+  .free-modal-overlay {
+    display: none; position: fixed; inset: 0; z-index: 200;
+    background: rgba(0,0,0,0.5); align-items: center; justify-content: center;
+  }
+  .free-modal-overlay.open { display: flex; }
+  .free-modal-box {
+    background: white; border-radius: 12px; padding: 1.5rem 1.6rem;
+    max-width: 360px; width: 92%; box-shadow: 0 20px 60px rgba(0,0,0,0.25);
+  }
+  .free-modal-title {
+    font-size: 0.95rem; font-weight: 800; color: var(--ink);
+    margin-bottom: 1rem; letter-spacing: 0.02em;
+  }
+  .free-modal-field { margin-bottom: 0.85rem; }
+  .free-modal-label {
+    font-family: 'DM Mono', monospace; font-size: 0.6rem;
+    letter-spacing: 0.1em; text-transform: uppercase;
+    color: var(--muted); display: block; margin-bottom: 0.35rem;
+  }
+  .free-modal-input {
+    width: 100%; border: 1.5px solid #ddd5c8; border-radius: 6px;
+    padding: 0.55rem 0.75rem; font-family: 'Noto Serif TC', serif;
+    font-size: 0.88rem; color: var(--ink); outline: none;
+    transition: border-color 0.15s;
+  }
+  .free-modal-input:focus { border-color: var(--ink); }
+  .free-modal-amount-wrap {
+    display: flex; align-items: center;
+    border: 1.5px solid #ddd5c8; border-radius: 6px; overflow: hidden;
+  }
+  .free-modal-amount-wrap:focus-within { border-color: var(--ink); }
+  .free-modal-currency {
+    padding: 0.55rem 0.65rem; font-family: 'DM Mono', monospace;
+    font-size: 0.9rem; color: var(--muted); background: #f8f4ef;
+    border-right: 1px solid #ddd5c8;
+  }
+  .free-modal-amount {
+    flex: 1; border: none; outline: none; padding: 0.55rem 0.75rem;
+    font-family: 'DM Mono', monospace; font-size: 1rem; font-weight: 700;
+    color: var(--ink);
+  }
+  .free-modal-preview {
+    font-size: 0.78rem; color: var(--muted); line-height: 1.6;
+    min-height: 1.4rem; margin-bottom: 0.75rem;
+  }
+  .free-modal-btns { display: flex; gap: 0.6rem; }
+  .free-modal-btns button {
+    flex: 1; padding: 0.65rem; border-radius: 6px; border: none;
+    font-family: 'Noto Serif TC', serif; font-size: 0.82rem; font-weight: 700;
+    cursor: pointer; transition: all 0.15s;
+  }
+  .free-btn-cancel { background: #f0ead8; color: var(--muted); }
+  .free-btn-cancel:hover { background: #e0d8cc; }
+  .free-btn-confirm { background: var(--ink); color: #f0c040; }
+  .free-btn-confirm:hover { background: #2a1e0e; }
   .reset-confirm-overlay {
     display: none; position: fixed; inset: 0; z-index: 200;
     background: rgba(0,0,0,0.55); align-items: center; justify-content: center;
@@ -1000,10 +1143,38 @@
       <div style="display:flex;align-items:center;gap:0.5rem;">
         <span id="tracker-rate-display" style="font-family:'DM Mono',monospace;font-size:0.58rem;color:#aaa;">匯率載入中...</span>
         <button class="tracker-reset" onclick="ledgerOpen()" style="color:#f0c040;border-color:#555;">📋 明細</button>
+        <button class="tracker-reset" onclick="exportCSV()" style="color:#6ec88a;border-color:#3a6a4a;" title="匯出所有記帳資料為 CSV">⬇ 匯出</button>
         <button class="tracker-reset" onclick="resetConfirmOpen()">↺ 重置</button>
       </div>
     </div>
     <div class="tracker-cards" id="tracker-cards"></div>
+  </div>
+</div>
+
+<!-- ── 自由記帳 MODAL ── -->
+<div class="free-modal-overlay" id="free-modal">
+  <div class="free-modal-box">
+    <div class="free-modal-title">✏️ 新增消費</div>
+    <div class="free-modal-field">
+      <label class="free-modal-label" for="free-modal-name">消費地點 / 說明</label>
+      <input class="free-modal-input" id="free-modal-name" type="text" placeholder="例：便利商店、路邊小吃…" maxlength="30">
+    </div>
+    <div class="free-modal-field">
+      <label class="free-modal-label">選擇支付方式</label>
+      <div id="free-pay-selector" style="display:flex;flex-wrap:wrap;gap:0.4rem;"></div>
+    </div>
+    <div class="free-modal-field">
+      <label class="free-modal-label" for="free-modal-amount">消費金額（日圓）</label>
+      <div class="free-modal-amount-wrap">
+        <span class="free-modal-currency">¥</span>
+        <input class="free-modal-amount" id="free-modal-amount" type="number" placeholder="0" min="0" oninput="freeModalUpdatePreview()">
+      </div>
+    </div>
+    <div class="free-modal-preview" id="free-modal-preview"></div>
+    <div class="free-modal-btns">
+      <button class="free-btn-cancel" onclick="freeModalClose()">取消</button>
+      <button class="free-btn-confirm" onclick="freeModalConfirm()">記帳 ✓</button>
+    </div>
   </div>
 </div>
 
@@ -1012,7 +1183,7 @@
   <div class="reset-confirm-box">
     <div class="reset-confirm-icon">⚠️</div>
     <div class="reset-confirm-title">確定要重置全部記帳？</div>
-    <div class="reset-confirm-body">所有消費記錄與回饋額度將被清除，且<strong>無法復原</strong>。</div>
+    <div class="reset-confirm-body">所有<strong>消費記錄與回饋額度</strong>將被清除，且<strong>無法復原</strong>。<br><span style="font-size:0.78rem;color:#aaa;">（行程略過標記不受影響）</span></div>
     <div class="reset-confirm-btns">
       <button class="reset-btn-cancel" onclick="resetConfirmClose()">取消，繼續保留</button>
       <button class="reset-btn-confirm" onclick="resetConfirmDo()">確定清除</button>
@@ -2131,6 +2302,14 @@
         </div>
         <div class="pay-col" id="paycol-d1-gyutan"><span class="pb pb-eco">🌿 星展eco</span><span class="pb-rate green">5%</span></div>
       </div>
+      <!-- D1 自由記帳 -->
+      <div class="free-log-strip" id="free-strip-d1" data-day="d1">
+        <div class="free-log-strip-header">
+          <span class="free-log-strip-label">D1 · 其他消費</span>
+          <button class="free-add-btn" id="free-btn-d1" onclick="freeModalOpen('d1')">＋ 新增消費</button>
+        </div>
+        <div class="free-log-list" id="free-logs-d1"></div>
+      </div>
     </div>
 
     <!-- D2 -->
@@ -2270,6 +2449,14 @@
         </div>
         <div class="pay-col"><span class="pb pb-cash" style="color:#aaa;">—</span></div>
       </div>
+      <!-- D2 自由記帳 -->
+      <div class="free-log-strip" id="free-strip-d2" data-day="d2">
+        <div class="free-log-strip-header">
+          <span class="free-log-strip-label">D2 · 其他消費</span>
+          <button class="free-add-btn" id="free-btn-d2" onclick="freeModalOpen('d2')">＋ 新增消費</button>
+        </div>
+        <div class="free-log-list" id="free-logs-d2"></div>
+      </div>
     </div>
 
     <!-- D3 -->
@@ -2361,6 +2548,14 @@
         </div>
         <div class="pay-col" id="paycol-d3-luftbaum"><span class="pb pb-eco">🌿 星展eco</span><span class="pb-rate green">5%</span></div>
       </div>
+      <!-- D3 自由記帳 -->
+      <div class="free-log-strip" id="free-strip-d3" data-day="d3">
+        <div class="free-log-strip-header">
+          <span class="free-log-strip-label">D3 · 其他消費</span>
+          <button class="free-add-btn" id="free-btn-d3" onclick="freeModalOpen('d3')">＋ 新增消費</button>
+        </div>
+        <div class="free-log-list" id="free-logs-d3"></div>
+      </div>
     </div>
 
     <!-- D4 -->
@@ -2410,6 +2605,14 @@
           <div class="log-list" id="logs-d4-airport-tax"></div>
         </div>
         <div class="pay-col" id="paycol-d4-airport-tax"><span class="pb pb-eco">🌿 星展eco</span><span class="pb-rate green">5%</span><span class="pb pb-rich" style="margin-top:0.2rem;">🐶 Richart</span><span class="pb-rate blue" style="font-size:0.62rem;">淨1.8%補位</span></div>
+      </div>
+      <!-- D4 自由記帳 -->
+      <div class="free-log-strip" id="free-strip-d4" data-day="d4">
+        <div class="free-log-strip-header">
+          <span class="free-log-strip-label">D4 · 其他消費</span>
+          <button class="free-add-btn" id="free-btn-d4" onclick="freeModalOpen('d4')">＋ 新增消費</button>
+        </div>
+        <div class="free-log-list" id="free-logs-d4"></div>
       </div>
     </div>
 
@@ -3042,12 +3245,23 @@ function trackerLoadState() {
 function trackerActivate() {
   trackerActive = true;
   trackerLoadState();
-  fetchBOTRate(); // 取得台銀即期匯率
+  freeLogsLoad();
+  skipLoad();
+  fetchBOTRate();
   document.getElementById('tracker-bar').classList.add('visible');
   trackerRenderDashboard();
   trackerRenderAllSpotStatuses();
+  // 注入略過按鈕並套用狀態（需在 add-btn 顯示前）
+  skipInjectButtons();
+  skipApplyAll();
+  skipSetPanelClass(true);
   document.querySelectorAll('.add-btn').forEach(b => b.style.display = 'inline-flex');
+  // 重新隱藏已略過行程的記帳按鈕
+  document.querySelectorAll('#pay-panel-itinerary .spot-row.skipped .add-btn')
+    .forEach(b => b.style.display = 'none');
   trackerRenderAllLogs();
+  freeStripsShow();
+  freeRenderAllDayLogs();
 }
 
 function trackerRenderDashboard() {
@@ -3291,6 +3505,174 @@ function trackerDeleteLog(spotId, idx) {
   trackerRenderLogs(spotId);
 }
 
+// ── 匯出 CSV ──────────────────────────────────────────
+function exportCSV() {
+  const rate = TRACKER_JPY_TWD_LIVE;
+  const now = new Date();
+  const dateStr = `${now.getFullYear()}${String(now.getMonth()+1).padStart(2,'0')}${String(now.getDate()).padStart(2,'0')}_${String(now.getHours()).padStart(2,'0')}${String(now.getMinutes()).padStart(2,'0')}`;
+
+  // 建立 CSV 列
+  const rows = [];
+  // 標題列（BOM for Excel UTF-8 compatibility）
+  rows.push(['日次','據點/說明','支付方式','消費（日圓）','換算（台幣）','回饋（台幣）','類型']);
+
+  const DAY_LABELS = { d1: 'D1 4/16', d2: 'D2 4/17', d3: 'D3 4/18', d4: 'D4 4/19' };
+
+  // 固定據點記帳
+  Object.entries(trackerLogs).forEach(([spotId, entries]) => {
+    const dayKey = spotId.slice(0,2);
+    const dayLabel = DAY_LABELS[dayKey] || dayKey;
+    const spotName = TRACKER_SPOTS[spotId]?.name || spotId;
+    entries.forEach(e => {
+      const cfg = TRACKER_CAPS[e.payUsed];
+      rows.push([
+        dayLabel,
+        spotName,
+        cfg?.label || e.payUsed,
+        e.jpy,
+        Math.round(e.twd),
+        e.rebate.toFixed(2),
+        '行程據點'
+      ]);
+    });
+  });
+
+  // 自由記帳
+  Object.entries(freeLogs).forEach(([day, entries]) => {
+    const dayLabel = DAY_LABELS[day] || day;
+    entries.forEach(e => {
+      const cfg = TRACKER_CAPS[e.payUsed];
+      rows.push([
+        dayLabel,
+        e.name,
+        cfg?.label || e.payUsed,
+        e.jpy,
+        Math.round(e.twd),
+        e.rebate.toFixed(2),
+        '自由記帳'
+      ]);
+    });
+  });
+
+  if (rows.length === 1) {
+    alert('目前沒有任何記帳資料可以匯出。');
+    return;
+  }
+
+  // 加總列
+  const allData = rows.slice(1);
+  const totalJPY = allData.reduce((s, r) => s + Number(r[3]), 0);
+  const totalTWD = allData.reduce((s, r) => s + Number(r[4]), 0);
+  const totalRebate = allData.reduce((s, r) => s + Number(r[5]), 0);
+  rows.push(['', '合計', '', totalJPY, totalTWD, totalRebate.toFixed(2), '']);
+  rows.push(['', `匯率基準 ¥100=NT$${(rate*100).toFixed(2)}`, '', '', '', '', '']);
+  rows.push(['', `匯出時間 ${now.toLocaleString('zh-TW')}`, '', '', '', '', '']);
+
+  // 轉換為 CSV 字串
+  const csvContent = '\uFEFF' + rows.map(row =>
+    row.map(cell => {
+      const s = String(cell);
+      // 含逗號、引號、換行時加雙引號
+      return (s.includes(',') || s.includes('"') || s.includes('\n'))
+        ? `"${s.replace(/"/g, '""')}"` : s;
+    }).join(',')
+  ).join('\r\n');
+
+  // 下載
+  const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `東京記帳_${dateStr}.csv`;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+}
+
+// ── 行程略過標記 ──────────────────────────────────────
+let skipState = {}; // { spotRowId: true/false }
+
+function skipSave() {
+  try { localStorage.setItem('tokyo26_skip', JSON.stringify(skipState)); } catch(e) {}
+}
+function skipLoad() {
+  try {
+    const d = localStorage.getItem('tokyo26_skip');
+    if (d) skipState = JSON.parse(d);
+  } catch(e) {}
+}
+
+// 為每個 spot-row 在 spot-body 內注入略過按鈕（只執行一次）
+function skipInjectButtons() {
+  document.querySelectorAll('#pay-panel-itinerary .spot-row').forEach((row, i) => {
+    const body = row.querySelector('.spot-body');
+    if (!body || body.querySelector('.skip-btn')) return; // 已注入
+
+    // 產生穩定 ID
+    const spotId = body.getAttribute('data-spot') || `generic-row-${i}`;
+    row.setAttribute('data-skip-id', spotId);
+
+    const btn = document.createElement('button');
+    btn.className = 'skip-btn';
+    btn.setAttribute('data-skip-id', spotId);
+    btn.onclick = () => skipToggle(spotId);
+    body.appendChild(btn);
+  });
+}
+
+function skipApplyAll() {
+  document.querySelectorAll('#pay-panel-itinerary .spot-row[data-skip-id]').forEach(row => {
+    const id = row.getAttribute('data-skip-id');
+    skipApply(row, id);
+  });
+}
+
+function skipApply(row, id) {
+  const isSkipped = !!skipState[id];
+  const btn = row.querySelector('.skip-btn');
+
+  if (isSkipped) {
+    row.classList.add('skipped');
+    // 隱藏記帳按鈕
+    row.querySelectorAll('.add-btn').forEach(b => b.style.display = 'none');
+    if (btn) btn.textContent = '↩ 恢復此行程';
+    // 加略過標籤（若尚未存在）
+    const body = row.querySelector('.spot-body');
+    if (body && !body.querySelector('.skip-badge')) {
+      const badge = document.createElement('span');
+      badge.className = 'skip-badge';
+      badge.textContent = '未執行';
+      body.appendChild(badge);
+    }
+  } else {
+    row.classList.remove('skipped');
+    // 若追蹤器已啟動，重新顯示記帳按鈕
+    if (trackerActive) {
+      row.querySelectorAll('.add-btn').forEach(b => b.style.display = 'inline-flex');
+    }
+    if (btn) btn.textContent = '✕ 略過此行程';
+    // 移除略過標籤
+    const badge = row.querySelector('.skip-badge');
+    if (badge) badge.remove();
+  }
+}
+
+function skipToggle(id) {
+  skipState[id] = !skipState[id];
+  skipSave();
+  const row = document.querySelector(`#pay-panel-itinerary .spot-row[data-skip-id="${id}"]`);
+  if (row) skipApply(row, id);
+}
+
+// 讓支付對照子頁籤的 itin-day 區域套用 tracker-on class（控制略過按鈕顯示）
+function skipSetPanelClass(active) {
+  const panel = document.getElementById('pay-panel-itinerary');
+  if (!panel) return;
+  if (active) panel.classList.add('tracker-on');
+  else panel.classList.remove('tracker-on');
+}
+
 // ── 重置確認 ──────────────────────────────────────────
 function resetConfirmOpen() {
   document.getElementById('reset-confirm-overlay').classList.add('open');
@@ -3305,7 +3687,9 @@ function resetConfirmDo() {
 function trackerResetAll() {
   trackerUsed = { kuma: 0, eco: 0, pay: 0, rich: 0, suica: 0, cash: 0 };
   trackerLogs = {};
+  freeLogs = {};
   trackerSaveState();
+  freeLogsSave();
   trackerRenderDashboard();
   trackerRenderAllSpotStatuses();
   document.querySelectorAll('.log-list').forEach(el => el.innerHTML = '');
@@ -3313,21 +3697,24 @@ function trackerResetAll() {
     b.classList.remove('logged');
     b.textContent = '＋ 記帳';
   });
+  // 略過標記保留（重置只清記帳，不影響行程略過標記）
+  document.querySelectorAll('#pay-panel-itinerary .spot-row.skipped .add-btn')
+    .forEach(b => b.style.display = 'none');
+  freeRenderAllDayLogs();
 }
 
 // ── 消費明細 ──────────────────────────────────────────
 // spotId → Day 標籤 對應表
-const SPOT_DAY_MAP = (() => {
-  const map = {};
-  Object.keys(TRACKER_SPOTS).forEach(id => {
-    const d = id.startsWith('d1') ? 'D1 · 4/16（四）新宿' :
-              id.startsWith('d2') ? 'D2 · 4/17（五）澀谷・池袋' :
-              id.startsWith('d3') ? 'D3 · 4/18（六）品川・戶越' :
-              id.startsWith('d4') ? 'D4 · 4/19（日）返程日' : '其他';
-    map[id] = d;
-  });
-  return map;
-})();
+const SPOT_DAY_MAP = {
+  d1: 'D1 · 4/16（四）新宿',
+  d2: 'D2 · 4/17（五）澀谷・池袋',
+  d3: 'D3 · 4/18（六）品川・戶越',
+  d4: 'D4 · 4/19（日）返程日',
+};
+function getSpotDay(spotId) {
+  const prefix = spotId.slice(0, 2);
+  return SPOT_DAY_MAP[prefix] || '其他';
+}
 
 const CARD_CHIP_STYLE = {
   kuma:  'background:#fff0d4;color:#b8680b;border:1px solid #e8c080;',
@@ -3351,9 +3738,26 @@ function ledgerRender() {
 
   // 收集所有記帳，展平為列表
   let allEntries = [];
+  // 固定據點記帳
   Object.entries(trackerLogs).forEach(([spotId, entries]) => {
     entries.forEach((e, idx) => {
-      allEntries.push({ spotId, idx, ...e, day: SPOT_DAY_MAP[spotId] || '其他', spotName: TRACKER_SPOTS[spotId]?.name || spotId });
+      allEntries.push({
+        spotId, idx, ...e,
+        day: getSpotDay(spotId),
+        spotName: TRACKER_SPOTS[spotId]?.name || spotId,
+        isFree: false
+      });
+    });
+  });
+  // 自由記帳
+  Object.entries(freeLogs).forEach(([day, entries]) => {
+    entries.forEach((e, idx) => {
+      allEntries.push({
+        spotId: `free-${day}`, idx, ...e,
+        day: getSpotDay(day),
+        spotName: e.name,
+        isFree: true
+      });
     });
   });
 
@@ -3409,17 +3813,22 @@ function ledgerRender() {
 
     const rowsHtml = entries.map(e => {
       const cfg = TRACKER_CAPS[e.payUsed];
-      const rebateDisplay = cfg?.noRebate
+      const rebateDisplay = (cfg?.noRebate || e.rebate === 0)
         ? `<span style="color:#bbb;font-size:0.65rem;">無回饋</span>`
         : `<span class="ledger-rebate">+NT$${e.rebate.toFixed(1)}</span>`;
+      const freeTag = e.isFree
+        ? `<span style="font-family:'DM Mono',monospace;font-size:0.55rem;color:#aaa;background:#f5f0ea;padding:0.1em 0.4em;border-radius:3px;margin-left:0.3rem;">自由記帳</span>` : '';
+      const delFn = e.isFree
+        ? `freeDeleteEntry('${e.spotId.replace('free-','')}',${e.idx})`
+        : `ledgerDeleteEntry('${e.spotId}',${e.idx})`;
       return `<div class="ledger-row">
         <div>
-          <div class="ledger-spot">${e.spotName}</div>
+          <div class="ledger-spot">${e.spotName}${freeTag}</div>
           <div class="ledger-spot-pay" style="${CARD_CHIP_STYLE[e.payUsed]||''}; padding:0.1em 0.4em; border-radius:3px; display:inline-block; margin-top:0.15rem;">${cfg?.label||e.payUsed}</div>
         </div>
         <div class="ledger-jpy">¥${e.jpy.toLocaleString()}</div>
         ${rebateDisplay}
-        <button class="ledger-del" onclick="ledgerDeleteEntry('${e.spotId}',${e.idx})" title="刪除此筆">✕</button>
+        <button class="ledger-del" onclick="${delFn}" title="刪除此筆">✕</button>
       </div>`;
     }).join('');
 
@@ -3452,7 +3861,164 @@ function ledgerDeleteEntry(spotId, idx) {
   ledgerRender();
 }
 
-// Close modal on overlay click
+// ── 自由記帳 ──────────────────────────────────────────
+// 儲存結構：freeLogs[day] = [{ name, jpy, twd, rebate, payUsed }, ...]
+let freeLogs = {};
+let freePendingDay = null;
+let freeSelectedPay = 'eco';
+
+function freeLogsSave() {
+  try { localStorage.setItem('tokyo26_free_logs', JSON.stringify(freeLogs)); } catch(e) {}
+}
+function freeLogsLoad() {
+  try {
+    const d = localStorage.getItem('tokyo26_free_logs');
+    if (d) freeLogs = JSON.parse(d);
+  } catch(e) {}
+}
+
+function freeModalOpen(day) {
+  if (!trackerActive) trackerActivate();
+  freePendingDay = day;
+  freeSelectedPay = 'eco'; // 預設
+  document.getElementById('free-modal-name').value = '';
+  document.getElementById('free-modal-amount').value = '';
+  freeRenderPaySelector();
+  freeModalUpdatePreview();
+  document.getElementById('free-modal').classList.add('open');
+  setTimeout(() => document.getElementById('free-modal-name').focus(), 100);
+}
+
+function freeModalClose() {
+  document.getElementById('free-modal').classList.remove('open');
+  freePendingDay = null;
+}
+
+function freeRenderPaySelector() {
+  const container = document.getElementById('free-pay-selector');
+  if (!container) return;
+  container.innerHTML = Object.entries(TRACKER_CAPS).map(([key, cfg]) => {
+    const isActive = key === freeSelectedPay;
+    let rateLabel;
+    if (cfg.noRebate)        rateLabel = '無回饋';
+    else if (key === 'rich') rateLabel = '淨1.8%';
+    else if (key === 'kuma') rateLabel = '8.5%⚠';
+    else                     rateLabel = `${(cfg.rate*100).toFixed(1)}%`;
+    return `<button
+      class="pay-sel-btn${isActive ? ` active-${key}` : ''}"
+      onclick="freeSelectPay('${key}')"
+      title="${cfg.feeNote||''}"
+    >${cfg.label} ${rateLabel}</button>`;
+  }).join('');
+}
+
+function freeSelectPay(key) {
+  freeSelectedPay = key;
+  freeRenderPaySelector();
+  freeModalUpdatePreview();
+}
+
+function freeModalUpdatePreview() {
+  const jpy = parseFloat(document.getElementById('free-modal-amount').value) || 0;
+  const cfg = TRACKER_CAPS[freeSelectedPay];
+  const preview = document.getElementById('free-modal-preview');
+  if (!cfg || jpy === 0) { preview.innerHTML = ''; return; }
+  const twd = jpy * TRACKER_JPY_TWD_LIVE;
+  if (cfg.noRebate) {
+    preview.innerHTML = `≒ NT$${Math.round(twd).toLocaleString()} · 無回饋`;
+    return;
+  }
+  const maxRebate = cfg.unlimited ? Infinity : Math.max(0, cfg.cap - (trackerUsed[freeSelectedPay]||0));
+  const rebate = Math.min(twd * cfg.rate, maxRebate);
+  const kumaWarn = freeSelectedPay === 'kuma'
+    ? `<div style="font-size:0.65rem;color:#b8680b;margin-top:0.2rem;">⚠ 須登錄＋指定通路＋實體卡刷</div>` : '';
+  preview.innerHTML = `≒ NT$${Math.round(twd).toLocaleString()} · 回饋 <strong style="color:#27ae60;">NT$${rebate.toFixed(1)}</strong>${kumaWarn}`;
+}
+
+function freeModalConfirm() {
+  const name = document.getElementById('free-modal-name').value.trim() || '其他消費';
+  const jpy = parseFloat(document.getElementById('free-modal-amount').value);
+  if (!jpy || jpy <= 0 || !freePendingDay) return;
+  const cfg = TRACKER_CAPS[freeSelectedPay];
+  const twd = jpy * TRACKER_JPY_TWD_LIVE;
+  let rebate = 0;
+  if (!cfg.noRebate) {
+    const maxRebate = cfg.unlimited ? twd * cfg.rate : Math.max(0, cfg.cap - (trackerUsed[freeSelectedPay]||0));
+    rebate = Math.min(twd * cfg.rate, maxRebate);
+    trackerUsed[freeSelectedPay] = (trackerUsed[freeSelectedPay]||0) + rebate;
+    trackerSaveState();
+    trackerUpdateDashboard(freeSelectedPay);
+    trackerRenderAllSpotStatuses();
+  }
+  if (!freeLogs[freePendingDay]) freeLogs[freePendingDay] = [];
+  freeLogs[freePendingDay].push({ name, jpy, twd, rebate, payUsed: freeSelectedPay });
+  freeLogsSave();
+  const day = freePendingDay;
+  freeModalClose();
+  freeRenderDayLogs(day);
+}
+
+function freeRenderDayLogs(day) {
+  const container = document.getElementById(`free-logs-${day}`);
+  if (!container) return;
+  const entries = freeLogs[day] || [];
+  const btn = document.getElementById(`free-btn-${day}`);
+
+  if (entries.length === 0) {
+    container.innerHTML = '';
+    if (btn) { btn.classList.remove('has-logs'); btn.textContent = '＋ 新增消費'; }
+    return;
+  }
+  container.innerHTML = entries.map((e, i) => {
+    const cfg = TRACKER_CAPS[e.payUsed];
+    const rebateHtml = cfg?.noRebate || e.rebate === 0
+      ? `<span class="fle-norebate">無回饋</span>`
+      : `<span class="fle-rebate">+NT$${e.rebate.toFixed(1)}</span>`;
+    const chipStyle = CARD_CHIP_STYLE[e.payUsed] || '';
+    return `<div class="free-log-entry">
+      <span class="fle-name">${e.name}</span>
+      <span style="${chipStyle}; padding:0.1em 0.4em; border-radius:3px; font-family:'DM Mono',monospace; font-size:0.58rem; font-weight:700;">${cfg?.label||e.payUsed}</span>
+      <span class="fle-jpy">¥${e.jpy.toLocaleString()}</span>
+      ${rebateHtml}
+      <button class="log-del" onclick="freeDeleteEntry('${day}',${i})" title="刪除">✕</button>
+    </div>`;
+  }).join('');
+  if (btn) { btn.classList.add('has-logs'); btn.textContent = `＋ 新增消費（${entries.length}筆）`; }
+}
+
+function freeDeleteEntry(day, idx) {
+  if (!freeLogs[day]?.[idx]) return;
+  const e = freeLogs[day][idx];
+  const cfg = TRACKER_CAPS[e.payUsed];
+  if (!cfg?.noRebate) {
+    trackerUsed[e.payUsed] = Math.max(0, (trackerUsed[e.payUsed]||0) - e.rebate);
+    trackerSaveState();
+    trackerUpdateDashboard(e.payUsed);
+    trackerRenderAllSpotStatuses();
+  }
+  freeLogs[day].splice(idx, 1);
+  freeLogsSave();
+  freeRenderDayLogs(day);
+  // 若明細帳本正開著，同步更新
+  if (document.getElementById('ledger-overlay').classList.contains('open')) ledgerRender();
+}
+
+function freeRenderAllDayLogs() {
+  ['d1','d2','d3','d4'].forEach(d => freeRenderDayLogs(d));
+}
+
+// 顯示自由記帳帶（追蹤器啟動時）
+function freeStripsShow() {
+  document.querySelectorAll('.free-log-strip').forEach(el => el.classList.add('tracker-on'));
+}
+
+// Close free modal on overlay click / ESC
+document.getElementById('free-modal').addEventListener('click', function(e) {
+  if (e.target === this) freeModalClose();
+});
+document.getElementById('free-modal-amount').addEventListener('keydown', function(e) {
+  if (e.key === 'Enter') freeModalConfirm();
+});
 document.getElementById('tracker-modal').addEventListener('click', function(e) {
   if (e.target === this) trackerCloseModal();
 });
@@ -3472,23 +4038,37 @@ document.addEventListener('keydown', function(e) {
     trackerCloseModal();
     resetConfirmClose();
     ledgerClose();
+    freeModalClose();
   }
 });
 
 // Auto-restore tracker state on load
 window.addEventListener('load', () => {
-  fetchBOTRate(); // 頁面載入時即取得台銀匯率
+  fetchBOTRate();
+  freeLogsLoad();
+  skipLoad();
+  const hasFreeEntries = Object.values(freeLogs).some(arr => arr.length > 0);
   try {
     const saved = localStorage.getItem('tokyo26_tracker_used');
     if (saved) {
       const parsed = JSON.parse(saved);
-      if (Object.values(parsed).some(v => v > 0)) trackerActivate();
+      if (Object.values(parsed).some(v => v > 0) || hasFreeEntries) {
+        trackerActivate();
+        return;
+      }
+    } else if (hasFreeEntries) {
+      trackerActivate();
+      return;
     }
   } catch(e) {}
-  // Hide all add-btns by default
   document.querySelectorAll('.add-btn').forEach(b => {
     if (!trackerActive) b.style.display = 'none';
   });
+  // 若有略過標記，也需要注入按鈕並套用（即使追蹤器未啟動）
+  if (Object.keys(skipState).length > 0) {
+    skipInjectButtons();
+    skipApplyAll();
+  }
 });
 </script>
 </body>
