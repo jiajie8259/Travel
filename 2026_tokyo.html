@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>東京旅遊行程 2026/04/16–04/19</title>
 <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@400;600;900&family=Shippori+Mincho:wght@400;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <style>
   :root {
     --ink: #1a1209;
@@ -1143,7 +1144,7 @@
       <div style="display:flex;align-items:center;gap:0.5rem;">
         <span id="tracker-rate-display" style="font-family:'DM Mono',monospace;font-size:0.58rem;color:#aaa;">匯率載入中...</span>
         <button class="tracker-reset" onclick="ledgerOpen()" style="color:#f0c040;border-color:#555;">📋 明細</button>
-        <button class="tracker-reset" onclick="exportCSV()" style="color:#6ec88a;border-color:#3a6a4a;" title="匯出所有記帳資料為 CSV">⬇ 匯出</button>
+        <button class="tracker-reset" onclick="exportXLSX()" style="color:#6ec88a;border-color:#3a6a4a;" title="匯出所有記帳資料為 Excel (.xlsx)">⬇ 匯出</button>
         <button class="tracker-reset" onclick="resetConfirmOpen()">↺ 重置</button>
       </div>
     </div>
@@ -3506,88 +3507,214 @@ function trackerDeleteLog(spotId, idx) {
 }
 
 // ── 匯出 CSV ──────────────────────────────────────────
-function exportCSV() {
+function exportXLSX() {
+  if (typeof XLSX === 'undefined') {
+    alert('Excel 匯出程式庫尚未載入，請確認網路連線後重試。');
+    return;
+  }
+
   const rate = TRACKER_JPY_TWD_LIVE;
   const now = new Date();
   const dateStr = `${now.getFullYear()}${String(now.getMonth()+1).padStart(2,'0')}${String(now.getDate()).padStart(2,'0')}_${String(now.getHours()).padStart(2,'0')}${String(now.getMinutes()).padStart(2,'0')}`;
-
-  // 建立 CSV 列
-  const rows = [];
-  // 標題列（BOM for Excel UTF-8 compatibility）
-  rows.push(['日次','據點/說明','支付方式','消費（日圓）','換算（台幣）','回饋（台幣）','類型']);
-
   const DAY_LABELS = { d1: 'D1 4/16', d2: 'D2 4/17', d3: 'D3 4/18', d4: 'D4 4/19' };
 
-  // 固定據點記帳
+  // ── 收集資料 ──
+  const dataRows = []; // { day, name, pay, jpy, twd, rebate, type }
+
   Object.entries(trackerLogs).forEach(([spotId, entries]) => {
-    const dayKey = spotId.slice(0,2);
-    const dayLabel = DAY_LABELS[dayKey] || dayKey;
+    const dayKey = spotId.slice(0, 2);
     const spotName = TRACKER_SPOTS[spotId]?.name || spotId;
     entries.forEach(e => {
       const cfg = TRACKER_CAPS[e.payUsed];
-      rows.push([
-        dayLabel,
-        spotName,
-        cfg?.label || e.payUsed,
-        e.jpy,
-        Math.round(e.twd),
-        e.rebate.toFixed(2),
-        '行程據點'
-      ]);
+      dataRows.push({
+        day: DAY_LABELS[dayKey] || dayKey,
+        name: spotName,
+        pay: cfg?.label?.replace(/[🐻🌿🔴🐶🍉💴]/g, '').trim() || e.payUsed,
+        jpy: e.jpy,
+        twd: Math.round(e.twd),
+        rebate: parseFloat(e.rebate.toFixed(2)),
+        type: '行程據點'
+      });
     });
   });
 
-  // 自由記帳
   Object.entries(freeLogs).forEach(([day, entries]) => {
-    const dayLabel = DAY_LABELS[day] || day;
     entries.forEach(e => {
       const cfg = TRACKER_CAPS[e.payUsed];
-      rows.push([
-        dayLabel,
-        e.name,
-        cfg?.label || e.payUsed,
-        e.jpy,
-        Math.round(e.twd),
-        e.rebate.toFixed(2),
-        '自由記帳'
-      ]);
+      dataRows.push({
+        day: DAY_LABELS[day] || day,
+        name: e.name,
+        pay: cfg?.label?.replace(/[🐻🌿🔴🐶🍉💴]/g, '').trim() || e.payUsed,
+        jpy: e.jpy,
+        twd: Math.round(e.twd),
+        rebate: parseFloat(e.rebate.toFixed(2)),
+        type: '自由記帳'
+      });
     });
   });
 
-  if (rows.length === 1) {
+  if (dataRows.length === 0) {
     alert('目前沒有任何記帳資料可以匯出。');
     return;
   }
 
-  // 加總列
-  const allData = rows.slice(1);
-  const totalJPY = allData.reduce((s, r) => s + Number(r[3]), 0);
-  const totalTWD = allData.reduce((s, r) => s + Number(r[4]), 0);
-  const totalRebate = allData.reduce((s, r) => s + Number(r[5]), 0);
-  rows.push(['', '合計', '', totalJPY, totalTWD, totalRebate.toFixed(2), '']);
-  rows.push(['', `匯率基準 ¥100=NT$${(rate*100).toFixed(2)}`, '', '', '', '', '']);
-  rows.push(['', `匯出時間 ${now.toLocaleString('zh-TW')}`, '', '', '', '', '']);
+  // ── 建立工作表資料陣列 ──
+  const totalJPY   = dataRows.reduce((s, r) => s + r.jpy,    0);
+  const totalTWD   = dataRows.reduce((s, r) => s + r.twd,    0);
+  const totalRebate = dataRows.reduce((s, r) => s + r.rebate, 0);
 
-  // 轉換為 CSV 字串
-  const csvContent = '\uFEFF' + rows.map(row =>
-    row.map(cell => {
-      const s = String(cell);
-      // 含逗號、引號、換行時加雙引號
-      return (s.includes(',') || s.includes('"') || s.includes('\n'))
-        ? `"${s.replace(/"/g, '""')}"` : s;
-    }).join(',')
-  ).join('\r\n');
+  const wsData = [
+    // 標題列
+    ['日次', '據點 / 說明', '支付方式', '消費（日圓）', '換算（台幣）', '回饋（台幣）', '類型'],
+    // 資料列
+    ...dataRows.map(r => [r.day, r.name, r.pay, r.jpy, r.twd, r.rebate, r.type]),
+    // 空白分隔
+    [],
+    // 合計列
+    ['', '合計', '', totalJPY, totalTWD, parseFloat(totalRebate.toFixed(2)), ''],
+    // 備註
+    ['', `匯率基準：¥100 = NT$${(rate * 100).toFixed(2)}`, '', '', '', '', ''],
+    ['', `匯出時間：${now.toLocaleString('zh-TW')}`, '', '', '', '', ''],
+  ];
 
-  // 下載
-  const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a');
-  a.href = url;
-  a.download = `東京記帳_${dateStr}.csv`;
-  document.body.appendChild(a);
-  a.click();
-  document.body.removeChild(a);
-  URL.revokeObjectURL(url);
+  const ws = XLSX.utils.aoa_to_sheet(wsData);
+
+  // ── 欄寬 ──
+  ws['!cols'] = [
+    { wch: 10 },  // 日次
+    { wch: 32 },  // 據點
+    { wch: 14 },  // 支付
+    { wch: 14 },  // 日圓
+    { wch: 14 },  // 台幣
+    { wch: 14 },  // 回饋
+    { wch: 10 },  // 類型
+  ];
+
+  // ── 儲存格樣式 ──
+  const headerStyle = {
+    font:      { bold: true, color: { rgb: 'FFFFFF' }, name: 'Arial', sz: 10 },
+    fill:      { fgColor: { rgb: '1A1209' }, patternType: 'solid' },
+    alignment: { horizontal: 'center', vertical: 'center' },
+    border: {
+      bottom: { style: 'thin', color: { rgb: '888888' } }
+    }
+  };
+  const numStyle = {
+    font:      { name: 'Arial', sz: 10 },
+    alignment: { horizontal: 'right' },
+    numFmt:    '#,##0'
+  };
+  const numStyleDec = {
+    font:      { name: 'Arial', sz: 10 },
+    alignment: { horizontal: 'right' },
+    numFmt:    '#,##0.00'
+  };
+  const textStyle = {
+    font:      { name: 'Arial', sz: 10 },
+    alignment: { horizontal: 'left', wrapText: true }
+  };
+  const totalLabelStyle = {
+    font:      { bold: true, name: 'Arial', sz: 10 },
+    fill:      { fgColor: { rgb: 'F5F0E8' }, patternType: 'solid' },
+    alignment: { horizontal: 'left' }
+  };
+  const totalNumStyle = {
+    font:      { bold: true, name: 'Arial', sz: 10 },
+    fill:      { fgColor: { rgb: 'F5F0E8' }, patternType: 'solid' },
+    alignment: { horizontal: 'right' },
+    numFmt:    '#,##0'
+  };
+  const totalNumDecStyle = {
+    font:      { bold: true, color: { rgb: '27AE60' }, name: 'Arial', sz: 10 },
+    fill:      { fgColor: { rgb: 'F5F0E8' }, patternType: 'solid' },
+    alignment: { horizontal: 'right' },
+    numFmt:    '#,##0.00'
+  };
+  const noteStyle = {
+    font:      { italic: true, color: { rgb: '999999' }, name: 'Arial', sz: 9 },
+    alignment: { horizontal: 'left' }
+  };
+
+  const cols = ['A','B','C','D','E','F','G'];
+
+  // 標題列樣式
+  cols.forEach(c => {
+    const ref = `${c}1`;
+    if (ws[ref]) ws[ref].s = headerStyle;
+  });
+
+  // 資料列樣式
+  dataRows.forEach((_, i) => {
+    const row = i + 2; // Excel row (1-indexed, row 1 = header)
+    const isAlt = i % 2 === 1;
+    const baseFill = isAlt
+      ? { fgColor: { rgb: 'FAF7F2' }, patternType: 'solid' }
+      : null;
+
+    ['A','B','C','G'].forEach(c => {
+      const ref = `${c}${row}`;
+      if (ws[ref]) ws[ref].s = { ...textStyle, ...(baseFill ? { fill: baseFill } : {}) };
+    });
+    ['D','E'].forEach(c => {
+      const ref = `${c}${row}`;
+      if (ws[ref]) ws[ref].s = { ...numStyle, ...(baseFill ? { fill: baseFill } : {}) };
+    });
+    const rebateRef = `F${row}`;
+    if (ws[rebateRef]) {
+      const isRebate = dataRows[i].rebate > 0;
+      ws[rebateRef].s = {
+        ...numStyleDec,
+        ...(isRebate ? { font: { ...numStyleDec.font, color: { rgb: '27AE60' } } } : {}),
+        ...(baseFill ? { fill: baseFill } : {})
+      };
+    }
+  });
+
+  // 合計列
+  const totalRow = dataRows.length + 3; // +1 header, +1 blank
+  ['A','B','C','G'].forEach(c => {
+    const ref = `${c}${totalRow}`;
+    if (ws[ref]) ws[ref].s = totalLabelStyle;
+  });
+  ['D','E'].forEach(c => {
+    const ref = `${c}${totalRow}`;
+    if (ws[ref]) ws[ref].s = totalNumStyle;
+  });
+  if (ws[`F${totalRow}`]) ws[`F${totalRow}`].s = totalNumDecStyle;
+
+  // 備註列
+  [totalRow + 1, totalRow + 2].forEach(r => {
+    if (ws[`B${r}`]) ws[`B${r}`].s = noteStyle;
+  });
+
+  // ── 建立 Workbook 並下載 ──
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, '消費明細');
+
+  // 同時建立各卡回饋彙總頁
+  const summaryData = [['支付方式', '筆數', '消費日圓合計', '消費台幣合計', '回饋台幣合計']];
+  const byCard = {};
+  dataRows.forEach(r => {
+    if (!byCard[r.pay]) byCard[r.pay] = { count: 0, jpy: 0, twd: 0, rebate: 0 };
+    byCard[r.pay].count++;
+    byCard[r.pay].jpy    += r.jpy;
+    byCard[r.pay].twd    += r.twd;
+    byCard[r.pay].rebate += r.rebate;
+  });
+  Object.entries(byCard).forEach(([pay, d]) => {
+    summaryData.push([pay, d.count, d.jpy, d.twd, parseFloat(d.rebate.toFixed(2))]);
+  });
+  summaryData.push([]);
+  summaryData.push(['合計', dataRows.length, totalJPY, totalTWD, parseFloat(totalRebate.toFixed(2))]);
+
+  const ws2 = XLSX.utils.aoa_to_sheet(summaryData);
+  ws2['!cols'] = [{ wch: 16 }, { wch: 8 }, { wch: 16 }, { wch: 16 }, { wch: 16 }];
+  ['A1','B1','C1','D1','E1'].forEach(ref => {
+    if (ws2[ref]) ws2[ref].s = headerStyle;
+  });
+  XLSX.utils.book_append_sheet(wb, ws2, '各卡回饋彙總');
+
+  XLSX.writeFile(wb, `東京記帳_${dateStr}.xlsx`);
 }
 
 // ── 行程略過標記 ──────────────────────────────────────
