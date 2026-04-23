@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>東京旅遊行程 2026/04/16–04/19</title>
 <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@400;600;900&family=Shippori+Mincho:wght@400;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
-<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/exceljs/4.4.0/exceljs.min.js"></script>
 <style>
   :root {
     --ink: #1a1209;
@@ -3508,7 +3508,7 @@ function trackerDeleteLog(spotId, idx) {
 
 // ── 匯出 CSV ──────────────────────────────────────────
 function exportXLSX() {
-  if (typeof XLSX === 'undefined') {
+  if (typeof ExcelJS === 'undefined') {
     alert('Excel 匯出程式庫尚未載入，請確認網路連線後重試。');
     return;
   }
@@ -3517,7 +3517,7 @@ function exportXLSX() {
   const now     = new Date();
   const dateStr = `${now.getFullYear()}${String(now.getMonth()+1).padStart(2,'0')}${String(now.getDate()).padStart(2,'0')}_${String(now.getHours()).padStart(2,'0')}${String(now.getMinutes()).padStart(2,'0')}`;
   const DAY_LABELS = { d1: 'D1 4/16', d2: 'D2 4/17', d3: 'D3 4/18', d4: 'D4 4/19' };
-  const FONT = 'Microsoft JhengHei';  // 微軟正黑體
+  const FONT = 'Microsoft JhengHei';
 
   // ── 收集資料 ──
   const dataRows = [];
@@ -3529,7 +3529,7 @@ function exportXLSX() {
       dataRows.push({
         day:    DAY_LABELS[dayKey] || dayKey,
         name:   spotName,
-        pay:    cfg?.label?.replace(/[🐻🌿🔴🐶🍉💴]/gu, '').trim() || e.payUsed,
+        pay:    (cfg?.label || e.payUsed).replace(/[\u{1F000}-\u{1FFFF}]/gu, '').trim(),
         jpy:    e.jpy,
         twd:    Math.round(e.twd),
         rebate: Math.round(e.rebate),
@@ -3543,7 +3543,7 @@ function exportXLSX() {
       dataRows.push({
         day:    DAY_LABELS[day] || day,
         name:   e.name,
-        pay:    cfg?.label?.replace(/[🐻🌿🔴🐶🍉💴]/gu, '').trim() || e.payUsed,
+        pay:    (cfg?.label || e.payUsed).replace(/[\u{1F000}-\u{1FFFF}]/gu, '').trim(),
         jpy:    e.jpy,
         twd:    Math.round(e.twd),
         rebate: Math.round(e.rebate),
@@ -3561,82 +3561,138 @@ function exportXLSX() {
   const totalTWD    = dataRows.reduce((s, r) => s + r.twd,    0);
   const totalRebate = dataRows.reduce((s, r) => s + r.rebate, 0);
 
-  // ── 工作表資料 ──
-  const wsData = [
-    ['日次', '據點 / 說明', '支付方式', '消費（日圓）', '換算（台幣）', '回饋（台幣）', '類型'],
-    ...dataRows.map(r => [r.day, r.name, r.pay, r.jpy, r.twd, r.rebate, r.type]),
-    [],
-    ['', '合計', '', totalJPY, totalTWD, totalRebate, ''],
-    ['', `匯率基準：¥100 = NT$${(rate * 100).toFixed(2)}`, '', '', '', '', ''],
-    ['', `匯出時間：${now.toLocaleString('zh-TW')}`, '', '', '', '', ''],
+  // ── 建立 Workbook ──
+  const wb = new ExcelJS.Workbook();
+  wb.creator  = '東京旅遊行程';
+  wb.created  = now;
+
+  // ════════════════════════════════
+  //  工作表 1：消費明細
+  // ════════════════════════════════
+  const ws = wb.addWorksheet('消費明細');
+
+  // 欄定義
+  ws.columns = [
+    { key: 'day',    width: 11 },
+    { key: 'name',   width: 30 },
+    { key: 'pay',    width: 15 },
+    { key: 'jpy',    width: 14 },
+    { key: 'twd',    width: 14 },
+    { key: 'rebate', width: 13 },
+    { key: 'type',   width: 11 },
   ];
-  const ws = XLSX.utils.aoa_to_sheet(wsData);
 
-  // ── 欄寬 & 列高 ──
-  ws['!cols'] = [
-    { wch: 10 }, { wch: 30 }, { wch: 14 },
-    { wch: 13 }, { wch: 13 }, { wch: 12 }, { wch: 10 },
-  ];
-  ws['!rows'] = [{ hpt: 22 }];
+  // ── 共用樣式建構函式 ──
+  const hdrFill   = { type:'pattern', pattern:'solid', fgColor:{argb:'FF1A1209'} };
+  const altFill   = { type:'pattern', pattern:'solid', fgColor:{argb:'FFF5F1EA'} };
+  const whtFill   = { type:'pattern', pattern:'solid', fgColor:{argb:'FFFFFFFF'} };
+  const totFill   = { type:'pattern', pattern:'solid', fgColor:{argb:'FFEDE4D0'} };
 
-  // ── 共用邊框 ──
-  const bdrData  = { top:{style:'thin',color:{rgb:'E0D8CC'}}, bottom:{style:'thin',color:{rgb:'E0D8CC'}}, left:{style:'thin',color:{rgb:'E0D8CC'}}, right:{style:'thin',color:{rgb:'E0D8CC'}} };
-  const bdrTotal = { top:{style:'medium',color:{rgb:'B8860B'}}, bottom:{style:'thin',color:{rgb:'C8B88A'}}, left:{style:'thin',color:{rgb:'C8B88A'}}, right:{style:'thin',color:{rgb:'C8B88A'}} };
-  const bdrHdr   = { top:{style:'thin',color:{rgb:'444444'}}, bottom:{style:'medium',color:{rgb:'B8860B'}}, left:{style:'thin',color:{rgb:'444444'}}, right:{style:'thin',color:{rgb:'444444'}} };
+  const bdrThin  = { style:'thin',   color:{argb:'FFE0D8CC'} };
+  const bdrMedGold = { style:'medium', color:{argb:'FFB8860B'} };
+  const bdrThinGold= { style:'thin',  color:{argb:'FFC8B88A'} };
+  const bdrThinDark= { style:'thin',  color:{argb:'FF444444'} };
 
-  // ── 樣式工廠 ──
-  const fillW  = { fgColor:{rgb:'FFFFFF'}, patternType:'solid' };
-  const fillAlt= { fgColor:{rgb:'F5F1EA'}, patternType:'solid' };
-  const fillTot= { fgColor:{rgb:'EDE4D0'}, patternType:'solid' };
-  const fillHdr= { fgColor:{rgb:'1A1209'}, patternType:'solid' };
-  const ctrV   = { horizontal:'center', vertical:'center' };
-  const leftV  = { horizontal:'left',   vertical:'center', wrapText:false };
+  const dataBorder = { top:bdrThin, bottom:bdrThin, left:bdrThin, right:bdrThin };
+  const hdrBorder  = { top:bdrThinDark, bottom:bdrMedGold, left:bdrThinDark, right:bdrThinDark };
+  const totBorder  = { top:bdrMedGold, bottom:bdrThinGold, left:bdrThinGold, right:bdrThinGold };
 
-  const mkHdr  = (isNameCol) => ({ font:{bold:true, color:{rgb:'FFFFFF'}, name:FONT, sz:11}, fill:fillHdr, alignment: isNameCol ? leftV : ctrV, border:bdrHdr });
-  const mkText = (alt)       => ({ font:{name:FONT, sz:10}, fill: alt ? fillAlt : fillW, alignment:ctrV, border:bdrData });
-  const mkName = (alt)       => ({ font:{name:FONT, sz:10}, fill: alt ? fillAlt : fillW, alignment:leftV, border:bdrData });
-  const mkNum  = (alt)       => ({ font:{name:FONT, sz:10}, fill: alt ? fillAlt : fillW, alignment:ctrV, numFmt:'0', border:bdrData });
-  const mkReb  = (alt, has)  => ({ font:{name:FONT, sz:10, color:{rgb: has ? '1E8449' : '999999'}}, fill: alt ? fillAlt : fillW, alignment:ctrV, numFmt:'0', border:bdrData });
-  const mkTotL = (leftAlign) => ({ font:{bold:true, name:FONT, sz:10}, fill:fillTot, alignment: leftAlign ? leftV : ctrV, border:bdrTotal });
-  const mkTotN = ()          => ({ font:{bold:true, name:FONT, sz:10}, fill:fillTot, alignment:ctrV, numFmt:'0', border:bdrTotal });
-  const mkTotR = ()          => ({ font:{bold:true, name:FONT, sz:11, color:{rgb:'1E8449'}}, fill:fillTot, alignment:ctrV, numFmt:'0', border:bdrTotal });
-  const mkNote = ()          => ({ font:{italic:true, color:{rgb:'AAAAAA'}, name:FONT, sz:9}, alignment:{horizontal:'left'} });
-
-  // ── 套用樣式 ──
-  const ensureCell = (ref, t='s', v='') => { if (!ws[ref]) ws[ref] = { t, v }; };
+  const ctr = { horizontal:'center', vertical:'middle' };
+  const lft = { horizontal:'left',   vertical:'middle' };
 
   // 標題列
-  ['A','B','C','D','E','F','G'].forEach(c => {
-    ensureCell(`${c}1`);
-    ws[`${c}1`].s = mkHdr(c === 'B');
+  const hdrRow = ws.addRow(['日次','據點 / 說明','支付方式','消費（日圓）','換算（台幣）','回饋（台幣）','類型']);
+  hdrRow.height = 22;
+  hdrRow.eachCell((cell, colNum) => {
+    cell.font      = { bold:true, color:{argb:'FFFFFFFF'}, name:FONT, size:11 };
+    cell.fill      = hdrFill;
+    cell.alignment = colNum === 2 ? lft : ctr;
+    cell.border    = hdrBorder;
   });
 
   // 資料列
   dataRows.forEach((row, i) => {
-    const r   = i + 2;
-    const alt = i % 2 === 1;
-    if (ws[`A${r}`]) ws[`A${r}`].s = mkText(alt);
-    if (ws[`B${r}`]) ws[`B${r}`].s = mkName(alt);
-    if (ws[`C${r}`]) ws[`C${r}`].s = mkText(alt);
-    if (ws[`D${r}`]) ws[`D${r}`].s = mkNum(alt);
-    if (ws[`E${r}`]) ws[`E${r}`].s = mkNum(alt);
-    if (ws[`F${r}`]) ws[`F${r}`].s = mkReb(alt, row.rebate > 0);
-    if (ws[`G${r}`]) ws[`G${r}`].s = mkText(alt);
+    const exRow  = ws.addRow([row.day, row.name, row.pay, row.jpy, row.twd, row.rebate, row.type]);
+    const fill   = i % 2 === 1 ? altFill : whtFill;
+    const isGreen = row.rebate > 0;
+
+    exRow.eachCell({ includeEmpty: true }, (cell, colNum) => {
+      cell.fill   = fill;
+      cell.border = dataBorder;
+      cell.font   = { name:FONT, size:10 };
+
+      if (colNum === 2) {
+        cell.alignment = lft;
+      } else if (colNum === 4 || colNum === 5) {
+        // 日圓 / 台幣：整數，置中
+        cell.numFmt    = '0';
+        cell.alignment = ctr;
+      } else if (colNum === 6) {
+        // 回饋：整數，置中，有值綠色
+        cell.numFmt    = '0';
+        cell.alignment = ctr;
+        cell.font      = { name:FONT, size:10, color:{ argb: isGreen ? 'FF1E8449' : 'FF999999' } };
+      } else {
+        cell.alignment = ctr;
+      }
+    });
   });
 
+  // 空白分隔列
+  ws.addRow([]);
+
   // 合計列
-  const tRow = dataRows.length + 3;
-  ['A','C','G'].forEach(c => { ensureCell(`${c}${tRow}`); ws[`${c}${tRow}`].s = mkTotL(false); });
-  ensureCell(`B${tRow}`);
-  ws[`B${tRow}`].s = mkTotL(true);
-  if (ws[`D${tRow}`]) ws[`D${tRow}`].s = mkTotN();
-  if (ws[`E${tRow}`]) ws[`E${tRow}`].s = mkTotN();
-  if (ws[`F${tRow}`]) ws[`F${tRow}`].s = mkTotR();
+  const totRow = ws.addRow(['', '合計', '', totalJPY, totalTWD, totalRebate, '']);
+  totRow.eachCell({ includeEmpty: true }, (cell, colNum) => {
+    cell.fill   = totFill;
+    cell.border = totBorder;
+    if (colNum === 2) {
+      cell.font      = { bold:true, name:FONT, size:10 };
+      cell.alignment = lft;
+    } else if (colNum === 4 || colNum === 5) {
+      cell.numFmt    = '0';
+      cell.font      = { bold:true, name:FONT, size:10 };
+      cell.alignment = ctr;
+    } else if (colNum === 6) {
+      cell.numFmt    = '0';
+      cell.font      = { bold:true, name:FONT, size:11, color:{argb:'FF1E8449'} };
+      cell.alignment = ctr;
+    } else {
+      cell.font      = { bold:true, name:FONT, size:10 };
+      cell.alignment = ctr;
+    }
+  });
 
-  // 備註
-  [tRow+1, tRow+2].forEach(r => { if (ws[`B${r}`]) ws[`B${r}`].s = mkNote(); });
+  // 備註列
+  const rateRow = ws.addRow(['', `匯率基準：¥100 = NT$${(rate * 100).toFixed(2)}`, '', '', '', '', '']);
+  rateRow.getCell(2).font      = { italic:true, color:{argb:'FFAAAAAA'}, name:FONT, size:9 };
+  rateRow.getCell(2).alignment = lft;
 
-  // ── 各卡回饋彙總工作表 ──
+  const timeRow = ws.addRow(['', `匯出時間：${now.toLocaleString('zh-TW')}`, '', '', '', '', '']);
+  timeRow.getCell(2).font      = { italic:true, color:{argb:'FFAAAAAA'}, name:FONT, size:9 };
+  timeRow.getCell(2).alignment = lft;
+
+  // ════════════════════════════════
+  //  工作表 2：各卡回饋彙總
+  // ════════════════════════════════
+  const ws2 = wb.addWorksheet('各卡回饋彙總');
+  ws2.columns = [
+    { key:'pay',    width:16 },
+    { key:'count',  width:8  },
+    { key:'jpy',    width:16 },
+    { key:'twd',    width:16 },
+    { key:'rebate', width:16 },
+  ];
+
+  const s2HdrRow = ws2.addRow(['支付方式','筆數','消費日圓合計','消費台幣合計','回饋台幣合計']);
+  s2HdrRow.height = 22;
+  s2HdrRow.eachCell((cell, colNum) => {
+    cell.font      = { bold:true, color:{argb:'FFFFFFFF'}, name:FONT, size:11 };
+    cell.fill      = hdrFill;
+    cell.alignment = colNum === 1 ? lft : ctr;
+    cell.border    = hdrBorder;
+  });
+
   const byCard = {};
   dataRows.forEach(r => {
     if (!byCard[r.pay]) byCard[r.pay] = { count:0, jpy:0, twd:0, rebate:0 };
@@ -3645,24 +3701,42 @@ function exportXLSX() {
     byCard[r.pay].twd    += r.twd;
     byCard[r.pay].rebate += r.rebate;
   });
-  const s2Data = [
-    ['支付方式','筆數','消費日圓合計','消費台幣合計','回饋台幣合計'],
-    ...Object.entries(byCard).map(([pay,d]) => [pay, d.count, d.jpy, d.twd, d.rebate]),
-    [],
-    ['合計', dataRows.length, totalJPY, totalTWD, totalRebate],
-  ];
-  const ws2 = XLSX.utils.aoa_to_sheet(s2Data);
-  ws2['!cols'] = [{wch:16},{wch:8},{wch:16},{wch:16},{wch:16}];
-  ['A1','B1','C1','D1','E1'].forEach(ref => { if (ws2[ref]) ws2[ref].s = mkHdr(ref === 'A1'); });
-  const s2Tot = Object.keys(byCard).length + 3;
-  ['A','B','C','D'].forEach(c => { if (ws2[`${c}${s2Tot}`]) ws2[`${c}${s2Tot}`].s = mkTotN(); });
-  if (ws2[`E${s2Tot}`]) ws2[`E${s2Tot}`].s = mkTotR();
+  Object.entries(byCard).forEach(([pay, d], i) => {
+    const r    = ws2.addRow([pay, d.count, d.jpy, d.twd, d.rebate]);
+    const fill = i % 2 === 1 ? altFill : whtFill;
+    r.eachCell({ includeEmpty:true }, (cell, colNum) => {
+      cell.fill      = fill;
+      cell.font      = { name:FONT, size:10 };
+      cell.border    = dataBorder;
+      cell.alignment = colNum === 1 ? lft : ctr;
+      if (colNum >= 3) cell.numFmt = '0';
+    });
+  });
+
+  ws2.addRow([]);
+  const s2Tot = ws2.addRow(['合計', dataRows.length, totalJPY, totalTWD, totalRebate]);
+  s2Tot.eachCell({ includeEmpty:true }, (cell, colNum) => {
+    cell.fill   = totFill;
+    cell.border = totBorder;
+    cell.font   = colNum === 5
+      ? { bold:true, name:FONT, size:11, color:{argb:'FF1E8449'} }
+      : { bold:true, name:FONT, size:10 };
+    cell.alignment = colNum === 1 ? lft : ctr;
+    if (colNum >= 3) cell.numFmt = '0';
+  });
 
   // ── 下載 ──
-  const wb = XLSX.utils.book_new();
-  XLSX.utils.book_append_sheet(wb, ws, '消費明細');
-  XLSX.utils.book_append_sheet(wb, ws2, '各卡回饋彙總');
-  XLSX.writeFile(wb, `東京記帳_${dateStr}.xlsx`);
+  wb.xlsx.writeBuffer().then(buf => {
+    const blob = new Blob([buf], { type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+    const url  = URL.createObjectURL(blob);
+    const a    = document.createElement('a');
+    a.href     = url;
+    a.download = `東京記帳_${dateStr}.xlsx`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  });
 }
 
 // ── 行程略過標記 ──────────────────────────────────────
