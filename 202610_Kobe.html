@@ -1692,7 +1692,10 @@
 
   <div style="display:flex;align-items:center;justify-content:space-between;border-bottom:2px solid var(--ink);padding-bottom:0.5rem;margin-bottom:0.75rem;">
     <h2 style="font-size:1.1rem;font-weight:700;letter-spacing:0.1em;">🍽 美食清單</h2>
-    <button id="food-edit-btn" onclick="foodToggleEdit()" style="font-family:'DM Mono',monospace;font-size:0.72rem;letter-spacing:0.06em;text-transform:uppercase;padding:0.45rem 1rem;border:1.5px solid var(--ink);border-radius:4px;background:transparent;cursor:pointer;color:var(--ink);transition:all 0.15s;">✏ 編輯</button>
+    <div style="display:flex;align-items:center;gap:0.75rem;">
+      <span id="food-sync-status" style="font-family:'DM Mono',monospace;font-size:0.68rem;color:var(--muted);"></span>
+      <button id="food-edit-btn" onclick="foodToggleEdit()" style="font-family:'DM Mono',monospace;font-size:0.72rem;letter-spacing:0.06em;text-transform:uppercase;padding:0.45rem 1rem;border:1.5px solid var(--ink);border-radius:4px;background:transparent;cursor:pointer;color:var(--ink);transition:all 0.15s;">✏ 編輯</button>
+    </div>
   </div>
   <p style="font-size:0.78rem;color:var(--muted);margin-bottom:1.5rem;">餐價單位：日元　｜　✅ = 已訂位　｜　🔴 = 只收現金</p>
 
@@ -1736,39 +1739,91 @@
 </div>
 </div>
 
+<!-- Firebase SDK (compat version，無需 bundler 直接在 HTML 用) -->
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
+
 <script>
+// ── Firebase 初始化 ────────────────────────────────────────
+const firebaseConfig = {
+  apiKey:            "AIzaSyA_KFwm7pE8YqSP64OKsFFEU3lKMuF-wjI",
+  authDomain:        "travel-c9ab0.firebaseapp.com",
+  projectId:         "travel-c9ab0",
+  storageBucket:     "travel-c9ab0.firebasestorage.app",
+  messagingSenderId: "179782530206",
+  appId:             "1:179782530206:web:93d42650009b01ad56778f",
+  measurementId:     "G-30P0GGS1YE"
+};
+firebase.initializeApp(firebaseConfig);
+const db = firebase.firestore();
+// 所有美食資料存在 Firestore 的這份文件裡（單一 doc，陣列欄位）
+const FOOD_DOC = db.collection('kobe2026').doc('food');
+
 // ── 美食清單 編輯器 ──────────────────────────────────────
-const FOOD_KEY = 'kobe26_food_rows';
 let foodRows = [];
 let foodEditMode = false;
+let foodSyncing = false;   // 防止連點
 
 const PAY_OPTIONS = ['信用卡','行動支付','只收現金','Suica/ICOCA','不限'];
 const DAY_OPTIONS = ['D1','D2','D3','D4','D5','—'];
 
-function foodLoad() {
+// ── 狀態列訊息 ────────────────────────────────────────────
+function foodSetStatus(msg, color) {
+  const el = document.getElementById('food-sync-status');
+  if (!el) return;
+  el.textContent = msg;
+  el.style.color = color || 'var(--muted)';
+}
+
+// ── 從 Firestore 讀取 ─────────────────────────────────────
+async function foodLoad() {
+  foodSetStatus('⏳ 同步中…', '#b8860b');
   try {
-    const saved = localStorage.getItem(FOOD_KEY);
-    if (saved) foodRows = JSON.parse(saved);
-  } catch(e) {}
-  if (!foodRows.length) foodRows = [];
+    const snap = await FOOD_DOC.get();
+    if (snap.exists && Array.isArray(snap.data().rows)) {
+      foodRows = snap.data().rows;
+    } else {
+      foodRows = [];
+    }
+    foodSetStatus('✓ 已同步', '#27ae60');
+  } catch(e) {
+    foodSetStatus('⚠ 讀取失敗（離線模式）', '#c0392b');
+    // 離線 fallback：讀 localStorage
+    try {
+      const saved = localStorage.getItem('kobe26_food_rows');
+      if (saved) foodRows = JSON.parse(saved);
+    } catch(_) {}
+  }
   foodRender();
 }
 
-function foodSaveLS() {
-  try { localStorage.setItem(FOOD_KEY, JSON.stringify(foodRows)); } catch(e) {}
+// ── 寫入 Firestore ────────────────────────────────────────
+async function foodPushToFirebase() {
+  if (foodSyncing) return;
+  foodSyncing = true;
+  foodSetStatus('💾 儲存中…', '#b8860b');
+  try {
+    await FOOD_DOC.set({ rows: foodRows, updatedAt: firebase.firestore.FieldValue.serverTimestamp() });
+    // 同時備份到 localStorage（離線保險）
+    localStorage.setItem('kobe26_food_rows', JSON.stringify(foodRows));
+    foodSetStatus('✓ 已儲存並同步', '#27ae60');
+  } catch(e) {
+    // Firebase 失敗時仍存 localStorage
+    localStorage.setItem('kobe26_food_rows', JSON.stringify(foodRows));
+    foodSetStatus('⚠ 雲端儲存失敗，已存本機', '#c0392b');
+  }
+  foodSyncing = false;
 }
 
+// ── 計算合計 ──────────────────────────────────────────────
 function foodCalcTotal() {
   let sum = 0;
-  foodRows.forEach(r => {
-    const a = parseInt(r.priceA) || 0;
-    const b = parseInt(r.priceB) || 0;
-    sum += a + b;
-  });
+  foodRows.forEach(r => { sum += (parseInt(r.priceA)||0) + (parseInt(r.priceB)||0); });
   const el = document.getElementById('food-total');
   if (el) el.textContent = sum > 0 ? sum.toLocaleString() : '—';
 }
 
+// ── 渲染表格 ──────────────────────────────────────────────
 function foodRender() {
   const tbody = document.getElementById('food-tbody');
   if (!tbody) return;
@@ -1779,40 +1834,44 @@ function foodRender() {
   }
   tbody.innerHTML = foodRows.map((r, i) => {
     const booked = r.booked === '✅';
-    const cashOnly = r.pay === '只收現金';
     const rowClass = booked ? 'booked-row' : '';
     const delBtn = foodEditMode
       ? `<td style="text-align:center;padding:0.3rem;"><button onclick="foodDeleteRow(${i})" style="background:none;border:none;cursor:pointer;font-size:1rem;color:#c0392b;padding:0.2rem 0.4rem;" title="刪除">✕</button></td>`
       : '<td style="display:none"></td>';
 
     if (foodEditMode) {
-      const dayOpts = DAY_OPTIONS.map(d => `<option value="${d}" ${r.day===d?'selected':''}>${d}</option>`).join('');
-      const payOpts = PAY_OPTIONS.map(p => `<option value="${p}" ${r.pay===p?'selected':''}>${p}</option>`).join('');
-      const bookedOpts = ['□','✅'].map(b => `<option value="${b}" ${r.booked===b?'selected':''}>${b}</option>`).join('');
+      const dayOpts  = DAY_OPTIONS.map(d => `<option value="${d}" ${r.day===d?'selected':''}>${d}</option>`).join('');
+      const payOpts  = PAY_OPTIONS.map(p => `<option value="${p}" ${r.pay===p?'selected':''}>${p}</option>`).join('');
+      const bkOpts   = ['□','✅'].map(b => `<option value="${b}" ${r.booked===b?'selected':''}>${b}</option>`).join('');
+      const inp = (field, val, ph, w) =>
+        `<input value="${(val||'').replace(/"/g,'&quot;')}" onchange="foodEdit(${i},'${field}',this.value)" placeholder="${ph}"
+          style="width:${w};font-size:0.78rem;border:1px solid #ddd;border-radius:3px;padding:0.2rem 0.3rem;box-sizing:border-box;">`;
+      const num = (field, val) =>
+        `<input type="number" value="${val||''}" onchange="foodEdit(${i},'${field}',this.value)" placeholder="0"
+          style="width:4.5rem;font-size:0.78rem;border:1px solid #ddd;border-radius:3px;padding:0.2rem 0.3rem;text-align:right;font-family:'DM Mono',monospace;">`;
+      const sel = (field, opts) =>
+        `<select onchange="foodEdit(${i},'${field}',this.value)" style="font-size:0.75rem;border:1px solid #ddd;border-radius:3px;padding:0.15rem;">${opts}</select>`;
       return `<tr class="${rowClass}" data-idx="${i}">
-        <td><select onchange="foodEdit(${i},'day',this.value)" style="font-size:0.78rem;border:1px solid #ddd;border-radius:3px;padding:0.15rem;">${dayOpts}</select></td>
-        <td class="food-name"><input value="${r.name||''}" onchange="foodEdit(${i},'name',this.value)" placeholder="店名" style="width:100%;font-size:0.82rem;border:1px solid #ddd;border-radius:3px;padding:0.2rem 0.4rem;font-family:'Noto Serif TC',serif;"></td>
-        <td class="food-hours"><input value="${r.hours||''}" onchange="foodEdit(${i},'hours',this.value)" placeholder="09:00–21:00" style="width:7rem;font-size:0.75rem;border:1px solid #ddd;border-radius:3px;padding:0.2rem 0.3rem;"></td>
-        <td><select onchange="foodEdit(${i},'pay',this.value)" style="font-size:0.75rem;border:1px solid #ddd;border-radius:3px;padding:0.15rem;">${payOpts}</select></td>
-        <td><select onchange="foodEdit(${i},'booked',this.value)" style="font-size:0.9rem;border:1px solid #ddd;border-radius:3px;padding:0.1rem;">${bookedOpts}</select></td>
-        <td><input value="${r.itemA||''}" onchange="foodEdit(${i},'itemA',this.value)" placeholder="餐點名稱" style="width:100%;font-size:0.78rem;border:1px solid #ddd;border-radius:3px;padding:0.2rem 0.3rem;"></td>
-        <td class="col-price"><input type="number" value="${r.priceA||''}" onchange="foodEdit(${i},'priceA',this.value)" placeholder="0" style="width:4.5rem;font-size:0.78rem;border:1px solid #ddd;border-radius:3px;padding:0.2rem 0.3rem;text-align:right;font-family:'DM Mono',monospace;"></td>
-        <td><input value="${r.itemB||''}" onchange="foodEdit(${i},'itemB',this.value)" placeholder="餐點名稱" style="width:100%;font-size:0.78rem;border:1px solid #ddd;border-radius:3px;padding:0.2rem 0.3rem;"></td>
-        <td class="col-price"><input type="number" value="${r.priceB||''}" onchange="foodEdit(${i},'priceB',this.value)" placeholder="0" style="width:4.5rem;font-size:0.78rem;border:1px solid #ddd;border-radius:3px;padding:0.2rem 0.3rem;text-align:right;font-family:'DM Mono',monospace;"></td>
-        <td><input value="${r.note||''}" onchange="foodEdit(${i},'note',this.value)" placeholder="備註" style="width:100%;font-size:0.75rem;border:1px solid #ddd;border-radius:3px;padding:0.2rem 0.3rem;color:var(--muted);"></td>
-        <td class="col-price total-price" style="font-family:'DM Mono',monospace;">${((parseInt(r.priceA)||0)+(parseInt(r.priceB)||0)).toLocaleString()||'—'}</td>
+        <td>${sel('day',dayOpts)}</td>
+        <td class="food-name">${inp('name',r.name,'店名','100%')}</td>
+        <td class="food-hours">${inp('hours',r.hours,'09:00–21:00','7rem')}</td>
+        <td>${sel('pay',payOpts)}</td>
+        <td>${sel('booked',bkOpts)}</td>
+        <td>${inp('itemA',r.itemA,'餐點名稱','100%')}</td>
+        <td class="col-price">${num('priceA',r.priceA)}</td>
+        <td>${inp('itemB',r.itemB,'餐點名稱','100%')}</td>
+        <td class="col-price">${num('priceB',r.priceB)}</td>
+        <td>${inp('note',r.note,'備註','100%')}</td>
+        <td class="col-price total-price" style="font-family:'DM Mono',monospace;">${((parseInt(r.priceA)||0)+(parseInt(r.priceB)||0))||'—'}</td>
         ${delBtn}
       </tr>`;
     } else {
-      const payTag = r.pay === '信用卡'
-        ? `<span class="pay-tag pay-card">信用卡</span>`
-        : r.pay === '行動支付'
-        ? `<span class="pay-tag pay-mobile">行動支付</span>`
-        : r.pay === '只收現金'
-        ? `<span class="pay-tag pay-cash" style="color:var(--red);font-weight:700;">🔴 現金</span>`
-        : r.pay === 'Suica/ICOCA'
-        ? `<span class="pay-tag pay-suica">🃏 ICOCA</span>`
-        : `<span style="color:var(--muted);font-size:0.75rem;">${r.pay||'—'}</span>`;
+      const payTag = {
+        '信用卡':    `<span class="pay-tag pay-card">信用卡</span>`,
+        '行動支付':  `<span class="pay-tag pay-mobile">行動支付</span>`,
+        '只收現金':  `<span class="pay-tag pay-cash" style="color:var(--red);font-weight:700;">🔴 現金</span>`,
+        'Suica/ICOCA':`<span class="pay-tag pay-suica">🃏 ICOCA</span>`,
+      }[r.pay] || `<span style="color:var(--muted);font-size:0.75rem;">${r.pay||'—'}</span>`;
       const total = (parseInt(r.priceA)||0) + (parseInt(r.priceB)||0);
       return `<tr class="${rowClass}">
         <td style="font-family:'DM Mono',monospace;font-size:0.72rem;color:var(--muted);text-align:center;">${r.day||'—'}</td>
@@ -1831,7 +1890,6 @@ function foodRender() {
     }
   }).join('');
   foodCalcTotal();
-  // show/hide delete column header
   const delCol = document.getElementById('food-del-col');
   const delColFoot = document.getElementById('food-del-col-foot');
   if (delCol) delCol.style.display = foodEditMode ? '' : 'none';
@@ -1841,19 +1899,16 @@ function foodRender() {
 function foodEdit(idx, field, value) {
   if (!foodRows[idx]) return;
   foodRows[idx][field] = value;
-  // re-calc total cell inline without full re-render
   const total = (parseInt(foodRows[idx].priceA)||0) + (parseInt(foodRows[idx].priceB)||0);
-  const cells = document.querySelectorAll(`#food-tbody tr[data-idx="${idx}"] .total-price`);
-  cells.forEach(c => c.textContent = total > 0 ? total.toLocaleString() : '—');
+  document.querySelectorAll(`#food-tbody tr[data-idx="${idx}"] .total-price`)
+    .forEach(c => c.textContent = total > 0 ? total.toLocaleString() : '—');
   foodCalcTotal();
 }
 
 function foodAddRow() {
   foodRows.push({ day:'D1', name:'', hours:'', pay:'信用卡', booked:'□', itemA:'', priceA:'', itemB:'', priceB:'', note:'' });
   foodRender();
-  // scroll to last row
-  const tbody = document.getElementById('food-tbody');
-  if (tbody) tbody.lastElementChild?.scrollIntoView({ behavior:'smooth', block:'center' });
+  document.getElementById('food-tbody')?.lastElementChild?.scrollIntoView({ behavior:'smooth', block:'center' });
 }
 
 function foodDeleteRow(idx) {
@@ -1862,31 +1917,33 @@ function foodDeleteRow(idx) {
   foodRender();
 }
 
-function foodSave() {
-  foodSaveLS();
+async function foodSave() {
+  await foodPushToFirebase();
   const btn = document.getElementById('food-edit-btn');
-  if (btn) { btn.textContent = '✓ 已儲存'; btn.style.color = '#27ae60'; btn.style.borderColor = '#27ae60'; }
-  setTimeout(() => {
-    if (btn) { btn.textContent = '✏ 編輯'; btn.style.color = ''; btn.style.borderColor = ''; }
-  }, 1800);
+  if (btn) {
+    btn.textContent = '✓ 已儲存';
+    btn.style.color = '#27ae60';
+    btn.style.borderColor = '#27ae60';
+    setTimeout(() => { btn.textContent = '✏ 編輯'; btn.style.color = ''; btn.style.borderColor = ''; }, 2000);
+  }
 }
 
-function foodToggleEdit() {
+async function foodToggleEdit() {
   foodEditMode = !foodEditMode;
-  const btn = document.getElementById('food-edit-btn');
+  const btn     = document.getElementById('food-edit-btn');
   const toolbar = document.getElementById('food-edit-toolbar');
   if (foodEditMode) {
-    if (btn) { btn.textContent = '✓ 完成'; btn.style.background = 'var(--ink)'; btn.style.color = '#f0c040'; }
+    if (btn)     { btn.textContent = '✓ 完成'; btn.style.background = 'var(--ink)'; btn.style.color = '#f0c040'; }
     if (toolbar) toolbar.style.display = 'flex';
   } else {
-    foodSaveLS();
-    if (btn) { btn.textContent = '✏ 編輯'; btn.style.background = 'transparent'; btn.style.color = 'var(--ink)'; }
+    await foodPushToFirebase();
+    if (btn)     { btn.textContent = '✏ 編輯'; btn.style.background = 'transparent'; btn.style.color = 'var(--ink)'; }
     if (toolbar) toolbar.style.display = 'none';
   }
   foodRender();
 }
 
-// init on load
+// ── 啟動：從 Firebase 載入 ────────────────────────────────
 document.addEventListener('DOMContentLoaded', foodLoad);
 </script>
 
