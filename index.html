@@ -81,9 +81,7 @@
     flex-wrap: wrap;
   }
 
-  .stat {
-    text-align: center;
-  }
+  .stat { text-align: center; }
 
   .stat-num {
     font-size: 2rem;
@@ -115,9 +113,7 @@
   }
 
   /* ── YEAR GROUP ── */
-  .year-group {
-    margin-bottom: 3.5rem;
-  }
+  .year-group { margin-bottom: 3.5rem; }
 
   .year-header {
     display: flex;
@@ -175,13 +171,9 @@
     border-color: var(--gold);
   }
 
-  .trip-card-banner {
-    height: 8px;
-  }
+  .trip-card-banner { height: 8px; }
 
-  .trip-card-body {
-    padding: 1.25rem 1.25rem 1rem;
-  }
+  .trip-card-body { padding: 1.25rem 1.25rem 1rem; }
 
   .trip-meta {
     display: flex;
@@ -190,10 +182,7 @@
     margin-bottom: 0.75rem;
   }
 
-  .trip-flag {
-    font-size: 1.4rem;
-    line-height: 1;
-  }
+  .trip-flag { font-size: 1.4rem; line-height: 1; }
 
   .trip-dates {
     font-family: 'DM Mono', monospace;
@@ -254,11 +243,9 @@
     transition: transform 0.2s;
   }
 
-  .trip-card:hover .trip-arrow {
-    transform: translateX(4px);
-  }
+  .trip-card:hover .trip-arrow { transform: translateX(4px); }
 
-  /* ── PLACEHOLDER CARD ── */
+  /* ── PLACEHOLDER / ADD CARD ── */
   .trip-card.placeholder {
     border-style: dashed;
     border-color: #ccc;
@@ -266,11 +253,6 @@
     pointer-events: none;
   }
 
-  .trip-card.placeholder .trip-title {
-    color: var(--muted);
-  }
-
-  /* ── ADD CARD ── */
   .trip-card.add-card {
     border-style: dashed;
     border-color: #ccc;
@@ -292,15 +274,28 @@
     color: var(--gold);
   }
 
-  .add-inner {
-    text-align: center;
-  }
+  .add-inner { text-align: center; }
 
   .add-plus {
     font-size: 2rem;
     line-height: 1;
     margin-bottom: 0.5rem;
     display: block;
+  }
+
+  /* ── UPCOMING BADGE ── */
+  .badge-upcoming {
+    display: inline-block;
+    font-family: 'DM Mono', monospace;
+    font-size: 0.58rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    background: #f0c040;
+    color: #5a4000;
+    padding: 0.15em 0.55em;
+    border-radius: 2px;
+    vertical-align: middle;
+    margin-left: 0.4rem;
   }
 
   /* ── README BOX ── */
@@ -323,17 +318,9 @@
     margin-bottom: 0.75rem;
   }
 
-  .readme-box .dir {
-    color: var(--gold-light);
-  }
-
-  .readme-box .file {
-    color: #88c9a0;
-  }
-
-  .readme-box .comment {
-    color: #666;
-  }
+  .readme-box .dir  { color: var(--gold-light); }
+  .readme-box .file { color: #88c9a0; }
+  .readme-box .comment { color: #666; }
 
   /* ── FOOTER ── */
   footer {
@@ -347,9 +334,7 @@
   }
 
   /* ── ANIMATIONS ── */
-  .trip-card {
-    animation: fadeUp 0.5s ease both;
-  }
+  .trip-card { animation: fadeUp 0.5s ease both; }
 
   @keyframes fadeUp {
     from { opacity: 0; transform: translateY(16px); }
@@ -371,7 +356,7 @@
   <p class="hero-sub">Every journey, remembered.</p>
   <div class="hero-stats">
     <div class="stat">
-      <div class="stat-num">1</div>
+      <div class="stat-num">2</div>
       <div class="stat-label">旅程</div>
     </div>
     <div class="stat">
@@ -379,7 +364,7 @@
       <div class="stat-label">國家</div>
     </div>
     <div class="stat">
-      <div class="stat-num">4</div>
+      <div class="stat-num">9</div>
       <div class="stat-label">天數</div>
     </div>
   </div>
@@ -394,6 +379,7 @@
     <span class="dir">Travel/</span><br>
     &nbsp;&nbsp;<span class="file">index.html</span> &nbsp;&nbsp;<span class="comment">← 你現在看的這頁（旅遊首頁）</span><br>
     &nbsp;&nbsp;<span class="file">2026_tokyo.html</span> &nbsp;&nbsp;<span class="comment">← 2026 東京四日遊行程</span><br>
+    &nbsp;&nbsp;<span class="file">202610_Kobe.html</span> &nbsp;&nbsp;<span class="comment">← 2026 神戶大阪五日遊行程</span><br>
     &nbsp;&nbsp;<span class="comment">2027_xxx.html &nbsp;&nbsp;← 未來旅程放這裡</span>
   </div>
 
@@ -429,6 +415,31 @@
         </div>
         <div class="trip-card-footer">
           <span class="trip-days">4 天 3 夜</span>
+          <span class="trip-arrow">→</span>
+        </div>
+      </a>
+
+      <!-- 神戶大阪 -->
+      <a class="trip-card" href="202610_Kobe.html">
+        <div class="trip-card-banner" style="background: linear-gradient(90deg, #2c3e7a, #6a5acd);"></div>
+        <div class="trip-card-body">
+          <div class="trip-meta">
+            <span class="trip-flag">🇯🇵</span>
+            <span class="trip-dates">2026 / 10 / 22 – 10 / 26</span>
+            <span class="badge-upcoming">upcoming</span>
+          </div>
+          <div class="trip-title">神戶大阪五日遊</div>
+          <div class="trip-subtitle">神戶三宮・南京町・道頓堀・心齋橋・難波</div>
+          <div class="trip-tags">
+            <span class="trip-tag">日本</span>
+            <span class="trip-tag">神戶</span>
+            <span class="trip-tag">大阪</span>
+            <span class="trip-tag">美食</span>
+            <span class="trip-tag">關西</span>
+          </div>
+        </div>
+        <div class="trip-card-footer">
+          <span class="trip-days">5 天 4 夜</span>
           <span class="trip-arrow">→</span>
         </div>
       </a>
