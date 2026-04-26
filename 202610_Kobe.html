@@ -601,19 +601,21 @@
     overflow-x: auto;
     border-radius: 6px;
     border: 1px solid #e0d8cc;
+    width: 100%;
   }
   .food-table {
     width: 100%;
     border-collapse: collapse;
     font-size: 0.8rem;
     background: white;
+    table-layout: fixed;
   }
   .food-table thead tr {
     background: var(--ink);
     color: var(--paper);
   }
   .food-table th {
-    padding: 0.6rem 0.75rem;
+    padding: 0.6rem 0.4rem;
     font-family: 'DM Mono', monospace;
     font-size: 0.65rem;
     letter-spacing: 0.08em;
@@ -631,7 +633,7 @@
   .food-table tbody tr.booked-row { background: #fef9f0; }
   .food-table tbody tr.booked-row:hover { background: #fdf3e3; }
   .food-table td {
-    padding: 0.6rem 0.75rem;
+    padding: 0.6rem 0.4rem;
     vertical-align: middle;
     line-height: 1.5;
   }
@@ -649,7 +651,11 @@
     border-top: 2px solid var(--ink);
     background: var(--cream);
   }
-  .food-name { white-space: nowrap; }
+  /* 編輯模式列緊縮 padding */
+  #food-tbody tr[data-idx] td {
+    padding: 0.35rem 0.4rem;
+  }
+  .food-name { white-space: normal; overflow: hidden; text-overflow: ellipsis; }
   .food-name a {
     color: var(--blue);
     text-decoration: none;
@@ -1245,6 +1251,7 @@
   <button class="tab-btn" onclick="switchTab('cards',this)">🃏 隨身小卡</button>
   <button class="tab-btn" onclick="switchTab('transport',this)">🚆 交通</button>
   <button class="tab-btn" onclick="switchTab('food',this)">🍽 美食</button>
+  <button class="tab-btn" onclick="switchTab('spots',this)">📍 景點</button>
   <button class="tab-btn" onclick="switchTab('payment',this)">💳 支付優惠</button>
 </div>
 
@@ -1688,7 +1695,7 @@
 </div>
 </div>
 <div id="food" class="tab-panel">
-<div style="max-width:960px;margin:0 auto;padding:2.5rem 1.5rem 4rem;">
+<div style="max-width:1400px;margin:0 auto;padding:2.5rem 2.5rem 4rem;">
 
   <div style="display:flex;align-items:center;justify-content:space-between;border-bottom:2px solid var(--ink);padding-bottom:0.5rem;margin-bottom:0.75rem;">
     <h2 style="font-size:1.1rem;font-weight:700;letter-spacing:0.1em;">🍽 美食清單</h2>
@@ -1697,7 +1704,7 @@
       <button id="food-edit-btn" onclick="foodToggleEdit()" style="font-family:'DM Mono',monospace;font-size:0.72rem;letter-spacing:0.06em;text-transform:uppercase;padding:0.45rem 1rem;border:1.5px solid var(--ink);border-radius:4px;background:transparent;cursor:pointer;color:var(--ink);transition:all 0.15s;">✏ 編輯</button>
     </div>
   </div>
-  <p style="font-size:0.78rem;color:var(--muted);margin-bottom:1.5rem;">餐價單位：日元　｜　✅ = 已訂位　｜　🔴 = 只收現金</p>
+  <p style="font-size:0.78rem;color:var(--muted);margin-bottom:1.5rem;">餐價單位：日元　｜　✅ 已訂位　📋 可訂位　— 不可訂位　｜　🔴 = 只收現金</p>
 
   <!-- ── 編輯模式工具列 ── -->
   <div id="food-edit-toolbar" style="display:none;background:#fff8e8;border:1.5px solid var(--gold);border-radius:6px;padding:0.75rem 1rem;margin-bottom:1rem;display:none;align-items:center;gap:0.75rem;flex-wrap:wrap;">
@@ -1708,18 +1715,32 @@
 
   <div class="food-table-wrap">
     <table class="food-table" id="food-main-table">
+      <colgroup>
+        <col style="width:2.8rem">  <!-- D -->
+        <col style="width:13%">     <!-- 店名 -->
+        <col style="width:5.8rem">  <!-- 營業時間 -->
+        <col style="width:5.5rem">  <!-- 支付 -->
+        <col style="width:5.8rem">  <!-- 訂位 -->
+        <col style="width:14%">     <!-- 餐點A -->
+        <col style="width:4.5rem">  <!-- ¥A -->
+        <col style="width:14%">     <!-- 餐點B -->
+        <col style="width:4.5rem">  <!-- ¥B -->
+        <col>                       <!-- 備註（剩餘空間） -->
+        <col style="width:5rem">    <!-- 小計 -->
+        <col style="width:1.8rem">  <!-- 刪除 -->
+      </colgroup>
       <thead>
         <tr>
-          <th>D</th>
+          <th style="white-space:nowrap;">D</th>
           <th>店名</th>
-          <th>營業時間</th>
+          <th>時間</th>
           <th>支付</th>
           <th>訂位</th>
-          <th>餐點 A</th>
-          <th class="col-price">¥A</th>
-          <th>餐點 B</th>
-          <th class="col-price">¥B</th>
-          <th>備註</th>
+          <th style="border-left:2px solid #444;">餐點 A</th>
+          <th class="col-price" style="padding-right:1rem;">¥A</th>
+          <th style="border-left:2px solid #444;">餐點 B</th>
+          <th class="col-price" style="padding-right:1rem;">¥B</th>
+          <th style="border-left:2px solid #444;">備註</th>
           <th class="col-price">小計（円）</th>
           <th id="food-del-col" style="display:none;width:2rem;"></th>
         </tr>
@@ -1794,10 +1815,13 @@ async function foodLoad() {
       if (saved) foodRows = JSON.parse(saved);
     } catch(_) {}
   }
+  // 舊資料相容：□ → 不可訂位，✅ → 已訂位
+  foodRows.forEach(r => {
+    if (r.booked === '□' || !r.booked) r.booked = '不可訂位';
+    else if (r.booked === '✅') r.booked = '已訂位';
+  });
   foodRender();
 }
-
-// ── 寫入 Firestore ────────────────────────────────────────
 async function foodPushToFirebase() {
   if (foodSyncing) return;
   foodSyncing = true;
@@ -1832,44 +1856,63 @@ function foodRender() {
     foodCalcTotal();
     return;
   }
-  tbody.innerHTML = foodRows.map((r, i) => {
-    const booked = r.booked === '✅';
-    const rowClass = booked ? 'booked-row' : '';
+
+  // 依 D 欄排序
+  const FOOD_DAY_ORDER = ['D1','D2','D3','D4','D5','—'];
+  const sorted = foodRows
+    .map((r, i) => ({ ...r, _orig: i }))
+    .sort((a, b) => {
+      const ai = FOOD_DAY_ORDER.indexOf(a.day) === -1 ? 99 : FOOD_DAY_ORDER.indexOf(a.day);
+      const bi = FOOD_DAY_ORDER.indexOf(b.day) === -1 ? 99 : FOOD_DAY_ORDER.indexOf(b.day);
+      return ai - bi;
+    });
+
+  // 訂位狀態樣式 helper
+  function bookedTag(state) {
+    if (state === '已訂位') return `<span style="display:inline-block;background:#d4edda;color:#1a6632;font-size:0.68rem;font-family:'DM Mono',monospace;padding:0.18em 0.55em;border-radius:3px;font-weight:700;white-space:nowrap;">✅ 已訂位</span>`;
+    if (state === '可訂位') return `<span style="display:inline-block;background:#fff3cd;color:#856404;font-size:0.68rem;font-family:'DM Mono',monospace;padding:0.18em 0.55em;border-radius:3px;font-weight:700;white-space:nowrap;">📋 可訂位</span>`;
+    return `<span style="display:inline-block;background:#f0f0f0;color:#aaa;font-size:0.68rem;font-family:'DM Mono',monospace;padding:0.18em 0.55em;border-radius:3px;white-space:nowrap;">— 不可訂</span>`;
+  }
+
+  tbody.innerHTML = sorted.map((r) => {
+    const i = r._orig;
+    const isBooked = r.booked === '已訂位';
+    const rowClass = isBooked ? 'booked-row' : '';
     const delBtn = foodEditMode
       ? `<td style="text-align:center;padding:0.3rem;"><button onclick="foodDeleteRow(${i})" style="background:none;border:none;cursor:pointer;font-size:1rem;color:#c0392b;padding:0.2rem 0.4rem;" title="刪除">✕</button></td>`
       : '<td style="display:none"></td>';
 
     if (foodEditMode) {
-      const dayOpts  = DAY_OPTIONS.map(d => `<option value="${d}" ${r.day===d?'selected':''}>${d}</option>`).join('');
-      const payOpts  = PAY_OPTIONS.map(p => `<option value="${p}" ${r.pay===p?'selected':''}>${p}</option>`).join('');
-      const bkOpts   = ['□','✅'].map(b => `<option value="${b}" ${r.booked===b?'selected':''}>${b}</option>`).join('');
-      const inp = (field, val, ph, w) =>
+      const dayOpts = DAY_OPTIONS.map(d => `<option value="${d}" ${r.day===d?'selected':''}>${d}</option>`).join('');
+      const payOpts = PAY_OPTIONS.map(p => `<option value="${p}" ${r.pay===p?'selected':''}>${p}</option>`).join('');
+      const bkOpts  = ['不可訂位','可訂位','已訂位'].map(b => `<option value="${b}" ${r.booked===b?'selected':''}>${b}</option>`).join('');
+      const inp = (field, val, ph) =>
         `<input value="${(val||'').replace(/"/g,'&quot;')}" onchange="foodEdit(${i},'${field}',this.value)" placeholder="${ph}"
-          style="width:${w};font-size:0.78rem;border:1px solid #ddd;border-radius:3px;padding:0.2rem 0.3rem;box-sizing:border-box;">`;
+          style="width:100%;font-size:0.78rem;border:1px solid #ddd;border-radius:3px;padding:0.2rem 0.3rem;box-sizing:border-box;">`;
       const num = (field, val) =>
         `<input type="number" value="${val||''}" onchange="foodEdit(${i},'${field}',this.value)" placeholder="0"
-          style="width:4.5rem;font-size:0.78rem;border:1px solid #ddd;border-radius:3px;padding:0.2rem 0.3rem;text-align:right;font-family:'DM Mono',monospace;">`;
+          style="width:100%;font-size:0.78rem;border:1px solid #ddd;border-radius:3px;padding:0.2rem 0.3rem;text-align:right;font-family:'DM Mono',monospace;box-sizing:border-box;">`;
       const sel = (field, opts) =>
-        `<select onchange="foodEdit(${i},'${field}',this.value)" style="font-size:0.75rem;border:1px solid #ddd;border-radius:3px;padding:0.15rem;">${opts}</select>`;
+        `<select onchange="foodEdit(${i},'${field}',this.value)" style="width:100%;font-size:0.75rem;border:1px solid #ddd;border-radius:3px;padding:0.15rem;box-sizing:border-box;">${opts}</select>`;
       return `<tr class="${rowClass}" data-idx="${i}">
         <td>${sel('day',dayOpts)}</td>
-        <td class="food-name">${inp('name',r.name,'店名','100%')}</td>
-        <td class="food-hours">${inp('hours',r.hours,'09:00–21:00','7rem')}</td>
+        <td class="food-name">${inp('name',r.name,'店名')}</td>
+        <td class="food-hours">${inp('hours',r.hours,'13001500')}</td>
         <td>${sel('pay',payOpts)}</td>
         <td>${sel('booked',bkOpts)}</td>
-        <td>${inp('itemA',r.itemA,'餐點名稱','100%')}</td>
-        <td class="col-price">${num('priceA',r.priceA)}</td>
-        <td>${inp('itemB',r.itemB,'餐點名稱','100%')}</td>
-        <td class="col-price">${num('priceB',r.priceB)}</td>
-        <td>${inp('note',r.note,'備註','100%')}</td>
+        <td style="padding:0.35rem 0.4rem;border-left:2px solid #e8d5a0;">${inp('itemA',r.itemA,'餐點名稱')}</td>
+        <td class="col-price" style="padding:0.35rem 0.4rem;">${num('priceA',r.priceA)}</td>
+        <td style="padding:0.35rem 0.4rem;border-left:2px solid #e8d5a0;">${inp('itemB',r.itemB,'餐點名稱')}</td>
+        <td class="col-price" style="padding:0.35rem 0.4rem;">${num('priceB',r.priceB)}</td>
+        <td style="padding:0.35rem 0.4rem;border-left:2px solid #e8d5a0;">${inp('note',r.note,'備註')}</td>
         <td class="col-price total-price" style="font-family:'DM Mono',monospace;">${((parseInt(r.priceA)||0)+(parseInt(r.priceB)||0))||'—'}</td>
         ${delBtn}
       </tr>`;
     } else {
       const payTag = {
-        '信用卡':    `<span class="pay-tag pay-card">信用卡</span>`,
-        '行動支付':  `<span class="pay-tag pay-mobile">行動支付</span>`,
-        '只收現金':  `<span class="pay-tag pay-cash" style="color:var(--red);font-weight:700;">🔴 現金</span>`,
+        '信用卡':     `<span class="pay-tag pay-card">信用卡</span>`,
+        '行動支付':   `<span class="pay-tag pay-mobile">行動支付</span>`,
+        '只收現金':   `<span class="pay-tag pay-cash" style="color:var(--red);font-weight:700;">🔴 現金</span>`,
         'Suica/ICOCA':`<span class="pay-tag pay-suica">🃏 ICOCA</span>`,
       }[r.pay] || `<span style="color:var(--muted);font-size:0.75rem;">${r.pay||'—'}</span>`;
       const total = (parseInt(r.priceA)||0) + (parseInt(r.priceB)||0);
@@ -1878,12 +1921,12 @@ function foodRender() {
         <td class="food-name">${r.name||''}</td>
         <td class="food-hours">${r.hours||'—'}</td>
         <td>${payTag}</td>
-        <td class="${booked?'food-booked':'food-unbooked'}">${r.booked||'□'}</td>
+        <td style="text-align:center;">${bookedTag(r.booked)}</td>
         <td>${r.itemA||'—'}</td>
-        <td class="col-price">${r.priceA ? parseInt(r.priceA).toLocaleString() : '—'}</td>
-        <td>${r.itemB||'—'}</td>
-        <td class="col-price">${r.priceB ? parseInt(r.priceB).toLocaleString() : '—'}</td>
-        <td style="font-size:0.75rem;color:var(--muted);">${r.note||''}</td>
+        <td class="col-price" style="padding-right:1rem;">${r.priceA ? parseInt(r.priceA).toLocaleString() : '—'}</td>
+        <td style="border-left:2px solid #f0e8dc;">${r.itemB||'—'}</td>
+        <td class="col-price" style="padding-right:1rem;">${r.priceB ? parseInt(r.priceB).toLocaleString() : '—'}</td>
+        <td style="font-size:0.75rem;color:var(--muted);border-left:2px solid #f0e8dc;">${r.note||''}</td>
         <td class="col-price total-price">${total > 0 ? total.toLocaleString() : '—'}</td>
         <td style="display:none"></td>
       </tr>`;
@@ -1896,8 +1939,40 @@ function foodRender() {
   if (delColFoot) delColFoot.style.display = foodEditMode ? '' : 'none';
 }
 
+function formatTimeRange(val) {
+  // 移除所有非數字字元
+  const digits = val.replace(/\D/g, '');
+  if (digits.length === 0) return val;
+
+  function fmt(s) { return `${s.slice(0,2)}:${s.slice(2,4)}`; }
+
+  if (digits.length === 8) {
+    // 13001500 → 13:00-15:00
+    return `${fmt(digits.slice(0,4))}-${fmt(digits.slice(4,8))}`;
+  }
+  if (digits.length === 7) {
+    // 7001530 → 07:00-15:30（前3碼左補0=開始，後4碼=結束）
+    return `${fmt(digits.slice(0,3).padStart(4,'0'))}-${fmt(digits.slice(3,7))}`;
+  }
+  if (digits.length === 6) {
+    // 101800 → 10:00-18:00（前2碼為小時，後4碼=結束）
+    return `${fmt((digits.slice(0,2)+'00').slice(0,4))}-${fmt(digits.slice(2,6))}`;
+  }
+  if (digits.length === 5) {
+    // 91800 → 09:00-18:00（前1碼為小時個位，後4碼=結束）
+    return `${fmt(('0'+digits[0]+'00').slice(0,4))}-${fmt(digits.slice(1,5))}`;
+  }
+  // 4碼以下：單一時間，左補0到4碼
+  return fmt(digits.padStart(4, '0'));
+}
+
 function foodEdit(idx, field, value) {
   if (!foodRows[idx]) return;
+  if (field === 'hours') {
+    value = formatTimeRange(value);
+    const row = document.querySelector(`#food-tbody tr[data-idx="${idx}"]`);
+    if (row) { const hi = row.querySelector('td:nth-child(3) input'); if (hi && hi.value !== value) hi.value = value; }
+  }
   foodRows[idx][field] = value;
   const total = (parseInt(foodRows[idx].priceA)||0) + (parseInt(foodRows[idx].priceB)||0);
   document.querySelectorAll(`#food-tbody tr[data-idx="${idx}"] .total-price`)
@@ -1906,7 +1981,7 @@ function foodEdit(idx, field, value) {
 }
 
 function foodAddRow() {
-  foodRows.push({ day:'D1', name:'', hours:'', pay:'信用卡', booked:'□', itemA:'', priceA:'', itemB:'', priceB:'', note:'' });
+  foodRows.push({ day:'D1', name:'', hours:'', pay:'信用卡', booked:'不可訂位', itemA:'', priceA:'', itemB:'', priceB:'', note:'' });
   foodRender();
   document.getElementById('food-tbody')?.lastElementChild?.scrollIntoView({ behavior:'smooth', block:'center' });
 }
@@ -1921,10 +1996,18 @@ async function foodSave() {
   await foodPushToFirebase();
   const btn = document.getElementById('food-edit-btn');
   if (btn) {
+    const prevText = btn.textContent;
+    const prevBg   = btn.style.background;
+    const prevColor = btn.style.color;
     btn.textContent = '✓ 已儲存';
     btn.style.color = '#27ae60';
     btn.style.borderColor = '#27ae60';
-    setTimeout(() => { btn.textContent = '✏ 編輯'; btn.style.color = ''; btn.style.borderColor = ''; }, 2000);
+    setTimeout(() => {
+      btn.textContent  = prevText;
+      btn.style.color  = prevColor;
+      btn.style.background = prevBg;
+      btn.style.borderColor = '';
+    }, 2000);
   }
 }
 
@@ -1948,6 +2031,236 @@ document.addEventListener('DOMContentLoaded', foodLoad);
 </script>
 
 <!-- ══ TAB 5: 支付優惠 ══ -->
+<div id="spots" class="tab-panel">
+<div style="max-width:1400px;margin:0 auto;padding:2.5rem 2.5rem 4rem;">
+
+  <div style="display:flex;align-items:center;justify-content:space-between;border-bottom:2px solid var(--ink);padding-bottom:0.5rem;margin-bottom:0.75rem;">
+    <h2 style="font-size:1.1rem;font-weight:700;letter-spacing:0.1em;">📍 景點清單</h2>
+    <div style="display:flex;align-items:center;gap:0.75rem;">
+      <span id="spots-sync-status" style="font-family:'DM Mono',monospace;font-size:0.68rem;color:var(--muted);"></span>
+      <button id="spots-edit-btn" onclick="spotsToggleEdit()" style="font-family:'DM Mono',monospace;font-size:0.72rem;letter-spacing:0.06em;text-transform:uppercase;padding:0.45rem 1rem;border:1.5px solid var(--ink);border-radius:4px;background:transparent;cursor:pointer;color:var(--ink);transition:all 0.15s;">✏ 編輯</button>
+    </div>
+  </div>
+  <p style="font-size:0.78rem;color:var(--muted);margin-bottom:1.5rem;">✅ = 必去　｜　⭐ = 推薦　｜　□ = 備選</p>
+
+  <!-- 編輯模式工具列 -->
+  <div id="spots-edit-toolbar" style="display:none;background:#fff8e8;border:1.5px solid var(--gold);border-radius:6px;padding:0.75rem 1rem;margin-bottom:1rem;align-items:center;gap:0.75rem;flex-wrap:wrap;">
+    <button onclick="spotsAddRow()" style="font-family:'DM Mono',monospace;font-size:0.72rem;padding:0.4rem 0.9rem;background:var(--ink);color:#f0c040;border:none;border-radius:4px;cursor:pointer;">＋ 新增景點</button>
+    <span style="font-size:0.75rem;color:var(--muted);">點擊儲存格可直接編輯　｜　每列右側有刪除按鈕</span>
+    <button onclick="spotsSave()" style="margin-left:auto;font-family:'DM Mono',monospace;font-size:0.72rem;padding:0.4rem 0.9rem;background:#27ae60;color:white;border:none;border-radius:4px;cursor:pointer;">💾 儲存</button>
+  </div>
+
+  <div style="overflow-x:auto;border-radius:6px;border:1px solid #e0d8cc;width:100%;">
+    <table id="spots-main-table" style="width:100%;border-collapse:collapse;font-size:0.8rem;background:white;table-layout:fixed;">
+      <colgroup>
+        <col style="width:3.5rem">  <!-- D -->
+        <col style="width:17%">     <!-- 景點名稱 -->
+        <col style="width:2.8rem">  <!-- 官網 -->
+        <col style="width:5rem">    <!-- 優先度 -->
+        <col style="width:7rem">    <!-- 開放時間 -->
+        <col style="width:5rem">    <!-- 費用(¥) -->
+        <col>                       <!-- 備註（剩餘空間） -->
+        <col style="width:17%">     <!-- 地址 -->
+        <col style="width:3rem">    <!-- MAP -->
+        <col style="width:1.8rem">  <!-- 刪除 -->
+      </colgroup>
+      <thead>
+        <tr style="background:var(--ink);color:var(--paper);">
+          <th style="padding:0.6rem 0.5rem;font-family:'DM Mono',monospace;font-size:0.65rem;letter-spacing:0.08em;font-weight:500;text-align:left;white-space:nowrap;">D</th>
+          <th style="padding:0.6rem 0.5rem;font-family:'DM Mono',monospace;font-size:0.65rem;letter-spacing:0.08em;font-weight:500;text-align:left;">景點名稱</th>
+          <th style="padding:0.6rem 0.5rem;font-family:'DM Mono',monospace;font-size:0.65rem;letter-spacing:0.08em;font-weight:500;text-align:center;">官網</th>
+          <th style="padding:0.6rem 0.5rem;font-family:'DM Mono',monospace;font-size:0.65rem;letter-spacing:0.08em;font-weight:500;text-align:left;">優先度</th>
+          <th style="padding:0.6rem 0.5rem;font-family:'DM Mono',monospace;font-size:0.65rem;letter-spacing:0.08em;font-weight:500;text-align:left;">開放時間</th>
+          <th style="padding:0.6rem 0.5rem;font-family:'DM Mono',monospace;font-size:0.65rem;letter-spacing:0.08em;font-weight:500;text-align:right;white-space:nowrap;">費用(¥)</th>
+          <th style="padding:0.6rem 0.5rem;font-family:'DM Mono',monospace;font-size:0.65rem;letter-spacing:0.08em;font-weight:500;text-align:left;">備註</th>
+          <th style="padding:0.6rem 0.5rem;font-family:'DM Mono',monospace;font-size:0.65rem;letter-spacing:0.08em;font-weight:500;text-align:left;">地址</th>
+          <th style="padding:0.6rem 0.5rem;font-family:'DM Mono',monospace;font-size:0.65rem;letter-spacing:0.08em;font-weight:500;text-align:center;">MAP</th>
+          <th id="spots-del-col" style="display:none;width:1.8rem;"></th>
+        </tr>
+      </thead>
+      <tbody id="spots-tbody"></tbody>
+    </table>
+  </div>
+
+</div>
+</div>
+
+<script>
+// ── 景點清單 編輯器 ──────────────────────────────────────
+const SPOTS_DOC = db.collection('kobe2026').doc('spots');
+let spotsRows = [];
+let spotsEditMode = false;
+let spotsSyncing = false;
+
+const SPOTS_DAY_OPTIONS  = ['D1','D2','D3','D4','D5','—'];
+const SPOTS_PRIO_OPTIONS = ['✅ 必去','⭐ 推薦','□ 備選'];
+const SPOTS_AREA_OPTIONS = ['神戶','大阪','關西其他','—'];
+
+function spotsSetStatus(msg, color) {
+  const el = document.getElementById('spots-sync-status');
+  if (el) { el.textContent = msg; el.style.color = color || 'var(--muted)'; }
+}
+
+async function spotsLoad() {
+  spotsSetStatus('⏳ 同步中…', '#b8860b');
+  try {
+    const snap = await SPOTS_DOC.get();
+    spotsRows = (snap.exists && Array.isArray(snap.data().rows)) ? snap.data().rows : [];
+    spotsSetStatus('✓ 已同步', '#27ae60');
+  } catch(e) {
+    spotsSetStatus('⚠ 讀取失敗（離線模式）', '#c0392b');
+    try { const s = localStorage.getItem('kobe26_spots_rows'); if (s) spotsRows = JSON.parse(s); } catch(_) {}
+  }
+  spotsRender();
+}
+
+async function spotsPushToFirebase() {
+  if (spotsSyncing) return;
+  spotsSyncing = true;
+  spotsSetStatus('💾 儲存中…', '#b8860b');
+  try {
+    await SPOTS_DOC.set({ rows: spotsRows, updatedAt: firebase.firestore.FieldValue.serverTimestamp() });
+    localStorage.setItem('kobe26_spots_rows', JSON.stringify(spotsRows));
+    spotsSetStatus('✓ 已儲存並同步', '#27ae60');
+  } catch(e) {
+    localStorage.setItem('kobe26_spots_rows', JSON.stringify(spotsRows));
+    spotsSetStatus('⚠ 雲端儲存失敗，已存本機', '#c0392b');
+  }
+  spotsSyncing = false;
+}
+
+function spotsRender() {
+  const tbody = document.getElementById('spots-tbody');
+  if (!tbody) return;
+  const delCol = document.getElementById('spots-del-col');
+  if (delCol) delCol.style.display = spotsEditMode ? '' : 'none';
+
+  if (!spotsRows.length) {
+    tbody.innerHTML = `<tr><td colspan="10" style="color:var(--muted);font-style:italic;text-align:center;padding:1.5rem;">— 景點清單待補充 —<br><span style="font-size:0.75rem;">點擊右上角「✏ 編輯」按鈕開始新增</span></td></tr>`;
+    return;
+  }
+
+  // 依 D 欄排序
+  const DAY_ORDER = ['D1','D2','D3','D4','D5','—'];
+  const sorted = spotsRows
+    .map((r, i) => ({ ...r, _orig: i }))
+    .sort((a, b) => {
+      const ai = DAY_ORDER.indexOf(a.day) === -1 ? 99 : DAY_ORDER.indexOf(a.day);
+      const bi = DAY_ORDER.indexOf(b.day) === -1 ? 99 : DAY_ORDER.indexOf(b.day);
+      return ai - bi;
+    });
+
+  // 官網小圖示
+  const webIcon = `<svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>`;
+
+  tbody.innerHTML = sorted.map((r) => {
+    const i = r._orig;
+    const isMust = r.prio === '✅ 必去';
+    const rowBg  = isMust ? 'background:#fef9f0;' : '';
+    const delBtn = spotsEditMode
+      ? `<td style="text-align:center;padding:0.3rem;"><button onclick="spotsDeleteRow(${i})" style="background:none;border:none;cursor:pointer;font-size:1rem;color:#c0392b;padding:0.2rem 0.4rem;">✕</button></td>`
+      : `<td style="display:none"></td>`;
+
+    if (spotsEditMode) {
+      const dayOpts  = SPOTS_DAY_OPTIONS.map(d  => `<option value="${d}" ${r.day===d?'selected':''}>${d}</option>`).join('');
+      const prioOpts = SPOTS_PRIO_OPTIONS.map(p => `<option value="${p}" ${r.prio===p?'selected':''}>${p}</option>`).join('');
+      const sel = (field, opts) =>
+        `<select onchange="spotsEdit(${i},'${field}',this.value)" style="width:100%;font-size:0.75rem;border:1px solid #ddd;border-radius:3px;padding:0.15rem;box-sizing:border-box;">${opts}</select>`;
+      const inp = (field, val, ph) =>
+        `<input value="${(val||'').replace(/"/g,'&quot;')}" onchange="spotsEdit(${i},'${field}',this.value)" placeholder="${ph}" style="width:100%;font-size:0.78rem;border:1px solid #ddd;border-radius:3px;padding:0.2rem 0.3rem;box-sizing:border-box;">`;
+      const num = (field, val) =>
+        `<input type="number" value="${val||''}" onchange="spotsEdit(${i},'${field}',this.value)" placeholder="0" style="width:100%;font-size:0.78rem;border:1px solid #ddd;border-radius:3px;padding:0.2rem 0.3rem;text-align:right;font-family:'DM Mono',monospace;box-sizing:border-box;">`;
+      return `<tr data-idx="${i}" style="${rowBg}border-bottom:1px solid #f0e8dc;">
+        <td style="padding:0.35rem 0.4rem;">${sel('day',dayOpts)}</td>
+        <td style="padding:0.35rem 0.4rem;">${inp('name',r.name,'景點名稱')}</td>
+        <td style="padding:0.35rem 0.4rem;">${inp('website',r.website,'https://')}</td>
+        <td style="padding:0.35rem 0.4rem;">${sel('prio',prioOpts)}</td>
+        <td style="padding:0.35rem 0.4rem;">${inp('hours',r.hours,'09001700')}</td>
+        <td style="padding:0.35rem 0.4rem;">${num('fee',r.fee)}</td>
+        <td style="padding:0.35rem 0.4rem;">${inp('note',r.note,'備註')}</td>
+        <td style="padding:0.35rem 0.4rem;">${inp('address',r.address,'貼上地址或景點名稱')}</td>
+        <td style="padding:0.35rem 0.4rem;text-align:center;">
+          ${r.address ? `<a href="https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(r.address)}" target="_blank" style="display:inline-block;background:#4285f4;color:white;font-family:'DM Mono',monospace;font-size:0.6rem;font-weight:700;letter-spacing:0.05em;padding:0.25em 0.5em;border-radius:3px;text-decoration:none;">MAP</a>` : '—'}
+        </td>
+        ${delBtn}
+      </tr>`;
+    } else {
+      const prioStyle = isMust
+        ? 'color:#27ae60;font-weight:700;'
+        : r.prio === '⭐ 推薦' ? 'color:#b8860b;' : 'color:var(--muted);';
+      const fee = parseInt(r.fee)||0;
+      const mapUrl = r.address ? `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(r.address)}` : '';
+      const webCell = r.website
+        ? `<a href="${r.website.startsWith('http') ? r.website : 'https://'+r.website}" target="_blank" title="${(r.website||'').replace(/"/g,'&quot;')}" style="display:inline-flex;align-items:center;justify-content:center;color:#2c7be5;text-decoration:none;">${webIcon}</a>`
+        : '<span style="color:#ddd;">—</span>';
+      return `<tr style="${rowBg}border-bottom:1px solid #f0e8dc;">
+        <td style="padding:0.6rem 0.5rem;font-family:'DM Mono',monospace;font-size:0.72rem;color:var(--muted);text-align:center;">${r.day||'—'}</td>
+        <td style="padding:0.6rem 0.5rem;font-weight:700;">${r.name||''}</td>
+        <td style="padding:0.6rem 0.5rem;text-align:center;">${webCell}</td>
+        <td style="padding:0.6rem 0.5rem;font-size:0.78rem;${prioStyle}">${r.prio||'—'}</td>
+        <td style="padding:0.6rem 0.5rem;font-size:0.78rem;color:var(--muted);">${r.hours||'—'}</td>
+        <td style="padding:0.6rem 0.5rem;font-family:'DM Mono',monospace;font-size:0.78rem;text-align:right;">${fee > 0 ? fee.toLocaleString() : '免費'}</td>
+        <td style="padding:0.6rem 0.5rem;font-size:0.75rem;color:var(--muted);">${r.note||''}</td>
+        <td style="padding:0.6rem 0.5rem;font-size:0.72rem;color:var(--muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="${(r.address||'').replace(/"/g,'&quot;')}">${r.address||'—'}</td>
+        <td style="padding:0.6rem 0.5rem;text-align:center;">
+          ${mapUrl ? `<a href="${mapUrl}" target="_blank" style="display:inline-block;background:#4285f4;color:white;font-family:'DM Mono',monospace;font-size:0.6rem;font-weight:700;letter-spacing:0.05em;padding:0.25em 0.55em;border-radius:3px;text-decoration:none;white-space:nowrap;">MAP</a>` : '—'}
+        </td>
+        <td style="display:none"></td>
+      </tr>`;
+    }
+  }).join('');
+}
+
+function spotsEdit(idx, field, value) {
+  if (!spotsRows[idx]) return;
+  if (field === 'hours') {
+    value = formatTimeRange(value);
+    const row = document.querySelector(`#spots-tbody tr[data-idx="${idx}"]`);
+    if (row) { const inp = row.querySelector('td:nth-child(5) input'); if (inp && inp.value !== value) inp.value = value; }
+  }
+  spotsRows[idx][field] = value;
+}
+
+function spotsAddRow() {
+  spotsRows.push({ day:'D1', name:'', prio:'⭐ 推薦', area:'神戶', hours:'', fee:'', note:'', address:'', website:'' });
+  spotsRender();
+  document.getElementById('spots-tbody')?.lastElementChild?.scrollIntoView({ behavior:'smooth', block:'center' });
+}
+
+function spotsDeleteRow(idx) {
+  if (!confirm(`確定刪除「${spotsRows[idx].name || '此景點'}」？`)) return;
+  spotsRows.splice(idx, 1);
+  spotsRender();
+}
+
+async function spotsSave() {
+  await spotsPushToFirebase();
+  const btn = document.getElementById('spots-edit-btn');
+  if (btn) {
+    const prevText = btn.textContent, prevBg = btn.style.background, prevColor = btn.style.color;
+    btn.textContent = '✓ 已儲存'; btn.style.color = '#27ae60'; btn.style.borderColor = '#27ae60';
+    setTimeout(() => { btn.textContent = prevText; btn.style.color = prevColor; btn.style.background = prevBg; btn.style.borderColor = ''; }, 2000);
+  }
+}
+
+async function spotsToggleEdit() {
+  spotsEditMode = !spotsEditMode;
+  const btn     = document.getElementById('spots-edit-btn');
+  const toolbar = document.getElementById('spots-edit-toolbar');
+  if (spotsEditMode) {
+    if (btn)     { btn.textContent = '✓ 完成'; btn.style.background = 'var(--ink)'; btn.style.color = '#f0c040'; }
+    if (toolbar) toolbar.style.display = 'flex';
+  } else {
+    await spotsPushToFirebase();
+    if (btn)     { btn.textContent = '✏ 編輯'; btn.style.background = 'transparent'; btn.style.color = 'var(--ink)'; }
+    if (toolbar) toolbar.style.display = 'none';
+  }
+  spotsRender();
+}
+
+document.addEventListener('DOMContentLoaded', spotsLoad);
+</script>
+
 <div id="payment" class="tab-panel">
 <div style="max-width:960px;margin:0 auto;padding:2.5rem 1.5rem 4rem;">
   <h2 style="font-size:1.1rem;font-weight:700;border-bottom:2px solid var(--ink);padding-bottom:0.5rem;margin-bottom:1rem;letter-spacing:0.1em;">💳 支付優惠建議</h2>
