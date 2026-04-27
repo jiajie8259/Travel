@@ -2172,7 +2172,11 @@ function spotsRender() {
         `<input type="number" value="${val||''}" onchange="spotsEdit(${i},'${field}',this.value)" placeholder="0" style="width:100%;font-size:0.78rem;border:1px solid #ddd;border-radius:3px;padding:0.2rem 0.3rem;text-align:right;font-family:'DM Mono',monospace;box-sizing:border-box;">`;
       return `<tr data-idx="${i}" style="${rowBg}border-bottom:1px solid #f0e8dc;">
         <td style="padding:0.35rem 0.4rem;">${sel('day',dayOpts)}</td>
-        <td style="padding:0.35rem 0.4rem;">${inp('name',r.name,'景點名稱')}</td>
+        <td style="padding:0.35rem 0.4rem;"><input value="${(r.name||'').replace(/"/g,'&quot;')}"
+          onchange="spotsEdit(${i},'name',this.value)"
+          onblur="spotsEdit(${i},'name',this.value)"
+          placeholder="景點名稱"
+          style="width:100%;font-size:0.78rem;border:1px solid #ddd;border-radius:3px;padding:0.2rem 0.3rem;box-sizing:border-box;"></td>
         <td style="padding:0.35rem 0.4rem;">${inp('website',r.website,'https://')}</td>
         <td style="padding:0.35rem 0.4rem;">${sel('prio',prioOpts)}</td>
         <td style="padding:0.35rem 0.4rem;">${inp('hours',r.hours,'09001700')}</td>
@@ -2219,6 +2223,63 @@ function spotsEdit(idx, field, value) {
     if (row) { const inp = row.querySelector('td:nth-child(5) input'); if (inp && inp.value !== value) inp.value = value; }
   }
   spotsRows[idx][field] = value;
+
+  // 景點名稱輸入完畢後，若官網欄為空則自動搜尋
+  if (field === 'name' && value.trim() && !spotsRows[idx].website) {
+    spotsAutoFetchWebsite(idx, value.trim());
+  }
+}
+
+async function spotsAutoFetchWebsite(idx, name) {
+  const row = document.querySelector(`#spots-tbody tr[data-idx="${idx}"]`);
+  const webInput = row ? row.querySelector('td:nth-child(3) input') : null;
+  if (webInput) {
+    webInput.value = '🔍 搜尋中…';
+    webInput.disabled = true;
+    webInput.style.color = '#b8860b';
+  }
+
+  const GOOGLE_API_KEY = 'AIzaSyCLPHCRr1uwioawNl0UXYrFNa_ftMdI3PU';
+  const SEARCH_ENGINE_ID = '5363a4a25b65a4f2a';
+  const area = spotsRows[idx].area || '日本';
+  const query = encodeURIComponent(`${name} ${area} 官方網站`);
+  const url = `https://www.googleapis.com/customsearch/v1?key=${GOOGLE_API_KEY}&cx=${SEARCH_ENGINE_ID}&q=${query}&num=5`;
+
+  try {
+    const res = await fetch(url);
+    const data = await res.json();
+    const items = data.items || [];
+
+    // 優先找官方網站：排除 wikipedia、tripadvisor、booking、tabelog 等
+    const EXCLUDE = ['wikipedia','tripadvisor','booking','tabelog','jalan','agoda','expedia','rakuten','hotpepper','retty','gurunavi','yelp','facebook','instagram','twitter','x.com','youtube'];
+    const official = items.find(item => {
+      const link = (item.link || '').toLowerCase();
+      return !EXCLUDE.some(ex => link.includes(ex));
+    });
+
+    const result = official ? official.link : (items[0]?.link || '');
+
+    if (webInput) {
+      webInput.disabled = false;
+      webInput.style.color = '';
+      if (result) {
+        webInput.value = result;
+        spotsRows[idx].website = result;
+        webInput.style.background = '#f0fff4';
+        setTimeout(() => { if (webInput) webInput.style.background = ''; }, 2500);
+      } else {
+        webInput.value = '';
+        webInput.placeholder = '找不到官網，請手動輸入';
+      }
+    }
+  } catch(e) {
+    if (webInput) {
+      webInput.disabled = false;
+      webInput.value = '';
+      webInput.style.color = '';
+      webInput.placeholder = '搜尋失敗，請手動輸入';
+    }
+  }
 }
 
 function spotsAddRow() {
