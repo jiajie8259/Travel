@@ -2140,11 +2140,14 @@ function spotsRender() {
     return;
   }
 
-  // 依 D 欄排序
+  // 依 D 欄排序，但 _new 標記的列永遠排最後
   const DAY_ORDER = ['D1','D2','D3','D4','D5','—'];
   const sorted = spotsRows
     .map((r, i) => ({ ...r, _orig: i }))
     .sort((a, b) => {
+      // 新增未填寫的列排最後
+      if (a._new && !b._new) return 1;
+      if (!a._new && b._new) return -1;
       const ai = DAY_ORDER.indexOf(a.day) === -1 ? 99 : DAY_ORDER.indexOf(a.day);
       const bi = DAY_ORDER.indexOf(b.day) === -1 ? 99 : DAY_ORDER.indexOf(b.day);
       return ai - bi;
@@ -2174,10 +2177,20 @@ function spotsRender() {
         <td style="padding:0.35rem 0.4rem;">${sel('day',dayOpts)}</td>
         <td style="padding:0.35rem 0.4rem;"><input value="${(r.name||'').replace(/"/g,'&quot;')}"
           onchange="spotsEdit(${i},'name',this.value)"
-          onblur="spotsEdit(${i},'name',this.value)"
           placeholder="景點名稱"
           style="width:100%;font-size:0.78rem;border:1px solid #ddd;border-radius:3px;padding:0.2rem 0.3rem;box-sizing:border-box;"></td>
-        <td style="padding:0.35rem 0.4rem;">${inp('website',r.website,'https://')}</td>
+        <td style="padding:0.35rem 0.4rem;">
+          <div style="display:flex;gap:0.3rem;align-items:center;">
+            <input value="${(r.website||'').replace(/"/g,'&quot;')}"
+              onchange="spotsEdit(${i},'website',this.value)"
+              placeholder="https://"
+              id="website-inp-${i}"
+              style="flex:1;font-size:0.78rem;border:1px solid #ddd;border-radius:3px;padding:0.2rem 0.3rem;box-sizing:border-box;min-width:0;">
+            <button onclick="spotsAutoFetchWebsite(${i}, spotsRows[${i}].name)"
+              title="Google 搜尋官網"
+              style="flex-shrink:0;background:#4285f4;color:white;border:none;border-radius:3px;padding:0.2rem 0.4rem;cursor:pointer;font-size:0.75rem;white-space:nowrap;">🔍</button>
+          </div>
+        </td>
         <td style="padding:0.35rem 0.4rem;">${sel('prio',prioOpts)}</td>
         <td style="padding:0.35rem 0.4rem;">${inp('hours',r.hours,'09001700')}</td>
         <td style="padding:0.35rem 0.4rem;">${num('fee',r.fee)}</td>
@@ -2222,104 +2235,19 @@ function spotsEdit(idx, field, value) {
     const row = document.querySelector(`#spots-tbody tr[data-idx="${idx}"]`);
     if (row) { const inp = row.querySelector('td:nth-child(5) input'); if (inp && inp.value !== value) inp.value = value; }
   }
+  // 使用者開始編輯任何欄位，移除「新列」標記讓它參與正常排序
+  if (spotsRows[idx]._new) delete spotsRows[idx]._new;
   spotsRows[idx][field] = value;
-
-  // 景點名稱輸入完畢後，若官網欄為空則自動搜尋
-  if (field === 'name' && value.trim() && !spotsRows[idx].website) {
-    spotsAutoFetchWebsite(idx, value.trim());
-  }
 }
 
 async function spotsAutoFetchWebsite(idx, name) {
-  const row = document.querySelector(`#spots-tbody tr[data-idx="${idx}"]`);
-  const webInput = row ? row.querySelector('td:nth-child(3) input') : null;
-  if (webInput) {
-    webInput.value = '🔍 搜尋中…';
-    webInput.disabled = true;
-    webInput.style.color = '#b8860b';
-  }
-
-  try {
-    // 同時查詢日文、中文 Wikipedia，取外部連結中的官網
-    const langs = ['ja', 'zh'];
-    let foundUrl = '';
-
-    for (const lang of langs) {
-      if (foundUrl) break;
-      const apiUrl = `https://${lang}.wikipedia.org/w/api.php?` +
-        `action=query&titles=${encodeURIComponent(name)}&prop=extlinks|pageprops&` +
-        `ppprop=wikibase_item&ellimit=20&format=json&origin=*`;
-
-      const res = await fetch(apiUrl);
-      const data = await res.json();
-      const pages = data?.query?.pages || {};
-
-      for (const pid of Object.keys(pages)) {
-        if (pid === '-1') continue; // 頁面不存在
-        const links = pages[pid]?.extlinks || [];
-        const EXCLUDE = ['facebook','instagram','twitter','x.com','youtube',
-          'tripadvisor','booking','agoda','jalan','tabelog','gurunavi',
-          'hotpepper','retty','yelp','wikipedia','wikimedia','goo.gl',
-          'google.com','apple.com','microsoft.com','amazon','toshiba',
-          'hitachi','mitsubishi','panasonic','sony','nikon','canon',
-          'flickr','pinterest','linkedin','line.me','whatsapp'];
-
-        // 評分：網址包含景點名關鍵字者優先
-        const nameKey = name.replace(/\s/g,'').toLowerCase();
-        const nameRoman = nameKey.replace(/[^\x00-\x7F]/g,''); // 只取英數
-
-        const scored = links
-          .map(l => l['*'] || l.href || '')
-          .filter(href => href.startsWith('http') && !EXCLUDE.some(ex => href.toLowerCase().includes(ex)))
-          .map(href => {
-            const h = href.toLowerCase();
-            let score = 0;
-            // 網址包含景點名字母優先（如 taipei101.com.tw）
-            if (nameRoman.length > 2 && h.includes(nameRoman)) score += 10;
-            // .go.jp / .go.tw / .or.jp / .org / .com.tw 官方感加分
-            if (/\.(go\.(jp|tw)|or\.jp|org|com\.tw|co\.jp)(\/|$)/.test(h)) score += 3;
-            // 路徑越短越可能是首頁
-            const pathLen = (href.split('/').length - 3);
-            score -= pathLen * 0.5;
-            return { href, score };
-          })
-          .sort((a, b) => b.score - a.score);
-
-        if (scored.length > 0) {
-          foundUrl = scored[0].href;
-          break;
-        }
-      }
-    }
-
-    if (webInput) {
-      webInput.disabled = false;
-      webInput.style.color = '';
-      if (foundUrl) {
-        webInput.value = foundUrl;
-        spotsRows[idx].website = foundUrl;
-        webInput.style.background = '#f0fff4';
-        setTimeout(() => { if (webInput) webInput.style.background = ''; }, 2500);
-      } else {
-        // Wikipedia 找不到時，改用 Google 搜尋連結讓使用者自行查
-        webInput.value = '';
-        webInput.placeholder = '找不到，請手動貼上網址';
-        webInput.style.background = '#fff8e8';
-        setTimeout(() => { if (webInput) { webInput.style.background = ''; webInput.placeholder = 'https://'; } }, 3000);
-      }
-    }
-  } catch(e) {
-    if (webInput) {
-      webInput.disabled = false;
-      webInput.value = '';
-      webInput.style.color = '';
-      webInput.placeholder = '搜尋失敗，請手動輸入';
-    }
-  }
+  // 無法自動搜尋，改為開啟 Google 搜尋讓使用者自行複製官網
+  const searchQuery = encodeURIComponent(`${name} 公式サイト OR official site`);
+  window.open(`https://www.google.com/search?q=${searchQuery}`, '_blank');
 }
 
 function spotsAddRow() {
-  spotsRows.push({ day:'D1', name:'', prio:'⭐ 推薦', area:'神戶', hours:'', fee:'', note:'', address:'', website:'' });
+  spotsRows.push({ day:'D1', name:'', prio:'⭐ 推薦', area:'神戶', hours:'', fee:'', note:'', address:'', website:'', _new: true });
   spotsRender();
   document.getElementById('spots-tbody')?.lastElementChild?.scrollIntoView({ behavior:'smooth', block:'center' });
 }
