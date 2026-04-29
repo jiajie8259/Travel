@@ -2053,14 +2053,14 @@ document.addEventListener('DOMContentLoaded', foodLoad);
   <div style="overflow-x:auto;border-radius:6px;border:1px solid #e0d8cc;width:100%;">
     <table id="spots-main-table" style="width:100%;border-collapse:collapse;font-size:0.8rem;background:white;table-layout:fixed;">
       <colgroup>
-        <col style="width:3.5rem">  <!-- D -->
-        <col style="width:17%">     <!-- 景點名稱 -->
-        <col style="width:2.8rem">  <!-- 官網 -->
+        <col style="width:2.5rem">  <!-- D -->
+        <col style="width:15%">     <!-- 景點名稱 -->
+        <col style="width:14%">     <!-- 官網（編輯時需要足夠寬度） -->
         <col style="width:5rem">    <!-- 優先度 -->
-        <col style="width:7rem">    <!-- 開放時間 -->
-        <col style="width:5rem">    <!-- 費用(¥) -->
+        <col style="width:5.5rem">  <!-- 開放時間 -->
+        <col style="width:4.5rem">  <!-- 費用(¥) -->
         <col>                       <!-- 備註（剩餘空間） -->
-        <col style="width:17%">     <!-- 地址 -->
+        <col style="width:15%">     <!-- 地址 -->
         <col style="width:3rem">    <!-- MAP -->
         <col style="width:1.8rem">  <!-- 刪除 -->
       </colgroup>
@@ -2188,11 +2188,11 @@ function spotsRender() {
               style="flex:1;font-size:0.78rem;border:1px solid #ddd;border-radius:3px;padding:0.2rem 0.3rem;box-sizing:border-box;min-width:0;">
             <button onclick="spotsAutoFetchWebsite(${i}, spotsRows[${i}].name)"
               title="Google 搜尋官網"
-              style="flex-shrink:0;background:#4285f4;color:white;border:none;border-radius:3px;padding:0.2rem 0.4rem;cursor:pointer;font-size:0.75rem;white-space:nowrap;">🔍</button>
+              style="flex-shrink:0;background:#4285f4;color:white;border:none;border-radius:3px;padding:0.15rem 0.3rem;cursor:pointer;font-size:0.65rem;line-height:1;white-space:nowrap;">🔍</button>
           </div>
         </td>
         <td style="padding:0.35rem 0.4rem;">${sel('prio',prioOpts)}</td>
-        <td style="padding:0.35rem 0.4rem;">${inp('hours',r.hours,'09001700')}</td>
+        <td style="padding:0.35rem 0.4rem;"><input value="${(r.hours||'').replace(/"/g,'&quot;')}" onchange="spotsEdit(${i},'hours',this.value)" placeholder="09001700" style="width:100%;font-size:0.7rem;border:1px solid #ddd;border-radius:3px;padding:0.2rem 0.25rem;box-sizing:border-box;"></td>
         <td style="padding:0.35rem 0.4rem;">${num('fee',r.fee)}</td>
         <td style="padding:0.35rem 0.4rem;">${inp('note',r.note,'備註')}</td>
         <td style="padding:0.35rem 0.4rem;">${inp('address',r.address,'貼上地址或景點名稱')}</td>
