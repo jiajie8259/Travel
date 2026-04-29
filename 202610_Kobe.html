@@ -2239,37 +2239,53 @@ async function spotsAutoFetchWebsite(idx, name) {
     webInput.style.color = '#b8860b';
   }
 
-  const GOOGLE_API_KEY = 'AIzaSyCLPHCRr1uwioawNl0UXYrFNa_ftMdI3PU';
-  const SEARCH_ENGINE_ID = '5363a4a25b65a4f2a';
-  const area = spotsRows[idx].area || '日本';
-  const query = encodeURIComponent(`${name} ${area} 官方網站`);
-  const url = `https://www.googleapis.com/customsearch/v1?key=${GOOGLE_API_KEY}&cx=${SEARCH_ENGINE_ID}&q=${query}&num=5`;
-
   try {
-    const res = await fetch(url);
-    const data = await res.json();
-    const items = data.items || [];
+    // 同時查詢日文、中文 Wikipedia，取外部連結中的官網
+    const langs = ['ja', 'zh'];
+    let foundUrl = '';
 
-    // 優先找官方網站：排除 wikipedia、tripadvisor、booking、tabelog 等
-    const EXCLUDE = ['wikipedia','tripadvisor','booking','tabelog','jalan','agoda','expedia','rakuten','hotpepper','retty','gurunavi','yelp','facebook','instagram','twitter','x.com','youtube'];
-    const official = items.find(item => {
-      const link = (item.link || '').toLowerCase();
-      return !EXCLUDE.some(ex => link.includes(ex));
-    });
+    for (const lang of langs) {
+      if (foundUrl) break;
+      const apiUrl = `https://${lang}.wikipedia.org/w/api.php?` +
+        `action=query&titles=${encodeURIComponent(name)}&prop=extlinks|pageprops&` +
+        `ppprop=wikibase_item&ellimit=20&format=json&origin=*`;
 
-    const result = official ? official.link : (items[0]?.link || '');
+      const res = await fetch(apiUrl);
+      const data = await res.json();
+      const pages = data?.query?.pages || {};
+
+      for (const pid of Object.keys(pages)) {
+        if (pid === '-1') continue; // 頁面不存在
+        const links = pages[pid]?.extlinks || [];
+        // 過濾官網：排除社群、地圖、訂房等非官方連結
+        const EXCLUDE = ['facebook','instagram','twitter','x.com','youtube',
+          'tripadvisor','booking','agoda','jalan','tabelog','gurunavi',
+          'hotpepper','retty','yelp','wikipedia','wikimedia','map','goo.gl'];
+        const official = links.find(l => {
+          const href = (l['*'] || l.href || '').toLowerCase();
+          return href.startsWith('http') && !EXCLUDE.some(ex => href.includes(ex));
+        });
+        if (official) {
+          foundUrl = official['*'] || official.href;
+          break;
+        }
+      }
+    }
 
     if (webInput) {
       webInput.disabled = false;
       webInput.style.color = '';
-      if (result) {
-        webInput.value = result;
-        spotsRows[idx].website = result;
+      if (foundUrl) {
+        webInput.value = foundUrl;
+        spotsRows[idx].website = foundUrl;
         webInput.style.background = '#f0fff4';
         setTimeout(() => { if (webInput) webInput.style.background = ''; }, 2500);
       } else {
+        // Wikipedia 找不到時，改用 Google 搜尋連結讓使用者自行查
         webInput.value = '';
-        webInput.placeholder = '找不到官網，請手動輸入';
+        webInput.placeholder = '找不到，請手動貼上網址';
+        webInput.style.background = '#fff8e8';
+        setTimeout(() => { if (webInput) { webInput.style.background = ''; webInput.placeholder = 'https://'; } }, 3000);
       }
     }
   } catch(e) {
