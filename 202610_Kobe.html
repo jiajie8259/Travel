@@ -2257,16 +2257,36 @@ async function spotsAutoFetchWebsite(idx, name) {
       for (const pid of Object.keys(pages)) {
         if (pid === '-1') continue; // 頁面不存在
         const links = pages[pid]?.extlinks || [];
-        // 過濾官網：排除社群、地圖、訂房等非官方連結
         const EXCLUDE = ['facebook','instagram','twitter','x.com','youtube',
           'tripadvisor','booking','agoda','jalan','tabelog','gurunavi',
-          'hotpepper','retty','yelp','wikipedia','wikimedia','map','goo.gl'];
-        const official = links.find(l => {
-          const href = (l['*'] || l.href || '').toLowerCase();
-          return href.startsWith('http') && !EXCLUDE.some(ex => href.includes(ex));
-        });
-        if (official) {
-          foundUrl = official['*'] || official.href;
+          'hotpepper','retty','yelp','wikipedia','wikimedia','goo.gl',
+          'google.com','apple.com','microsoft.com','amazon','toshiba',
+          'hitachi','mitsubishi','panasonic','sony','nikon','canon',
+          'flickr','pinterest','linkedin','line.me','whatsapp'];
+
+        // 評分：網址包含景點名關鍵字者優先
+        const nameKey = name.replace(/\s/g,'').toLowerCase();
+        const nameRoman = nameKey.replace(/[^\x00-\x7F]/g,''); // 只取英數
+
+        const scored = links
+          .map(l => l['*'] || l.href || '')
+          .filter(href => href.startsWith('http') && !EXCLUDE.some(ex => href.toLowerCase().includes(ex)))
+          .map(href => {
+            const h = href.toLowerCase();
+            let score = 0;
+            // 網址包含景點名字母優先（如 taipei101.com.tw）
+            if (nameRoman.length > 2 && h.includes(nameRoman)) score += 10;
+            // .go.jp / .go.tw / .or.jp / .org / .com.tw 官方感加分
+            if (/\.(go\.(jp|tw)|or\.jp|org|com\.tw|co\.jp)(\/|$)/.test(h)) score += 3;
+            // 路徑越短越可能是首頁
+            const pathLen = (href.split('/').length - 3);
+            score -= pathLen * 0.5;
+            return { href, score };
+          })
+          .sort((a, b) => b.score - a.score);
+
+        if (scored.length > 0) {
+          foundUrl = scored[0].href;
           break;
         }
       }
