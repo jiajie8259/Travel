@@ -1716,32 +1716,36 @@
   <div class="food-table-wrap">
     <table class="food-table" id="food-main-table">
       <colgroup>
-        <col style="width:2.8rem">  <!-- D -->
-        <col style="width:13%">     <!-- 店名 -->
-        <col style="width:5.8rem">  <!-- 營業時間 -->
-        <col style="width:5.5rem">  <!-- 支付 -->
-        <col style="width:5.8rem">  <!-- 訂位 -->
-        <col style="width:14%">     <!-- 餐點A -->
-        <col style="width:3.8rem">  <!-- ¥A -->
-        <col style="width:14%">     <!-- 餐點B -->
-        <col style="width:3.8rem">  <!-- ¥B -->
-        <col style="width:14%">     <!-- 備註 -->
+        <col style="width:2.5rem">  <!-- D -->
+        <col style="width:12%">     <!-- 店名 -->
+        <col style="width:5.5rem">  <!-- 時間 -->
+        <col style="width:5rem">    <!-- 支付 -->
+        <col style="width:5rem">    <!-- 訂位 -->
+        <col style="width:11%">     <!-- 餐點A -->
+        <col style="width:3.5rem">  <!-- ¥A -->
+        <col style="width:11%">     <!-- 餐點B -->
+        <col style="width:3.5rem">  <!-- ¥B -->
+        <col style="width:11%">     <!-- 餐點C -->
+        <col style="width:3.5rem">  <!-- ¥C -->
+        <col>                       <!-- 備註 -->
         <col style="width:5rem">    <!-- 小計 -->
         <col style="width:1.8rem">  <!-- 刪除 -->
       </colgroup>
       <thead>
         <tr>
-          <th style="white-space:nowrap;">D</th>
-          <th>店名</th>
-          <th>時間</th>
-          <th>支付</th>
-          <th>訂位</th>
-          <th style="border-left:2px solid #444;">餐點 A</th>
-          <th class="col-price" style="padding-right:1rem;">¥A</th>
-          <th style="border-left:2px solid #444;">餐點 B</th>
-          <th class="col-price" style="padding-right:1rem;">¥B</th>
-          <th style="border-left:2px solid #444;">備註</th>
-          <th class="col-price">小計（円）</th>
+          <th style="white-space:nowrap;font-size:0.78rem;text-align:center;">D</th>
+          <th style="font-size:0.78rem;text-align:center;">店名</th>
+          <th style="font-size:0.78rem;text-align:center;">時間</th>
+          <th style="font-size:0.78rem;text-align:center;">支付</th>
+          <th style="font-size:0.78rem;text-align:center;white-space:nowrap;">訂位</th>
+          <th style="border-left:2px solid #444;font-size:0.78rem;text-align:center;">餐點 A</th>
+          <th class="col-price" style="font-size:0.78rem;text-align:center;">¥A</th>
+          <th style="border-left:2px solid #444;font-size:0.78rem;text-align:center;">餐點 B</th>
+          <th class="col-price" style="font-size:0.78rem;text-align:center;">¥B</th>
+          <th style="border-left:2px solid #444;font-size:0.78rem;text-align:center;">餐點 C</th>
+          <th class="col-price" style="font-size:0.78rem;text-align:center;">¥C</th>
+          <th style="border-left:2px solid #444;font-size:0.78rem;text-align:center;">備註</th>
+          <th class="col-price" style="font-size:0.78rem;text-align:center;white-space:nowrap;">小計（円）</th>
           <th id="food-del-col" style="display:none;width:2rem;"></th>
         </tr>
       </thead>
@@ -1749,7 +1753,7 @@
       </tbody>
       <tfoot>
         <tr>
-          <td colspan="10" style="text-align:right;padding:0.75rem 1rem;font-size:0.8rem;color:var(--muted);font-family:'DM Mono',monospace;letter-spacing:0.05em;">餐食小計</td>
+          <td colspan="12" style="text-align:right;padding:0.75rem 1rem;font-size:0.8rem;color:var(--muted);font-family:'DM Mono',monospace;letter-spacing:0.05em;">餐食小計</td>
           <td class="col-price" id="food-total" style="padding:0.75rem 1rem;font-weight:900;font-size:1rem;color:var(--red);font-family:'DM Mono',monospace;background:#fff8f8;">—</td>
           <td id="food-del-col-foot" style="display:none;background:#fff8f8;"></td>
         </tr>
@@ -1842,7 +1846,7 @@ async function foodPushToFirebase() {
 // ── 計算合計 ──────────────────────────────────────────────
 function foodCalcTotal() {
   let sum = 0;
-  foodRows.forEach(r => { sum += (parseInt(r.priceA)||0) + (parseInt(r.priceB)||0); });
+  foodRows.forEach(r => { sum += (parseInt(r.priceA)||0) + (parseInt(r.priceB)||0) + (parseInt(r.priceC)||0); });
   const el = document.getElementById('food-total');
   if (el) el.textContent = sum > 0 ? sum.toLocaleString() : '—';
 }
@@ -1852,7 +1856,7 @@ function foodRender() {
   const tbody = document.getElementById('food-tbody');
   if (!tbody) return;
   if (!foodRows.length) {
-    tbody.innerHTML = `<tr><td colspan="12" style="color:var(--muted);font-style:italic;text-align:center;padding:1.5rem;">— 神戶大阪美食清單待補充 —<br><span style="font-size:0.75rem;">點擊右上角「✏ 編輯」按鈕開始新增</span></td></tr>`;
+    tbody.innerHTML = `<tr><td colspan="14" style="color:var(--muted);font-style:italic;text-align:center;padding:1.5rem;">— 神戶大阪美食清單待補充 —<br><span style="font-size:0.75rem;">點擊右上角「✏ 編輯」按鈕開始新增</span></td></tr>`;
     foodCalcTotal();
     return;
   }
@@ -1904,8 +1908,10 @@ function foodRender() {
         <td class="col-price" style="padding:0.35rem 0.4rem;">${num('priceA',r.priceA)}</td>
         <td style="padding:0.35rem 0.4rem;border-left:2px solid #e8d5a0;">${inp('itemB',r.itemB,'餐點名稱')}</td>
         <td class="col-price" style="padding:0.35rem 0.4rem;">${num('priceB',r.priceB)}</td>
+        <td style="padding:0.35rem 0.4rem;border-left:2px solid #e8d5a0;">${inp('itemC',r.itemC,'餐點名稱')}</td>
+        <td class="col-price" style="padding:0.35rem 0.4rem;">${num('priceC',r.priceC)}</td>
         <td style="padding:0.35rem 0.4rem;border-left:2px solid #e8d5a0;">${inp('note',r.note,'備註')}</td>
-        <td class="col-price total-price" style="font-family:'DM Mono',monospace;">${((parseInt(r.priceA)||0)+(parseInt(r.priceB)||0))||'—'}</td>
+        <td class="col-price total-price" style="font-family:'DM Mono',monospace;">${((parseInt(r.priceA)||0)+(parseInt(r.priceB)||0)+(parseInt(r.priceC)||0))||'—'}</td>
         ${delBtn}
       </tr>`;
     } else {
@@ -1926,8 +1932,10 @@ function foodRender() {
         <td class="col-price" style="padding-right:1rem;">${r.priceA ? parseInt(r.priceA).toLocaleString() : '—'}</td>
         <td style="border-left:2px solid #f0e8dc;">${r.itemB||'—'}</td>
         <td class="col-price" style="padding-right:1rem;">${r.priceB ? parseInt(r.priceB).toLocaleString() : '—'}</td>
+        <td style="border-left:2px solid #f0e8dc;">${r.itemC||'—'}</td>
+        <td class="col-price" style="padding-right:1rem;">${r.priceC ? parseInt(r.priceC).toLocaleString() : '—'}</td>
         <td style="font-size:0.75rem;color:var(--muted);border-left:2px solid #f0e8dc;">${r.note||''}</td>
-        <td class="col-price total-price">${total > 0 ? total.toLocaleString() : '—'}</td>
+        <td class="col-price total-price">${((parseInt(r.priceA)||0)+(parseInt(r.priceB)||0)+(parseInt(r.priceC)||0)) > 0 ? ((parseInt(r.priceA)||0)+(parseInt(r.priceB)||0)+(parseInt(r.priceC)||0)).toLocaleString() : '—'}</td>
         <td style="display:none"></td>
       </tr>`;
     }
@@ -1981,7 +1989,7 @@ function foodEdit(idx, field, value) {
 }
 
 function foodAddRow() {
-  foodRows.push({ day:'D1', name:'', hours:'', pay:'信用卡', booked:'不可訂位', itemA:'', priceA:'', itemB:'', priceB:'', note:'' });
+  foodRows.push({ day:'D1', name:'', hours:'', pay:'信用卡', booked:'不可訂位', itemA:'', priceA:'', itemB:'', priceB:'', itemC:'', priceC:'', note:'' });
   foodRender();
   document.getElementById('food-tbody')?.lastElementChild?.scrollIntoView({ behavior:'smooth', block:'center' });
 }
@@ -2054,27 +2062,27 @@ document.addEventListener('DOMContentLoaded', foodLoad);
     <table id="spots-main-table" style="width:100%;border-collapse:collapse;font-size:0.8rem;background:white;table-layout:fixed;">
       <colgroup>
         <col style="width:2.5rem">  <!-- D -->
-        <col style="width:15%">     <!-- 景點名稱 -->
-        <col style="width:14%">     <!-- 官網（編輯時需要足夠寬度） -->
+        <col style="width:13%">     <!-- 景點名稱 -->
+        <col style="width:3rem">    <!-- 官網 -->
         <col style="width:5rem">    <!-- 優先度 -->
-        <col style="width:5.5rem">  <!-- 開放時間 -->
-        <col style="width:4.5rem">  <!-- 費用(¥) -->
-        <col>                       <!-- 備註（剩餘空間） -->
-        <col style="width:15%">     <!-- 地址 -->
+        <col style="width:6.5rem">  <!-- 開放時間 -->
+        <col style="width:3.5rem">  <!-- 費用(¥) -->
+        <col style="width:22%">     <!-- 備註 -->
+        <col style="width:18%">     <!-- 地址 -->
         <col style="width:3rem">    <!-- MAP -->
         <col style="width:1.8rem">  <!-- 刪除 -->
       </colgroup>
       <thead>
         <tr style="background:var(--ink);color:var(--paper);">
-          <th style="padding:0.6rem 0.5rem;font-family:'DM Mono',monospace;font-size:0.65rem;letter-spacing:0.08em;font-weight:500;text-align:left;white-space:nowrap;">D</th>
-          <th style="padding:0.6rem 0.5rem;font-family:'DM Mono',monospace;font-size:0.65rem;letter-spacing:0.08em;font-weight:500;text-align:left;">景點名稱</th>
-          <th style="padding:0.6rem 0.5rem;font-family:'DM Mono',monospace;font-size:0.65rem;letter-spacing:0.08em;font-weight:500;text-align:center;">官網</th>
-          <th style="padding:0.6rem 0.5rem;font-family:'DM Mono',monospace;font-size:0.65rem;letter-spacing:0.08em;font-weight:500;text-align:left;">優先度</th>
-          <th style="padding:0.6rem 0.5rem;font-family:'DM Mono',monospace;font-size:0.65rem;letter-spacing:0.08em;font-weight:500;text-align:left;">開放時間</th>
-          <th style="padding:0.6rem 0.5rem;font-family:'DM Mono',monospace;font-size:0.65rem;letter-spacing:0.08em;font-weight:500;text-align:right;white-space:nowrap;">費用(¥)</th>
-          <th style="padding:0.6rem 0.5rem;font-family:'DM Mono',monospace;font-size:0.65rem;letter-spacing:0.08em;font-weight:500;text-align:left;">備註</th>
-          <th style="padding:0.6rem 0.5rem;font-family:'DM Mono',monospace;font-size:0.65rem;letter-spacing:0.08em;font-weight:500;text-align:left;">地址</th>
-          <th style="padding:0.6rem 0.5rem;font-family:'DM Mono',monospace;font-size:0.65rem;letter-spacing:0.08em;font-weight:500;text-align:center;">MAP</th>
+          <th style="padding:0.6rem 0.5rem;font-family:'DM Mono',monospace;font-size:0.72rem;letter-spacing:0.08em;font-weight:600;text-align:left;white-space:nowrap;">D</th>
+          <th style="padding:0.6rem 0.5rem;font-family:'DM Mono',monospace;font-size:0.72rem;letter-spacing:0.08em;font-weight:600;text-align:left;white-space:nowrap;">景點名稱</th>
+          <th style="padding:0.6rem 0.5rem;font-family:'DM Mono',monospace;font-size:0.72rem;letter-spacing:0.08em;font-weight:600;text-align:center;white-space:nowrap;">官網</th>
+          <th style="padding:0.6rem 0.5rem;font-family:'DM Mono',monospace;font-size:0.72rem;letter-spacing:0.08em;font-weight:600;text-align:left;white-space:nowrap;">優先度</th>
+          <th style="padding:0.6rem 0.5rem;font-family:'DM Mono',monospace;font-size:0.72rem;letter-spacing:0.08em;font-weight:600;text-align:left;white-space:nowrap;">開放時間</th>
+          <th style="padding:0.6rem 0.5rem;font-family:'DM Mono',monospace;font-size:0.72rem;letter-spacing:0.08em;font-weight:600;text-align:center;white-space:nowrap;">費用(¥)</th>
+          <th style="padding:0.6rem 0.5rem;font-family:'DM Mono',monospace;font-size:0.72rem;letter-spacing:0.08em;font-weight:600;text-align:left;white-space:nowrap;">備註</th>
+          <th style="padding:0.6rem 0.5rem;font-family:'DM Mono',monospace;font-size:0.72rem;letter-spacing:0.08em;font-weight:600;text-align:left;white-space:nowrap;">地址</th>
+          <th style="padding:0.6rem 0.5rem;font-family:'DM Mono',monospace;font-size:0.72rem;letter-spacing:0.08em;font-weight:600;text-align:center;white-space:nowrap;">MAP</th>
           <th id="spots-del-col" style="display:none;width:1.8rem;"></th>
         </tr>
       </thead>
@@ -2228,7 +2236,7 @@ function spotsRender() {
         <td style="padding:0.6rem 0.5rem;text-align:center;">${webCell}</td>
         <td style="padding:0.6rem 0.5rem;font-size:0.78rem;${prioStyle}">${r.prio||'—'}</td>
         <td style="padding:0.6rem 0.5rem;font-size:0.78rem;color:var(--muted);">${r.hours||'—'}</td>
-        <td style="padding:0.6rem 0.5rem;font-family:'DM Mono',monospace;font-size:0.78rem;text-align:right;">${fee > 0 ? fee.toLocaleString() : '免費'}</td>
+        <td style="padding:0.6rem 0.5rem;font-family:'DM Mono',monospace;font-size:0.78rem;text-align:center;">${fee > 0 ? fee.toLocaleString() : '免費'}</td>
         <td style="padding:0.6rem 0.5rem;font-size:0.75rem;color:var(--muted);">${r.note||''}</td>
         <td style="padding:0.6rem 0.5rem;font-size:0.72rem;color:var(--muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="${(r.address||'').replace(/"/g,'&quot;')}">${r.address||'—'}</td>
         <td style="padding:0.6rem 0.5rem;text-align:center;">
