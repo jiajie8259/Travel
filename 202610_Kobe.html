@@ -1623,192 +1623,7 @@
 </div>
 </div>
 
-<script>
-// ── 交通清單 編輯器 ──────────────────────────────────────
-const TRANS_DOC = db.collection('kobe2026').doc('transport');
-let transRows = [];
-let transEditMode = false;
-let transSyncing = false;
 
-const TRANS_DAY_OPTIONS = ['D1','D2','D3','D4','D5','—'];
-
-function transSetStatus(msg, color) {
-  const el = document.getElementById('trans-sync-status');
-  if (el) { el.textContent = msg; el.style.color = color || 'var(--muted)'; }
-}
-
-async function transLoad() {
-  transSetStatus('⏳ 同步中…', '#b8860b');
-  try {
-    const snap = await TRANS_DOC.get();
-    transRows = (snap.exists && Array.isArray(snap.data().rows)) ? snap.data().rows : [];
-    transSetStatus('✓ 已同步', '#27ae60');
-  } catch(e) {
-    transSetStatus('⚠ 讀取失敗', '#c0392b');
-    try { const s = localStorage.getItem('kobe26_trans_rows'); if (s) transRows = JSON.parse(s); } catch(_) {}
-  }
-  transRender();
-}
-
-async function transPushToFirebase() {
-  if (transSyncing) return;
-  transSyncing = true;
-  transSetStatus('💾 儲存中…', '#b8860b');
-  try {
-    await TRANS_DOC.set({ rows: transRows, updatedAt: firebase.firestore.FieldValue.serverTimestamp() });
-    localStorage.setItem('kobe26_trans_rows', JSON.stringify(transRows));
-    transSetStatus('✓ 已儲存並同步', '#27ae60');
-  } catch(e) {
-    localStorage.setItem('kobe26_trans_rows', JSON.stringify(transRows));
-    transSetStatus('⚠ 雲端失敗，已存本機', '#c0392b');
-  }
-  transSyncing = false;
-}
-
-function transCalcTotal() {
-  const sum = transRows.reduce((acc, r) => acc + (parseInt(r.fare)||0), 0);
-  const el = document.getElementById('trans-total');
-  if (el) el.textContent = sum > 0 ? sum.toLocaleString() : '—';
-}
-
-function transRender() {
-  const tbody = document.getElementById('trans-tbody');
-  if (!tbody) return;
-  const delCol = document.getElementById('trans-del-col');
-  const delColFoot = document.getElementById('trans-del-col-foot');
-  if (delCol) delCol.style.display = transEditMode ? '' : 'none';
-  if (delColFoot) delColFoot.style.display = transEditMode ? '' : 'none';
-
-  if (!transRows.length) {
-    tbody.innerHTML = `<tr><td colspan="9" style="color:var(--muted);font-style:italic;text-align:center;padding:1.5rem;">— 交通資訊待補充 —<br><span style="font-size:0.75rem;">點擊右上角「✏ 編輯」按鈕開始新增，可參考「乗換案内」查詢路線</span></td></tr>`;
-    transCalcTotal();
-    return;
-  }
-
-  // 依 D 欄排序
-  const DAY_ORDER = ['D1','D2','D3','D4','D5','—'];
-  const sorted = transRows
-    .map((r, i) => ({ ...r, _orig: i }))
-    .sort((a, b) => {
-      if (a._new && !b._new) return 1;
-      if (!a._new && b._new) return -1;
-      const ai = DAY_ORDER.indexOf(a.day) === -1 ? 99 : DAY_ORDER.indexOf(a.day);
-      const bi = DAY_ORDER.indexOf(b.day) === -1 ? 99 : DAY_ORDER.indexOf(b.day);
-      if (ai !== bi) return ai - bi;
-      // 同天依發車時間排序
-      return (a.depart||'').localeCompare(b.depart||'');
-    });
-
-  tbody.innerHTML = sorted.map((r) => {
-    const i = r._orig;
-    const delBtn = transEditMode
-      ? `<td style="text-align:center;padding:0.3rem;"><button onclick="transDeleteRow(${i})" style="background:none;border:none;cursor:pointer;font-size:1rem;color:#c0392b;padding:0.2rem 0.4rem;">✕</button></td>`
-      : `<td style="display:none"></td>`;
-
-    if (transEditMode) {
-      const dayOpts = TRANS_DAY_OPTIONS.map(d => `<option value="${d}" ${r.day===d?'selected':''}>${d}</option>`).join('');
-      const sel = (field, opts) =>
-        `<select onchange="transEdit(${i},'${field}',this.value)" style="width:100%;font-size:0.75rem;border:1px solid #ddd;border-radius:3px;padding:0.15rem;box-sizing:border-box;">${opts}</select>`;
-      const inp = (field, val, ph) =>
-        `<input value="${(val||'').replace(/"/g,'&quot;')}" onchange="transEdit(${i},'${field}',this.value)" placeholder="${ph}"
-          style="width:100%;font-size:0.78rem;border:1px solid #ddd;border-radius:3px;padding:0.2rem 0.3rem;box-sizing:border-box;">`;
-      const time = (field, val) =>
-        `<input value="${val||''}" onchange="transEdit(${i},'${field}',this.value)" placeholder="0900"
-          style="width:100%;font-size:0.78rem;border:1px solid #ddd;border-radius:3px;padding:0.2rem 0.3rem;text-align:center;font-family:'DM Mono',monospace;box-sizing:border-box;">`;
-      const num = (field, val) =>
-        `<input type="number" value="${val||''}" onchange="transEdit(${i},'${field}',this.value)" placeholder="0"
-          style="width:100%;font-size:0.78rem;border:1px solid #ddd;border-radius:3px;padding:0.2rem 0.3rem;text-align:right;font-family:'DM Mono',monospace;box-sizing:border-box;">`;
-      return `<tr data-idx="${i}" style="border-bottom:1px solid #f0e8dc;">
-        <td style="padding:0.35rem 0.4rem;">${sel('day',dayOpts)}</td>
-        <td style="padding:0.35rem 0.4rem;">${inp('dest',r.dest,'目的地')}</td>
-        <td style="padding:0.35rem 0.4rem;">${inp('line',r.line,'路線名稱')}</td>
-        <td style="padding:0.35rem 0.4rem;">${inp('route',r.route,'起站 → 迄站')}</td>
-        <td style="padding:0.35rem 0.4rem;">${time('depart',r.depart)}</td>
-        <td style="padding:0.35rem 0.4rem;">${time('arrive',r.arrive)}</td>
-        <td style="padding:0.35rem 0.4rem;">${num('fare',r.fare)}</td>
-        <td style="padding:0.35rem 0.4rem;">${inp('note',r.note,'備註・月台・車廂')}</td>
-        ${delBtn}
-      </tr>`;
-    } else {
-      const fare = parseInt(r.fare)||0;
-      // 發車/抵達時間格式化
-      const fmtTime = t => {
-        if (!t) return '—';
-        const d = t.replace(/\D/g,'');
-        if (d.length >= 4) return `${d.slice(0,2)}:${d.slice(2,4)}`;
-        return t;
-      };
-      return `<tr style="border-bottom:1px solid #f0e8dc;">
-        <td style="padding:0.6rem 0.5rem;font-family:'DM Mono',monospace;font-size:0.72rem;color:var(--muted);text-align:center;">${r.day||'—'}</td>
-        <td style="padding:0.6rem 0.5rem;font-weight:700;">${r.dest||'—'}</td>
-        <td style="padding:0.6rem 0.5rem;font-size:0.78rem;">${r.line||'—'}</td>
-        <td style="padding:0.6rem 0.5rem;font-size:0.78rem;color:var(--muted);">${r.route||'—'}</td>
-        <td style="padding:0.6rem 0.5rem;font-family:'DM Mono',monospace;font-size:0.8rem;font-weight:700;text-align:center;color:var(--ink);">${fmtTime(r.depart)}</td>
-        <td style="padding:0.6rem 0.5rem;font-family:'DM Mono',monospace;font-size:0.8rem;font-weight:700;text-align:center;color:var(--ink);">${fmtTime(r.arrive)}</td>
-        <td style="padding:0.6rem 0.5rem;font-family:'DM Mono',monospace;font-size:0.78rem;text-align:center;">${fare > 0 ? fare.toLocaleString() : '—'}</td>
-        <td style="padding:0.6rem 0.5rem;font-size:0.75rem;color:var(--muted);">${r.note||''}</td>
-        <td style="display:none"></td>
-      </tr>`;
-    }
-  }).join('');
-  transCalcTotal();
-}
-
-function transEdit(idx, field, value) {
-  if (!transRows[idx]) return;
-  if ((field === 'depart' || field === 'arrive') && value) {
-    value = formatTimeRange(value);
-    const row = document.querySelector(`#trans-tbody tr[data-idx="${idx}"]`);
-    if (row) {
-      const col = field === 'depart' ? 5 : 6;
-      const inp = row.querySelector(`td:nth-child(${col}) input`);
-      if (inp && inp.value !== value) inp.value = value;
-    }
-  }
-  if (transRows[idx]._new) delete transRows[idx]._new;
-  transRows[idx][field] = value;
-  transCalcTotal();
-}
-
-function transAddRow() {
-  transRows.push({ day:'D1', dest:'', line:'', route:'', depart:'', arrive:'', fare:'', note:'', _new:true });
-  transRender();
-  document.getElementById('trans-tbody')?.lastElementChild?.scrollIntoView({ behavior:'smooth', block:'center' });
-}
-
-function transDeleteRow(idx) {
-  if (!confirm(`確定刪除此路線？`)) return;
-  transRows.splice(idx, 1);
-  transRender();
-}
-
-async function transSave() {
-  await transPushToFirebase();
-  const btn = document.getElementById('trans-edit-btn');
-  if (btn) {
-    const prevText = btn.textContent, prevBg = btn.style.background, prevColor = btn.style.color;
-    btn.textContent = '✓ 已儲存'; btn.style.color = '#27ae60'; btn.style.borderColor = '#27ae60';
-    setTimeout(() => { btn.textContent = prevText; btn.style.color = prevColor; btn.style.background = prevBg; btn.style.borderColor = ''; }, 2000);
-  }
-}
-
-async function transToggleEdit() {
-  transEditMode = !transEditMode;
-  const btn     = document.getElementById('trans-edit-btn');
-  const toolbar = document.getElementById('trans-edit-toolbar');
-  if (transEditMode) {
-    if (btn)     { btn.textContent = '✓ 完成'; btn.style.background = 'var(--ink)'; btn.style.color = '#f0c040'; }
-    if (toolbar) toolbar.style.display = 'flex';
-  } else {
-    await transPushToFirebase();
-    if (btn)     { btn.textContent = '✏ 編輯'; btn.style.background = 'transparent'; btn.style.color = 'var(--ink)'; }
-    if (toolbar) toolbar.style.display = 'none';
-  }
-  transRender();
-}
-
-document.addEventListener('DOMContentLoaded', transLoad);
-</script>
 
 <div id="food" class="tab-panel">
 <div style="max-width:1400px;margin:0 auto;padding:2.5rem 2.5rem 4rem;">
@@ -2152,6 +1967,193 @@ async function foodToggleEdit() {
 
 // ── 啟動：從 Firebase 載入 ────────────────────────────────
 document.addEventListener('DOMContentLoaded', foodLoad);
+</script>
+
+<script>
+// ── 交通清單 編輯器 ──────────────────────────────────────
+const TRANS_DOC = db.collection('kobe2026').doc('transport');
+let transRows = [];
+let transEditMode = false;
+let transSyncing = false;
+
+const TRANS_DAY_OPTIONS = ['D1','D2','D3','D4','D5','—'];
+
+function transSetStatus(msg, color) {
+  const el = document.getElementById('trans-sync-status');
+  if (el) { el.textContent = msg; el.style.color = color || 'var(--muted)'; }
+}
+
+async function transLoad() {
+  transSetStatus('⏳ 同步中…', '#b8860b');
+  try {
+    const snap = await TRANS_DOC.get();
+    transRows = (snap.exists && Array.isArray(snap.data().rows)) ? snap.data().rows : [];
+    transSetStatus('✓ 已同步', '#27ae60');
+  } catch(e) {
+    transSetStatus('⚠ 讀取失敗', '#c0392b');
+    try { const s = localStorage.getItem('kobe26_trans_rows'); if (s) transRows = JSON.parse(s); } catch(_) {}
+  }
+  transRender();
+}
+
+async function transPushToFirebase() {
+  if (transSyncing) return;
+  transSyncing = true;
+  transSetStatus('💾 儲存中…', '#b8860b');
+  try {
+    await TRANS_DOC.set({ rows: transRows, updatedAt: firebase.firestore.FieldValue.serverTimestamp() });
+    localStorage.setItem('kobe26_trans_rows', JSON.stringify(transRows));
+    transSetStatus('✓ 已儲存並同步', '#27ae60');
+  } catch(e) {
+    localStorage.setItem('kobe26_trans_rows', JSON.stringify(transRows));
+    transSetStatus('⚠ 雲端失敗，已存本機', '#c0392b');
+  }
+  transSyncing = false;
+}
+
+function transCalcTotal() {
+  const sum = transRows.reduce((acc, r) => acc + (parseInt(r.fare)||0), 0);
+  const el = document.getElementById('trans-total');
+  if (el) el.textContent = sum > 0 ? sum.toLocaleString() : '—';
+}
+
+function transRender() {
+  const tbody = document.getElementById('trans-tbody');
+  if (!tbody) return;
+  const delCol = document.getElementById('trans-del-col');
+  const delColFoot = document.getElementById('trans-del-col-foot');
+  if (delCol) delCol.style.display = transEditMode ? '' : 'none';
+  if (delColFoot) delColFoot.style.display = transEditMode ? '' : 'none';
+
+  if (!transRows.length) {
+    tbody.innerHTML = `<tr><td colspan="9" style="color:var(--muted);font-style:italic;text-align:center;padding:1.5rem;">— 交通資訊待補充 —<br><span style="font-size:0.75rem;">點擊右上角「✏ 編輯」按鈕開始新增，可參考「乗換案内」查詢路線</span></td></tr>`;
+    transCalcTotal();
+    return;
+  }
+
+  // 依 D 欄排序
+  const DAY_ORDER = ['D1','D2','D3','D4','D5','—'];
+  const sorted = transRows
+    .map((r, i) => ({ ...r, _orig: i }))
+    .sort((a, b) => {
+      if (a._new && !b._new) return 1;
+      if (!a._new && b._new) return -1;
+      const ai = DAY_ORDER.indexOf(a.day) === -1 ? 99 : DAY_ORDER.indexOf(a.day);
+      const bi = DAY_ORDER.indexOf(b.day) === -1 ? 99 : DAY_ORDER.indexOf(b.day);
+      if (ai !== bi) return ai - bi;
+      // 同天依發車時間排序
+      return (a.depart||'').localeCompare(b.depart||'');
+    });
+
+  tbody.innerHTML = sorted.map((r) => {
+    const i = r._orig;
+    const delBtn = transEditMode
+      ? `<td style="text-align:center;padding:0.3rem;"><button onclick="transDeleteRow(${i})" style="background:none;border:none;cursor:pointer;font-size:1rem;color:#c0392b;padding:0.2rem 0.4rem;">✕</button></td>`
+      : `<td style="display:none"></td>`;
+
+    if (transEditMode) {
+      const dayOpts = TRANS_DAY_OPTIONS.map(d => `<option value="${d}" ${r.day===d?'selected':''}>${d}</option>`).join('');
+      const sel = (field, opts) =>
+        `<select onchange="transEdit(${i},'${field}',this.value)" style="width:100%;font-size:0.75rem;border:1px solid #ddd;border-radius:3px;padding:0.15rem;box-sizing:border-box;">${opts}</select>`;
+      const inp = (field, val, ph) =>
+        `<input value="${(val||'').replace(/"/g,'&quot;')}" onchange="transEdit(${i},'${field}',this.value)" placeholder="${ph}"
+          style="width:100%;font-size:0.78rem;border:1px solid #ddd;border-radius:3px;padding:0.2rem 0.3rem;box-sizing:border-box;">`;
+      const time = (field, val) =>
+        `<input value="${val||''}" onchange="transEdit(${i},'${field}',this.value)" placeholder="0900"
+          style="width:100%;font-size:0.78rem;border:1px solid #ddd;border-radius:3px;padding:0.2rem 0.3rem;text-align:center;font-family:'DM Mono',monospace;box-sizing:border-box;">`;
+      const num = (field, val) =>
+        `<input type="number" value="${val||''}" onchange="transEdit(${i},'${field}',this.value)" placeholder="0"
+          style="width:100%;font-size:0.78rem;border:1px solid #ddd;border-radius:3px;padding:0.2rem 0.3rem;text-align:right;font-family:'DM Mono',monospace;box-sizing:border-box;">`;
+      return `<tr data-idx="${i}" style="border-bottom:1px solid #f0e8dc;">
+        <td style="padding:0.35rem 0.4rem;">${sel('day',dayOpts)}</td>
+        <td style="padding:0.35rem 0.4rem;">${inp('dest',r.dest,'目的地')}</td>
+        <td style="padding:0.35rem 0.4rem;">${inp('line',r.line,'路線名稱')}</td>
+        <td style="padding:0.35rem 0.4rem;">${inp('route',r.route,'起站 → 迄站')}</td>
+        <td style="padding:0.35rem 0.4rem;">${time('depart',r.depart)}</td>
+        <td style="padding:0.35rem 0.4rem;">${time('arrive',r.arrive)}</td>
+        <td style="padding:0.35rem 0.4rem;">${num('fare',r.fare)}</td>
+        <td style="padding:0.35rem 0.4rem;">${inp('note',r.note,'備註・月台・車廂')}</td>
+        ${delBtn}
+      </tr>`;
+    } else {
+      const fare = parseInt(r.fare)||0;
+      // 發車/抵達時間格式化
+      const fmtTime = t => {
+        if (!t) return '—';
+        const d = t.replace(/\D/g,'');
+        if (d.length >= 4) return `${d.slice(0,2)}:${d.slice(2,4)}`;
+        return t;
+      };
+      return `<tr style="border-bottom:1px solid #f0e8dc;">
+        <td style="padding:0.6rem 0.5rem;font-family:'DM Mono',monospace;font-size:0.72rem;color:var(--muted);text-align:center;">${r.day||'—'}</td>
+        <td style="padding:0.6rem 0.5rem;font-weight:700;">${r.dest||'—'}</td>
+        <td style="padding:0.6rem 0.5rem;font-size:0.78rem;">${r.line||'—'}</td>
+        <td style="padding:0.6rem 0.5rem;font-size:0.78rem;color:var(--muted);">${r.route||'—'}</td>
+        <td style="padding:0.6rem 0.5rem;font-family:'DM Mono',monospace;font-size:0.8rem;font-weight:700;text-align:center;color:var(--ink);">${fmtTime(r.depart)}</td>
+        <td style="padding:0.6rem 0.5rem;font-family:'DM Mono',monospace;font-size:0.8rem;font-weight:700;text-align:center;color:var(--ink);">${fmtTime(r.arrive)}</td>
+        <td style="padding:0.6rem 0.5rem;font-family:'DM Mono',monospace;font-size:0.78rem;text-align:center;">${fare > 0 ? fare.toLocaleString() : '—'}</td>
+        <td style="padding:0.6rem 0.5rem;font-size:0.75rem;color:var(--muted);">${r.note||''}</td>
+        <td style="display:none"></td>
+      </tr>`;
+    }
+  }).join('');
+  transCalcTotal();
+}
+
+function transEdit(idx, field, value) {
+  if (!transRows[idx]) return;
+  if ((field === 'depart' || field === 'arrive') && value) {
+    value = formatTimeRange(value);
+    const row = document.querySelector(`#trans-tbody tr[data-idx="${idx}"]`);
+    if (row) {
+      const col = field === 'depart' ? 5 : 6;
+      const inp = row.querySelector(`td:nth-child(${col}) input`);
+      if (inp && inp.value !== value) inp.value = value;
+    }
+  }
+  if (transRows[idx]._new) delete transRows[idx]._new;
+  transRows[idx][field] = value;
+  transCalcTotal();
+}
+
+function transAddRow() {
+  transRows.push({ day:'D1', dest:'', line:'', route:'', depart:'', arrive:'', fare:'', note:'', _new:true });
+  transRender();
+  document.getElementById('trans-tbody')?.lastElementChild?.scrollIntoView({ behavior:'smooth', block:'center' });
+}
+
+function transDeleteRow(idx) {
+  if (!confirm(`確定刪除此路線？`)) return;
+  transRows.splice(idx, 1);
+  transRender();
+}
+
+async function transSave() {
+  await transPushToFirebase();
+  const btn = document.getElementById('trans-edit-btn');
+  if (btn) {
+    const prevText = btn.textContent, prevBg = btn.style.background, prevColor = btn.style.color;
+    btn.textContent = '✓ 已儲存'; btn.style.color = '#27ae60'; btn.style.borderColor = '#27ae60';
+    setTimeout(() => { btn.textContent = prevText; btn.style.color = prevColor; btn.style.background = prevBg; btn.style.borderColor = ''; }, 2000);
+  }
+}
+
+async function transToggleEdit() {
+  transEditMode = !transEditMode;
+  const btn     = document.getElementById('trans-edit-btn');
+  const toolbar = document.getElementById('trans-edit-toolbar');
+  if (transEditMode) {
+    if (btn)     { btn.textContent = '✓ 完成'; btn.style.background = 'var(--ink)'; btn.style.color = '#f0c040'; }
+    if (toolbar) toolbar.style.display = 'flex';
+  } else {
+    await transPushToFirebase();
+    if (btn)     { btn.textContent = '✏ 編輯'; btn.style.background = 'transparent'; btn.style.color = 'var(--ink)'; }
+    if (toolbar) toolbar.style.display = 'none';
+  }
+  transRender();
+}
+
+document.addEventListener('DOMContentLoaded', transLoad);
 </script>
 
 <!-- ══ TAB 5: 支付優惠 ══ -->
