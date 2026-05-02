@@ -188,7 +188,8 @@
     font-family: 'DM Mono', monospace;
     font-size: 0.68rem;
     color: var(--muted);
-    letter-spacing: 0.05em;
+    letter-spacing: 0.02em;
+    white-space: nowrap;
   }
 
   .trip-title {
@@ -445,7 +446,7 @@
       </a>
 
       <!-- 佔位：待新增 -->
-      <div class="trip-card add-card">
+      <div class="trip-card add-card" id="addTripBtn" onclick="openModal()" style="pointer-events:auto;cursor:pointer;">
         <div class="add-inner">
           <span class="add-plus">＋</span>
           下一趟旅程
@@ -479,6 +480,310 @@
 <footer>
   Travel / index.html &nbsp;·&nbsp; GitHub Pages &nbsp;·&nbsp; Updated 2026
 </footer>
+
+<!-- ── NEW TRIP MODAL ── -->
+<div id="tripModal" style="display:none; position:fixed; inset:0; background:rgba(14,12,9,0.7); backdrop-filter:blur(4px); z-index:1000; align-items:center; justify-content:center;">
+  <div style="background:var(--paper); border-radius:12px; padding:2.5rem; max-width:480px; width:calc(100% - 2rem); box-shadow:0 24px 64px rgba(0,0,0,0.3); position:relative; animation: modalIn 0.25s ease;">
+    <style>
+      @keyframes modalIn { from { opacity:0; transform:translateY(20px) scale(0.97); } to { opacity:1; transform:none; } }
+      .modal-title { font-size:1.5rem; font-weight:900; margin-bottom:0.25rem; }
+      .modal-sub { font-family:'DM Mono',monospace; font-size:0.7rem; color:var(--muted); letter-spacing:0.15em; text-transform:uppercase; margin-bottom:1.75rem; }
+      .field-group { margin-bottom:1.25rem; }
+      .field-label { font-family:'DM Mono',monospace; font-size:0.68rem; letter-spacing:0.12em; text-transform:uppercase; color:var(--muted); margin-bottom:0.4rem; display:block; }
+      .field-input { width:100%; padding:0.6rem 0.8rem; border:1px solid #d0c8bc; border-radius:6px; font-family:'Noto Serif TC',serif; font-size:0.9rem; background:white; color:var(--ink); outline:none; transition:border-color 0.2s; }
+      .field-input:focus { border-color:var(--gold); }
+      .field-row { display:grid; grid-template-columns:1fr 1fr; gap:1rem; }
+      .modal-actions { display:flex; gap:0.75rem; margin-top:1.75rem; }
+      .btn-cancel { flex:1; padding:0.7rem; border:1px solid #d0c8bc; border-radius:6px; background:white; font-family:'DM Mono',monospace; font-size:0.75rem; letter-spacing:0.08em; cursor:pointer; color:var(--muted); transition:border-color 0.2s; }
+      .btn-cancel:hover { border-color:var(--gold); color:var(--ink); }
+      .btn-create { flex:2; padding:0.7rem; border:none; border-radius:6px; background:var(--ink); color:var(--paper); font-family:'DM Mono',monospace; font-size:0.75rem; letter-spacing:0.08em; cursor:pointer; transition:background 0.2s; }
+      .btn-create:hover { background:#2a2520; }
+      .modal-close { position:absolute; top:1rem; right:1rem; background:none; border:none; font-size:1.2rem; cursor:pointer; color:var(--muted); line-height:1; padding:0.25rem; }
+      .color-swatches { display:flex; gap:0.5rem; flex-wrap:wrap; }
+      .swatch { width:28px; height:28px; border-radius:4px; cursor:pointer; border:2px solid transparent; transition:border-color 0.15s; }
+      .swatch.selected { border-color:var(--ink); }
+    </style>
+
+    <button class="modal-close" onclick="closeModal()">✕</button>
+    <div class="modal-title">新增旅程</div>
+    <div class="modal-sub">Add New Trip</div>
+
+    <div class="field-group">
+      <label class="field-label">目的地名稱 Destination</label>
+      <input class="field-input" id="f-dest" type="text" placeholder="例：京都五日遊">
+    </div>
+    <div class="field-group">
+      <label class="field-label">副標題 Subtitle</label>
+      <input class="field-input" id="f-sub" type="text" placeholder="例：嵐山・祇園・伏見稻荷">
+    </div>
+    <div class="field-row">
+      <div class="field-group">
+        <label class="field-label">開始日期 Start</label>
+        <input class="field-input" id="f-start" type="date">
+      </div>
+      <div class="field-group">
+        <label class="field-label">結束日期 End</label>
+        <input class="field-input" id="f-end" type="date">
+      </div>
+    </div>
+    <div class="field-row">
+      <div class="field-group">
+        <label class="field-label">國家／地區 Country</label>
+        <input class="field-input" id="f-country" type="text" placeholder="例：日本">
+      </div>
+      <div class="field-group">
+        <label class="field-label">國旗 Emoji Flag</label>
+        <input class="field-input" id="f-flag" type="text" placeholder="🇯🇵" maxlength="4">
+      </div>
+    </div>
+    <div class="field-group">
+      <label class="field-label">標籤 Tags（逗號分隔）</label>
+      <input class="field-input" id="f-tags" type="text" placeholder="日本, 京都, 美食, 文化">
+    </div>
+    <div class="field-group">
+      <label class="field-label">卡片配色 Banner Color</label>
+      <div class="color-swatches" id="swatches">
+        <div class="swatch selected" data-grad="linear-gradient(90deg,#c0392b,#e67e22)" style="background:linear-gradient(90deg,#c0392b,#e67e22)"></div>
+        <div class="swatch" data-grad="linear-gradient(90deg,#2c3e7a,#6a5acd)" style="background:linear-gradient(90deg,#2c3e7a,#6a5acd)"></div>
+        <div class="swatch" data-grad="linear-gradient(90deg,#1a7a4a,#52c07a)" style="background:linear-gradient(90deg,#1a7a4a,#52c07a)"></div>
+        <div class="swatch" data-grad="linear-gradient(90deg,#7a1a4a,#cd5a8a)" style="background:linear-gradient(90deg,#7a1a4a,#cd5a8a)"></div>
+        <div class="swatch" data-grad="linear-gradient(90deg,#b5922a,#e8d5a0)" style="background:linear-gradient(90deg,#b5922a,#e8d5a0)"></div>
+        <div class="swatch" data-grad="linear-gradient(90deg,#1a5a7a,#5aaccd)" style="background:linear-gradient(90deg,#1a5a7a,#5aaccd)"></div>
+      </div>
+    </div>
+
+    <div class="modal-actions">
+      <button class="btn-cancel" onclick="closeModal()">取消 Cancel</button>
+      <button class="btn-create" onclick="createTrip()">產生旅程檔案 →</button>
+    </div>
+  </div>
+</div>
+
+<script>
+function openModal() {
+  const m = document.getElementById('tripModal');
+  m.style.display = 'flex';
+}
+function closeModal() {
+  document.getElementById('tripModal').style.display = 'none';
+}
+document.getElementById('tripModal').addEventListener('click', function(e) {
+  if (e.target === this) closeModal();
+});
+
+// Swatch selection
+document.getElementById('swatches').addEventListener('click', function(e) {
+  const sw = e.target.closest('.swatch');
+  if (!sw) return;
+  this.querySelectorAll('.swatch').forEach(s => s.classList.remove('selected'));
+  sw.classList.add('selected');
+});
+
+function formatDate(d) {
+  if (!d) return '';
+  const [y, m, day] = d.split('-');
+  return `${y} / ${m} / ${day}`;
+}
+
+function calcNights(start, end) {
+  if (!start || !end) return { days: '?', nights: '?' };
+  const diff = (new Date(end) - new Date(start)) / 86400000;
+  return { days: diff + 1, nights: diff };
+}
+
+function createTrip() {
+  const dest    = document.getElementById('f-dest').value.trim();
+  const sub     = document.getElementById('f-sub').value.trim();
+  const start   = document.getElementById('f-start').value;
+  const end     = document.getElementById('f-end').value;
+  const country = document.getElementById('f-country').value.trim() || '日本';
+  const flag    = document.getElementById('f-flag').value.trim() || '🌍';
+  const tagsRaw = document.getElementById('f-tags').value.trim();
+  const grad    = document.querySelector('#swatches .swatch.selected')?.dataset.grad || 'linear-gradient(90deg,#c0392b,#e67e22)';
+
+  if (!dest) { alert('請填寫目的地名稱'); return; }
+
+  const tags = tagsRaw ? tagsRaw.split(/[,，]/).map(t => t.trim()).filter(Boolean) : [country];
+  const { days, nights } = calcNights(start, end);
+  const year = start ? start.split('-')[0] : new Date().getFullYear();
+  const filename = `${year}_${dest.replace(/\s+/g, '_')}.html`;
+
+  const tagsHtml = tags.map(t => `            <span class="day-badge">${t}</span>`).join('\n');
+  const dateDisplay = start && end ? `${formatDate(start)} – ${formatDate(end).slice(-8)}` : '待定';
+
+  const html = `<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>${dest} · 旅遊記錄</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@400;600;900&family=DM+Mono:wght@400;500&family=Cormorant+Garamond:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --ink: #0e0c09;
+    --paper: #f7f3ec;
+    --cream: #ede7d9;
+    --gold: #b5922a;
+    --gold-light: #e8d5a0;
+    --muted: #7a7168;
+  }
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body { font-family:'Noto Serif TC',serif; background:var(--paper); color:var(--ink); min-height:100vh; }
+
+  /* HERO */
+  .hero {
+    background: var(--ink);
+    color: var(--paper);
+    padding: 4rem 2rem 3rem;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+  }
+  .hero::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: ${grad};
+    opacity: 0.15;
+  }
+  .hero-eyebrow { font-family:'DM Mono',monospace; font-size:0.7rem; letter-spacing:0.3em; text-transform:uppercase; color:var(--gold-light); margin-bottom:1rem; }
+  .hero h1 { font-size:clamp(2rem,6vw,4rem); font-weight:900; letter-spacing:0.05em; line-height:1; margin-bottom:0.4rem; }
+  .hero-sub { font-family:'Cormorant Garamond',serif; font-style:italic; font-size:1.2rem; color:#aaa; margin-bottom:2rem; }
+  .hero-meta { display:flex; justify-content:center; gap:2.5rem; flex-wrap:wrap; }
+  .meta-item { text-align:center; }
+  .meta-num { font-size:1.8rem; font-weight:900; color:var(--gold-light); font-family:'DM Mono',monospace; line-height:1; }
+  .meta-label { font-size:0.65rem; letter-spacing:0.15em; color:#888; margin-top:0.2rem; text-transform:uppercase; }
+  .divider { height:4px; background:linear-gradient(90deg,var(--gold),var(--gold-light),var(--gold)); }
+  .back-link { display:inline-flex; align-items:center; gap:0.4rem; font-family:'DM Mono',monospace; font-size:0.7rem; letter-spacing:0.1em; color:var(--gold-light); text-decoration:none; margin-bottom:2rem; opacity:0.8; }
+  .back-link:hover { opacity:1; }
+
+  /* MAIN */
+  main { max-width:860px; margin:0 auto; padding:3rem 1.5rem 5rem; }
+
+  /* DAY SECTION */
+  .day-section { margin-bottom:3rem; }
+  .day-header { display:flex; align-items:center; gap:1rem; margin-bottom:1.25rem; }
+  .day-num { font-family:'DM Mono',monospace; font-size:2.5rem; font-weight:900; line-height:1; color:var(--ink); }
+  .day-title { font-size:1rem; color:var(--muted); line-height:1.4; }
+  .day-line { flex:1; height:1px; border-top:1px solid #d0c8bc; }
+
+  /* ENTRIES */
+  .entry-list { display:flex; flex-direction:column; gap:0.75rem; }
+  .entry {
+    background:white;
+    border:1px solid #ddd5c8;
+    border-left:3px solid var(--gold);
+    border-radius:6px;
+    padding:1rem 1.25rem;
+    display:flex;
+    align-items:flex-start;
+    gap:1rem;
+  }
+  .entry-time { font-family:'DM Mono',monospace; font-size:0.68rem; color:var(--muted); white-space:nowrap; padding-top:0.15rem; min-width:4rem; }
+  .entry-content { flex:1; }
+  .entry-place { font-weight:600; font-size:0.95rem; margin-bottom:0.2rem; }
+  .entry-note { font-size:0.82rem; color:var(--muted); line-height:1.6; }
+
+  /* TAGS */
+  .tags-row { display:flex; flex-wrap:wrap; gap:0.4rem; margin-bottom:2rem; }
+  .day-badge { font-size:0.65rem; font-family:'DM Mono',monospace; padding:0.2em 0.65em; border-radius:2px; background:var(--cream); color:var(--muted); }
+
+  footer { text-align:center; padding:2rem; font-size:0.75rem; color:var(--muted); font-family:'DM Mono',monospace; border-top:1px solid var(--cream); letter-spacing:0.1em; }
+</style>
+</head>
+<body>
+
+<div class="hero">
+  <div class="hero-eyebrow">${flag} ${country} · Personal Travel Log</div>
+  <h1>${dest}</h1>
+  <p class="hero-sub">${sub || '行程記錄'}</p>
+  <div class="hero-meta">
+    <div class="meta-item">
+      <div class="meta-num">${days}</div>
+      <div class="meta-label">天數</div>
+    </div>
+    <div class="meta-item">
+      <div class="meta-num">${nights}</div>
+      <div class="meta-label">夜數</div>
+    </div>
+    <div class="meta-item">
+      <div class="meta-num">${dateDisplay}</div>
+      <div class="meta-label">日期</div>
+    </div>
+  </div>
+</div>
+<div class="divider"></div>
+
+<main>
+  <a class="back-link" href="index.html">← 返回旅遊首頁</a>
+
+  <div class="tags-row">
+${tagsHtml}
+  </div>
+
+  <!-- ── DAY 1 ── -->
+  <div class="day-section">
+    <div class="day-header">
+      <div>
+        <div style="font-family:'DM Mono',monospace;font-size:0.65rem;letter-spacing:0.2em;color:var(--muted);text-transform:uppercase;">Day</div>
+        <div class="day-num">01</div>
+      </div>
+      <div>
+        <div class="day-title">${start ? formatDate(start) : '第一天'}</div>
+        <div style="font-size:0.8rem;color:var(--muted);">出發・抵達</div>
+      </div>
+      <div class="day-line"></div>
+    </div>
+    <div class="entry-list">
+      <div class="entry">
+        <div class="entry-time">上午</div>
+        <div class="entry-content">
+          <div class="entry-place">出發</div>
+          <div class="entry-note">從台灣出發，前往${country}。</div>
+        </div>
+      </div>
+      <div class="entry">
+        <div class="entry-time">下午</div>
+        <div class="entry-content">
+          <div class="entry-place">抵達・Check-in</div>
+          <div class="entry-note">抵達目的地，辦理入住手續。</div>
+        </div>
+      </div>
+      <div class="entry">
+        <div class="entry-time">晚上</div>
+        <div class="entry-content">
+          <div class="entry-place">晚餐</div>
+          <div class="entry-note">探索當地餐廳，享用第一頓在地美食。</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── 繼續新增每日行程 ── -->
+  <!-- 複製上方 .day-section 區塊，修改 Day 數字與內容 -->
+
+</main>
+
+<footer>
+  Travel / ${filename} &nbsp;·&nbsp; ${dest} &nbsp;·&nbsp; ${year}
+</footer>
+
+</body>
+</html>`;
+
+  // Download file
+  const blob = new Blob([html], { type: 'text/html;charset=utf-8' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = filename;
+  a.click();
+  URL.revokeObjectURL(url);
+
+  closeModal();
+  alert(`✅ 已產生 ${filename}！\n請將檔案放入 Travel/ 資料夾，並手動將此旅程加入 index.html 的卡片列表。`);
+}
+</script>
 
 </body>
 </html>
