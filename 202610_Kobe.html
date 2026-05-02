@@ -1524,9 +1524,17 @@
 
 <!-- ══ TAB 3: 交通 ══ -->
 <div id="transport" class="tab-panel">
-<div style="max-width:960px;margin:0 auto;padding:2.5rem 1.5rem 4rem;">
-  <h2 style="font-size:1.1rem;font-weight:700;border-bottom:2px solid var(--ink);padding-bottom:0.5rem;margin-bottom:0.75rem;letter-spacing:0.1em;">🚆 交通資訊</h2>
-  <p style="font-size:0.78rem;color:var(--muted);margin-bottom:1.5rem;">ICOCA / PiTaPa 感應為主要交通方式</p>
+<div style="max-width:1400px;margin:0 auto;padding:2.5rem 2.5rem 4rem;">
+
+  <div style="display:flex;align-items:center;justify-content:space-between;border-bottom:2px solid var(--ink);padding-bottom:0.5rem;margin-bottom:0.75rem;">
+    <h2 style="font-size:1.1rem;font-weight:700;letter-spacing:0.1em;">🚆 交通資訊</h2>
+    <div style="display:flex;align-items:center;gap:0.75rem;">
+      <span id="trans-sync-status" style="font-family:'DM Mono',monospace;font-size:0.68rem;color:var(--muted);"></span>
+      <a href="https://www.jorudan.co.jp/" target="_blank" style="font-family:'DM Mono',monospace;font-size:0.68rem;padding:0.35rem 0.75rem;border:1.5px solid var(--gold);border-radius:4px;color:var(--gold);text-decoration:none;white-space:nowrap;">🔍 乗換案内</a>
+      <button id="trans-edit-btn" onclick="transToggleEdit()" style="font-family:'DM Mono',monospace;font-size:0.72rem;letter-spacing:0.06em;text-transform:uppercase;padding:0.45rem 1rem;border:1.5px solid var(--ink);border-radius:4px;background:transparent;cursor:pointer;color:var(--ink);transition:all 0.15s;">✏ 編輯</button>
+    </div>
+  </div>
+  <p style="font-size:0.78rem;color:var(--muted);margin-bottom:1.5rem;">ICOCA / PiTaPa 感應為主要交通方式　｜　在「乗換案内」查好路線後填入下方表格</p>
 
   <!-- 航班資訊 -->
   <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-bottom:1.5rem;">
@@ -1541,9 +1549,7 @@
         <span style="color:#aaa;font-size:0.8rem;">UKB</span>
       </div>
       <div style="font-size:0.72rem;color:rgba(255,255,255,0.5);line-height:1.7;">
-        2026/10/22　星宇航空<br>
-        A350　飛行約 3小時40分<br>
-        桃園第一航廈 → 神戶機場（UKB）
+        2026/10/22　星宇航空<br>A350　飛行約 3小時40分<br>桃園第一航廈 → 神戶機場（UKB）
       </div>
     </div>
     <div style="background:var(--ink);color:var(--paper);border-radius:8px;padding:1.1rem 1.3rem;">
@@ -1557,143 +1563,253 @@
         <span style="color:#aaa;font-size:0.8rem;">TPE</span>
       </div>
       <div style="font-size:0.72rem;color:rgba(255,255,255,0.5);line-height:1.7;">
-        2026/10/26　星宇航空<br>
-        A350　飛行約 2小時55分<br>
-        關西國際機場（KIX）→ 桃園第一航廈
+        2026/10/26　星宇航空<br>A350　飛行約 2小時55分<br>關西國際機場（KIX）→ 桃園第一航廈
       </div>
     </div>
   </div>
 
   <!-- 注意事項 -->
-  <div style="background:#fff8e8;border:1.5px solid var(--gold);border-radius:6px;padding:1rem 1.25rem;margin-bottom:2rem;font-size:0.82rem;line-height:1.8;">
+  <div style="background:#fff8e8;border:1.5px solid var(--gold);border-radius:6px;padding:1rem 1.25rem;margin-bottom:1.5rem;font-size:0.82rem;line-height:1.8;">
     🚄 關西地區建議購買 <strong>ICOCA 交通卡</strong>，可用於 JR・阪急・阪神・地下鐵等各路線感應搭乘。<br>
     ✈️ 機場↔市區交通方式待確認（JR 特急 はるか / 南海電鐵 ラピート / 利木津巴士）
   </div>
 
-  <!-- DAY 1 -->
-  <div class="transport-day">
-    <div class="transport-day-header">
-      <span class="transport-day-label">Day 1</span>
-      <span class="transport-day-sub">10/22 (四)　關西機場 → 神戶</span>
-    </div>
-    <div class="transport-table-wrap">
-      <table class="transport-table">
-        <thead><tr><th>目的地</th><th>路線名稱</th><th>起訖點</th><th>發車／時間</th><th>備註</th><th>🃏</th></tr></thead>
-        <tbody>
-          <tr>
-            <td><strong>神戶三宮</strong></td>
-            <td>待補充</td>
-            <td class="route">關西機場 → 神戶三宮</td>
-            <td class="time">TBD</td>
-            <td>PortLiner 18分鐘到三宮（推薦）/ 海上高速船至關空</td>
-            <td>—</td>
-          </tr>
-        </tbody>
-        </tbody>
-      </table>
-    </div>
+  <!-- 編輯模式工具列 -->
+  <div id="trans-edit-toolbar" style="display:none;background:#fff8e8;border:1.5px solid var(--gold);border-radius:6px;padding:0.75rem 1rem;margin-bottom:1rem;align-items:center;gap:0.75rem;flex-wrap:wrap;">
+    <button onclick="transAddRow()" style="font-family:'DM Mono',monospace;font-size:0.72rem;padding:0.4rem 0.9rem;background:var(--ink);color:#f0c040;border:none;border-radius:4px;cursor:pointer;">＋ 新增路線</button>
+    <span style="font-size:0.75rem;color:var(--muted);">點擊儲存格可直接編輯　｜　每列右側有刪除按鈕</span>
+    <button onclick="transSave()" style="margin-left:auto;font-family:'DM Mono',monospace;font-size:0.72rem;padding:0.4rem 0.9rem;background:#27ae60;color:white;border:none;border-radius:4px;cursor:pointer;">💾 儲存</button>
   </div>
 
-  <!-- DAY 2 -->
-  <div class="transport-day">
-    <div class="transport-day-header">
-      <span class="transport-day-label">Day 2</span>
-      <span class="transport-day-sub">10/23 (五)　神戶市區</span>
-    </div>
-    <div class="transport-table-wrap">
-      <table class="transport-table">
-        <thead><tr><th>目的地</th><th>路線名稱</th><th>起訖點</th><th>發車／時間</th><th>備註</th><th>🃏</th></tr></thead>
-        <tbody>
-          <tr>
-            <td><strong>待補充</strong></td>
-            <td>待補充</td>
-            <td class="route">—</td>
-            <td class="time">TBD</td>
-            <td>—</td>
-            <td>—</td>
-          </tr>
-        </tbody>
-      </table>
-    </div>
-  </div>
-
-  <!-- DAY 3 -->
-  <div class="transport-day">
-    <div class="transport-day-header">
-      <span class="transport-day-label">Day 3</span>
-      <span class="transport-day-sub">10/24 (六)　待確認</span>
-    </div>
-    <div class="transport-table-wrap">
-      <table class="transport-table">
-        <thead><tr><th>目的地</th><th>路線名稱</th><th>起訖點</th><th>發車／時間</th><th>備註</th><th>🃏</th></tr></thead>
-        <tbody>
-          <tr>
-            <td><strong>待補充</strong></td>
-            <td>待補充</td>
-            <td class="route">—</td>
-            <td class="time">TBD</td>
-            <td>—</td>
-            <td>—</td>
-          </tr>
-        </tbody>
-      </table>
-    </div>
-  </div>
-
-  <!-- DAY 4 -->
-  <div class="transport-day">
-    <div class="transport-day-header">
-      <span class="transport-day-label">Day 4</span>
-      <span class="transport-day-sub">10/25 (日)　大阪</span>
-    </div>
-    <div class="transport-table-wrap">
-      <table class="transport-table">
-        <thead><tr><th>目的地</th><th>路線名稱</th><th>起訖點</th><th>發車／時間</th><th>備註</th><th>🃏</th></tr></thead>
-        <tbody>
-          <tr>
-            <td><strong>待補充</strong></td>
-            <td>待補充</td>
-            <td class="route">—</td>
-            <td class="time">TBD</td>
-            <td>—</td>
-            <td>—</td>
-          </tr>
-        </tbody>
-      </table>
-    </div>
-  </div>
-
-  <!-- DAY 5 -->
-  <div class="transport-day">
-    <div class="transport-day-header">
-      <span class="transport-day-label">Day 5</span>
-      <span class="transport-day-sub">10/26 (一)　大阪 → 關西機場</span>
-    </div>
-    <div class="transport-table-wrap">
-      <table class="transport-table">
-        <thead><tr><th>目的地</th><th>路線名稱</th><th>起訖點</th><th>發車／時間</th><th>備註</th><th>🃏</th></tr></thead>
-        <tbody>
-          <tr>
-            <td><strong>關西機場</strong></td>
-            <td>待補充</td>
-            <td class="route">大阪市區 → 關西機場</td>
-            <td class="time">待定</td>
-            <td>出發前確認交通方式，建議 12:00 前到達 KIX</td>
-            <td>—</td>
-          </tr>
-        </tbody>
-      </table>
-    </div>
-  </div>
-
-  <!-- 費用小計 -->
-  <div style="text-align:right;margin-top:1.5rem;padding:0.75rem 1rem;background:var(--cream);border-radius:6px;border:1px solid #e0d8cc;">
-    <span style="font-size:0.78rem;color:var(--muted);font-family:'DM Mono',monospace;letter-spacing:0.05em;">電車費小計　</span>
-    <span style="font-size:1.1rem;font-weight:900;font-family:'DM Mono',monospace;color:var(--ink);">— 待補充 —</span>
+  <!-- 交通表格 -->
+  <div style="overflow-x:auto;border-radius:6px;border:1px solid #e0d8cc;width:100%;">
+    <table id="trans-main-table" style="width:100%;border-collapse:collapse;font-size:0.8rem;background:white;table-layout:fixed;">
+      <colgroup>
+        <col style="width:3rem">    <!-- D -->
+        <col style="width:9%">      <!-- 目的地 -->
+        <col style="width:16%">     <!-- 路線名稱 -->
+        <col style="width:20%">     <!-- 起站 → 迄站 -->
+        <col style="width:6rem">    <!-- 發車時間 -->
+        <col style="width:6rem">    <!-- 抵達時間 -->
+        <col style="width:4.5rem">  <!-- 費用(¥) -->
+        <col>                       <!-- 備註 -->
+        <col style="width:1.8rem">  <!-- 刪除 -->
+      </colgroup>
+      <thead>
+        <tr style="background:var(--ink);color:var(--paper);">
+          <th style="padding:0.6rem 0.5rem;font-family:'DM Mono',monospace;font-size:0.72rem;font-weight:600;text-align:center;white-space:nowrap;">D</th>
+          <th style="padding:0.6rem 0.5rem;font-family:'DM Mono',monospace;font-size:0.72rem;font-weight:600;text-align:left;white-space:nowrap;">目的地</th>
+          <th style="padding:0.6rem 0.5rem;font-family:'DM Mono',monospace;font-size:0.72rem;font-weight:600;text-align:left;white-space:nowrap;">路線名稱</th>
+          <th style="padding:0.6rem 0.5rem;font-family:'DM Mono',monospace;font-size:0.72rem;font-weight:600;text-align:left;white-space:nowrap;">起站 → 迄站</th>
+          <th style="padding:0.6rem 0.5rem;font-family:'DM Mono',monospace;font-size:0.72rem;font-weight:600;text-align:center;white-space:nowrap;">發車</th>
+          <th style="padding:0.6rem 0.5rem;font-family:'DM Mono',monospace;font-size:0.72rem;font-weight:600;text-align:center;white-space:nowrap;">抵達</th>
+          <th style="padding:0.6rem 0.5rem;font-family:'DM Mono',monospace;font-size:0.72rem;font-weight:600;text-align:center;white-space:nowrap;">費用(¥)</th>
+          <th style="padding:0.6rem 0.5rem;font-family:'DM Mono',monospace;font-size:0.72rem;font-weight:600;text-align:left;white-space:nowrap;">備註</th>
+          <th id="trans-del-col" style="display:none;width:1.8rem;"></th>
+        </tr>
+      </thead>
+      <tbody id="trans-tbody"></tbody>
+      <tfoot>
+        <tr>
+          <td colspan="6" style="text-align:right;padding:0.75rem 1rem;font-size:0.8rem;color:var(--muted);font-family:'DM Mono',monospace;">電車費小計</td>
+          <td id="trans-total" style="padding:0.75rem 0.5rem;font-weight:900;font-size:1rem;color:var(--red);font-family:'DM Mono',monospace;text-align:center;background:#fff8f8;">—</td>
+          <td style="background:#fff8f8;"></td>
+          <td id="trans-del-col-foot" style="display:none;background:#fff8f8;"></td>
+        </tr>
+      </tfoot>
+    </table>
   </div>
 
 </div>
 </div>
+
+<script>
+// ── 交通清單 編輯器 ──────────────────────────────────────
+const TRANS_DOC = db.collection('kobe2026').doc('transport');
+let transRows = [];
+let transEditMode = false;
+let transSyncing = false;
+
+const TRANS_DAY_OPTIONS = ['D1','D2','D3','D4','D5','—'];
+
+function transSetStatus(msg, color) {
+  const el = document.getElementById('trans-sync-status');
+  if (el) { el.textContent = msg; el.style.color = color || 'var(--muted)'; }
+}
+
+async function transLoad() {
+  transSetStatus('⏳ 同步中…', '#b8860b');
+  try {
+    const snap = await TRANS_DOC.get();
+    transRows = (snap.exists && Array.isArray(snap.data().rows)) ? snap.data().rows : [];
+    transSetStatus('✓ 已同步', '#27ae60');
+  } catch(e) {
+    transSetStatus('⚠ 讀取失敗', '#c0392b');
+    try { const s = localStorage.getItem('kobe26_trans_rows'); if (s) transRows = JSON.parse(s); } catch(_) {}
+  }
+  transRender();
+}
+
+async function transPushToFirebase() {
+  if (transSyncing) return;
+  transSyncing = true;
+  transSetStatus('💾 儲存中…', '#b8860b');
+  try {
+    await TRANS_DOC.set({ rows: transRows, updatedAt: firebase.firestore.FieldValue.serverTimestamp() });
+    localStorage.setItem('kobe26_trans_rows', JSON.stringify(transRows));
+    transSetStatus('✓ 已儲存並同步', '#27ae60');
+  } catch(e) {
+    localStorage.setItem('kobe26_trans_rows', JSON.stringify(transRows));
+    transSetStatus('⚠ 雲端失敗，已存本機', '#c0392b');
+  }
+  transSyncing = false;
+}
+
+function transCalcTotal() {
+  const sum = transRows.reduce((acc, r) => acc + (parseInt(r.fare)||0), 0);
+  const el = document.getElementById('trans-total');
+  if (el) el.textContent = sum > 0 ? sum.toLocaleString() : '—';
+}
+
+function transRender() {
+  const tbody = document.getElementById('trans-tbody');
+  if (!tbody) return;
+  const delCol = document.getElementById('trans-del-col');
+  const delColFoot = document.getElementById('trans-del-col-foot');
+  if (delCol) delCol.style.display = transEditMode ? '' : 'none';
+  if (delColFoot) delColFoot.style.display = transEditMode ? '' : 'none';
+
+  if (!transRows.length) {
+    tbody.innerHTML = `<tr><td colspan="9" style="color:var(--muted);font-style:italic;text-align:center;padding:1.5rem;">— 交通資訊待補充 —<br><span style="font-size:0.75rem;">點擊右上角「✏ 編輯」按鈕開始新增，可參考「乗換案内」查詢路線</span></td></tr>`;
+    transCalcTotal();
+    return;
+  }
+
+  // 依 D 欄排序
+  const DAY_ORDER = ['D1','D2','D3','D4','D5','—'];
+  const sorted = transRows
+    .map((r, i) => ({ ...r, _orig: i }))
+    .sort((a, b) => {
+      if (a._new && !b._new) return 1;
+      if (!a._new && b._new) return -1;
+      const ai = DAY_ORDER.indexOf(a.day) === -1 ? 99 : DAY_ORDER.indexOf(a.day);
+      const bi = DAY_ORDER.indexOf(b.day) === -1 ? 99 : DAY_ORDER.indexOf(b.day);
+      if (ai !== bi) return ai - bi;
+      // 同天依發車時間排序
+      return (a.depart||'').localeCompare(b.depart||'');
+    });
+
+  tbody.innerHTML = sorted.map((r) => {
+    const i = r._orig;
+    const delBtn = transEditMode
+      ? `<td style="text-align:center;padding:0.3rem;"><button onclick="transDeleteRow(${i})" style="background:none;border:none;cursor:pointer;font-size:1rem;color:#c0392b;padding:0.2rem 0.4rem;">✕</button></td>`
+      : `<td style="display:none"></td>`;
+
+    if (transEditMode) {
+      const dayOpts = TRANS_DAY_OPTIONS.map(d => `<option value="${d}" ${r.day===d?'selected':''}>${d}</option>`).join('');
+      const sel = (field, opts) =>
+        `<select onchange="transEdit(${i},'${field}',this.value)" style="width:100%;font-size:0.75rem;border:1px solid #ddd;border-radius:3px;padding:0.15rem;box-sizing:border-box;">${opts}</select>`;
+      const inp = (field, val, ph) =>
+        `<input value="${(val||'').replace(/"/g,'&quot;')}" onchange="transEdit(${i},'${field}',this.value)" placeholder="${ph}"
+          style="width:100%;font-size:0.78rem;border:1px solid #ddd;border-radius:3px;padding:0.2rem 0.3rem;box-sizing:border-box;">`;
+      const time = (field, val) =>
+        `<input value="${val||''}" onchange="transEdit(${i},'${field}',this.value)" placeholder="0900"
+          style="width:100%;font-size:0.78rem;border:1px solid #ddd;border-radius:3px;padding:0.2rem 0.3rem;text-align:center;font-family:'DM Mono',monospace;box-sizing:border-box;">`;
+      const num = (field, val) =>
+        `<input type="number" value="${val||''}" onchange="transEdit(${i},'${field}',this.value)" placeholder="0"
+          style="width:100%;font-size:0.78rem;border:1px solid #ddd;border-radius:3px;padding:0.2rem 0.3rem;text-align:right;font-family:'DM Mono',monospace;box-sizing:border-box;">`;
+      return `<tr data-idx="${i}" style="border-bottom:1px solid #f0e8dc;">
+        <td style="padding:0.35rem 0.4rem;">${sel('day',dayOpts)}</td>
+        <td style="padding:0.35rem 0.4rem;">${inp('dest',r.dest,'目的地')}</td>
+        <td style="padding:0.35rem 0.4rem;">${inp('line',r.line,'路線名稱')}</td>
+        <td style="padding:0.35rem 0.4rem;">${inp('route',r.route,'起站 → 迄站')}</td>
+        <td style="padding:0.35rem 0.4rem;">${time('depart',r.depart)}</td>
+        <td style="padding:0.35rem 0.4rem;">${time('arrive',r.arrive)}</td>
+        <td style="padding:0.35rem 0.4rem;">${num('fare',r.fare)}</td>
+        <td style="padding:0.35rem 0.4rem;">${inp('note',r.note,'備註・月台・車廂')}</td>
+        ${delBtn}
+      </tr>`;
+    } else {
+      const fare = parseInt(r.fare)||0;
+      // 發車/抵達時間格式化
+      const fmtTime = t => {
+        if (!t) return '—';
+        const d = t.replace(/\D/g,'');
+        if (d.length >= 4) return `${d.slice(0,2)}:${d.slice(2,4)}`;
+        return t;
+      };
+      return `<tr style="border-bottom:1px solid #f0e8dc;">
+        <td style="padding:0.6rem 0.5rem;font-family:'DM Mono',monospace;font-size:0.72rem;color:var(--muted);text-align:center;">${r.day||'—'}</td>
+        <td style="padding:0.6rem 0.5rem;font-weight:700;">${r.dest||'—'}</td>
+        <td style="padding:0.6rem 0.5rem;font-size:0.78rem;">${r.line||'—'}</td>
+        <td style="padding:0.6rem 0.5rem;font-size:0.78rem;color:var(--muted);">${r.route||'—'}</td>
+        <td style="padding:0.6rem 0.5rem;font-family:'DM Mono',monospace;font-size:0.8rem;font-weight:700;text-align:center;color:var(--ink);">${fmtTime(r.depart)}</td>
+        <td style="padding:0.6rem 0.5rem;font-family:'DM Mono',monospace;font-size:0.8rem;font-weight:700;text-align:center;color:var(--ink);">${fmtTime(r.arrive)}</td>
+        <td style="padding:0.6rem 0.5rem;font-family:'DM Mono',monospace;font-size:0.78rem;text-align:center;">${fare > 0 ? fare.toLocaleString() : '—'}</td>
+        <td style="padding:0.6rem 0.5rem;font-size:0.75rem;color:var(--muted);">${r.note||''}</td>
+        <td style="display:none"></td>
+      </tr>`;
+    }
+  }).join('');
+  transCalcTotal();
+}
+
+function transEdit(idx, field, value) {
+  if (!transRows[idx]) return;
+  if ((field === 'depart' || field === 'arrive') && value) {
+    value = formatTimeRange(value);
+    const row = document.querySelector(`#trans-tbody tr[data-idx="${idx}"]`);
+    if (row) {
+      const col = field === 'depart' ? 5 : 6;
+      const inp = row.querySelector(`td:nth-child(${col}) input`);
+      if (inp && inp.value !== value) inp.value = value;
+    }
+  }
+  if (transRows[idx]._new) delete transRows[idx]._new;
+  transRows[idx][field] = value;
+  transCalcTotal();
+}
+
+function transAddRow() {
+  transRows.push({ day:'D1', dest:'', line:'', route:'', depart:'', arrive:'', fare:'', note:'', _new:true });
+  transRender();
+  document.getElementById('trans-tbody')?.lastElementChild?.scrollIntoView({ behavior:'smooth', block:'center' });
+}
+
+function transDeleteRow(idx) {
+  if (!confirm(`確定刪除此路線？`)) return;
+  transRows.splice(idx, 1);
+  transRender();
+}
+
+async function transSave() {
+  await transPushToFirebase();
+  const btn = document.getElementById('trans-edit-btn');
+  if (btn) {
+    const prevText = btn.textContent, prevBg = btn.style.background, prevColor = btn.style.color;
+    btn.textContent = '✓ 已儲存'; btn.style.color = '#27ae60'; btn.style.borderColor = '#27ae60';
+    setTimeout(() => { btn.textContent = prevText; btn.style.color = prevColor; btn.style.background = prevBg; btn.style.borderColor = ''; }, 2000);
+  }
+}
+
+async function transToggleEdit() {
+  transEditMode = !transEditMode;
+  const btn     = document.getElementById('trans-edit-btn');
+  const toolbar = document.getElementById('trans-edit-toolbar');
+  if (transEditMode) {
+    if (btn)     { btn.textContent = '✓ 完成'; btn.style.background = 'var(--ink)'; btn.style.color = '#f0c040'; }
+    if (toolbar) toolbar.style.display = 'flex';
+  } else {
+    await transPushToFirebase();
+    if (btn)     { btn.textContent = '✏ 編輯'; btn.style.background = 'transparent'; btn.style.color = 'var(--ink)'; }
+    if (toolbar) toolbar.style.display = 'none';
+  }
+  transRender();
+}
+
+document.addEventListener('DOMContentLoaded', transLoad);
+</script>
+
 <div id="food" class="tab-panel">
 <div style="max-width:1400px;margin:0 auto;padding:2.5rem 2.5rem 4rem;">
 
