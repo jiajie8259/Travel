@@ -1855,6 +1855,7 @@ document.addEventListener('DOMContentLoaded', hotelLoad);
         <col style="width:5.5rem">  <!-- 時間 -->
         <col style="width:5rem">    <!-- 支付 -->
         <col style="width:5rem">    <!-- 訂位 -->
+        <col style="width:2.8rem">  <!-- Menu -->
         <col style="width:11%">     <!-- 餐點A -->
         <col style="width:3.5rem">  <!-- ¥A -->
         <col style="width:11%">     <!-- 餐點B -->
@@ -1863,7 +1864,6 @@ document.addEventListener('DOMContentLoaded', hotelLoad);
         <col style="width:3.5rem">  <!-- ¥C -->
         <col>                       <!-- 備註 -->
         <col style="width:5rem">    <!-- 小計 -->
-        <col style="width:2.8rem">  <!-- Menu -->
         <col style="width:1.8rem">  <!-- 刪除 -->
       </colgroup>
       <thead>
@@ -1873,6 +1873,7 @@ document.addEventListener('DOMContentLoaded', hotelLoad);
           <th style="font-size:0.78rem;text-align:center;">時間</th>
           <th style="font-size:0.78rem;text-align:center;">支付</th>
           <th style="font-size:0.78rem;text-align:center;white-space:nowrap;">訂位</th>
+          <th style="font-size:0.78rem;text-align:center;white-space:nowrap;">Menu</th>
           <th style="border-left:2px solid #444;font-size:0.78rem;text-align:center;">餐點 A</th>
           <th class="col-price" style="font-size:0.78rem;text-align:center;">¥A</th>
           <th style="border-left:2px solid #444;font-size:0.78rem;text-align:center;">餐點 B</th>
@@ -1881,7 +1882,6 @@ document.addEventListener('DOMContentLoaded', hotelLoad);
           <th class="col-price" style="font-size:0.78rem;text-align:center;">¥C</th>
           <th style="border-left:2px solid #444;font-size:0.78rem;text-align:center;">備註</th>
           <th class="col-price" style="font-size:0.78rem;text-align:center;white-space:nowrap;">小計（円）</th>
-          <th style="font-size:0.78rem;text-align:center;white-space:nowrap;">Menu</th>
           <th id="food-del-col" style="display:none;width:2rem;"></th>
         </tr>
       </thead>
@@ -1889,8 +1889,8 @@ document.addEventListener('DOMContentLoaded', hotelLoad);
       </tbody>
       <tfoot>
         <tr>
-          <td colspan="12" style="text-align:right;padding:0.75rem 1rem;font-size:0.8rem;color:var(--muted);font-family:'DM Mono',monospace;letter-spacing:0.05em;">餐食小計</td>
-          <td class="col-price" id="food-total" style="padding:0.75rem 1rem;font-weight:900;font-size:1rem;color:var(--red);font-family:'DM Mono',monospace;background:#fff8f8;">—</td>
+          <td colspan="13" style="text-align:right;padding:0.75rem 1rem;font-size:0.8rem;color:var(--muted);font-family:'DM Mono',monospace;letter-spacing:0.05em;">餐食小計</td>
+          <td class="col-price" id="food-total" style="padding:0.75rem 0.5rem;font-weight:900;font-size:1rem;color:var(--red);font-family:'DM Mono',monospace;background:#fff8f8;text-align:right;">—</td>
           <td style="background:#fff8f8;"></td>
           <td id="food-del-col-foot" style="display:none;background:#fff8f8;"></td>
         </tr>
@@ -2041,6 +2041,7 @@ function foodRender() {
         <td class="food-hours">${inp('hours',r.hours,'13001500')}</td>
         <td>${sel('pay',payOpts)}</td>
         <td>${sel('booked',bkOpts)}</td>
+        <td style="padding:0.35rem 0.4rem;">${inp('menu',r.menu,'https://')}</td>
         <td style="padding:0.35rem 0.4rem;border-left:2px solid #e8d5a0;">${inp('itemA',r.itemA,'餐點名稱')}</td>
         <td class="col-price" style="padding:0.35rem 0.4rem;">${num('priceA',r.priceA)}</td>
         <td style="padding:0.35rem 0.4rem;border-left:2px solid #e8d5a0;">${inp('itemB',r.itemB,'餐點名稱')}</td>
@@ -2049,7 +2050,6 @@ function foodRender() {
         <td class="col-price" style="padding:0.35rem 0.4rem;">${num('priceC',r.priceC)}</td>
         <td style="padding:0.35rem 0.4rem;border-left:2px solid #e8d5a0;">${inp('note',r.note,'備註')}</td>
         <td class="col-price total-price" style="font-family:'DM Mono',monospace;">${((parseInt(r.priceA)||0)+(parseInt(r.priceB)||0)+(parseInt(r.priceC)||0))||'—'}</td>
-        <td style="padding:0.35rem 0.4rem;">${inp('menu',r.menu,'https://')}</td>
         ${delBtn}
       </tr>`;
     } else {
@@ -2066,14 +2066,6 @@ function foodRender() {
         <td class="food-hours">${r.hours||'—'}</td>
         <td>${payTag}</td>
         <td style="text-align:center;">${bookedTag(r.booked)}</td>
-        <td>${r.itemA||'—'}</td>
-        <td class="col-price" style="padding-right:1rem;">${r.priceA ? parseInt(r.priceA).toLocaleString() : '—'}</td>
-        <td style="border-left:2px solid #f0e8dc;">${r.itemB||'—'}</td>
-        <td class="col-price" style="padding-right:1rem;">${r.priceB ? parseInt(r.priceB).toLocaleString() : '—'}</td>
-        <td style="border-left:2px solid #f0e8dc;">${r.itemC||'—'}</td>
-        <td class="col-price" style="padding-right:1rem;">${r.priceC ? parseInt(r.priceC).toLocaleString() : '—'}</td>
-        <td style="font-size:0.75rem;color:var(--muted);border-left:2px solid #f0e8dc;">${r.note||''}</td>
-        <td class="col-price total-price">${((parseInt(r.priceA)||0)+(parseInt(r.priceB)||0)+(parseInt(r.priceC)||0)) > 0 ? ((parseInt(r.priceA)||0)+(parseInt(r.priceB)||0)+(parseInt(r.priceC)||0)).toLocaleString() : '—'}</td>
         <td style="padding:0.6rem 0.5rem;text-align:center;">
           ${r.menu ? `<a href="${r.menu.startsWith('http') ? r.menu : 'https://'+r.menu}" target="_blank"
             title="${(r.menu||'').replace(/"/g,'&quot;')}"
@@ -2082,6 +2074,14 @@ function foodRender() {
             <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
           </a>` : '<span style="color:#ddd;">—</span>'}
         </td>
+        <td>${r.itemA||'—'}</td>
+        <td class="col-price" style="padding-right:1rem;">${r.priceA ? parseInt(r.priceA).toLocaleString() : '—'}</td>
+        <td style="border-left:2px solid #f0e8dc;">${r.itemB||'—'}</td>
+        <td class="col-price" style="padding-right:1rem;">${r.priceB ? parseInt(r.priceB).toLocaleString() : '—'}</td>
+        <td style="border-left:2px solid #f0e8dc;">${r.itemC||'—'}</td>
+        <td class="col-price" style="padding-right:1rem;">${r.priceC ? parseInt(r.priceC).toLocaleString() : '—'}</td>
+        <td style="font-size:0.75rem;color:var(--muted);border-left:2px solid #f0e8dc;">${r.note||''}</td>
+        <td class="col-price total-price">${((parseInt(r.priceA)||0)+(parseInt(r.priceB)||0)+(parseInt(r.priceC)||0)) > 0 ? ((parseInt(r.priceA)||0)+(parseInt(r.priceB)||0)+(parseInt(r.priceC)||0)).toLocaleString() : '—'}</td>
         <td style="display:none"></td>
       </tr>`;
     }
