@@ -1455,168 +1455,7 @@
 </div>
 </div>
 
-<script>
-// ── 飯店詢價 編輯器 ──────────────────────────────────────
-const HOTEL_DOC = db.collection('kobe2026').doc('hotel');
-let hotelRows = [];
-let hotelEditMode = false;
-let hotelSyncing = false;
 
-const HOTEL_STATUS = ['詢價中','已選定','備選','已取消'];
-
-function hotelSetStatus(msg, color) {
-  const el = document.getElementById('hotel-sync-status');
-  if (el) { el.textContent = msg; el.style.color = color || 'var(--muted)'; }
-}
-
-async function hotelLoad() {
-  hotelSetStatus('⏳ 同步中…', '#b8860b');
-  try {
-    const snap = await HOTEL_DOC.get();
-    hotelRows = (snap.exists && Array.isArray(snap.data().rows)) ? snap.data().rows : [];
-    hotelSetStatus('✓ 已同步', '#27ae60');
-  } catch(e) {
-    hotelSetStatus('⚠ 讀取失敗', '#c0392b');
-    try { const s = localStorage.getItem('kobe26_hotel_rows'); if (s) hotelRows = JSON.parse(s); } catch(_) {}
-  }
-  hotelRender();
-}
-
-async function hotelPushToFirebase() {
-  if (hotelSyncing) return;
-  hotelSyncing = true;
-  hotelSetStatus('💾 儲存中…', '#b8860b');
-  try {
-    await HOTEL_DOC.set({ rows: hotelRows, updatedAt: firebase.firestore.FieldValue.serverTimestamp() });
-    localStorage.setItem('kobe26_hotel_rows', JSON.stringify(hotelRows));
-    hotelSetStatus('✓ 已儲存並同步', '#27ae60');
-  } catch(e) {
-    localStorage.setItem('kobe26_hotel_rows', JSON.stringify(hotelRows));
-    hotelSetStatus('⚠ 雲端失敗，已存本機', '#c0392b');
-  }
-  hotelSyncing = false;
-}
-
-function hotelCalcTotal() {
-  const sum = hotelRows
-    .filter(r => r.status === '已選定')
-    .reduce((acc, r) => acc + (parseInt(r.cost)||0), 0);
-  const el = document.getElementById('hotel-total');
-  if (el) el.textContent = sum > 0 ? 'NT$ ' + sum.toLocaleString() : '—';
-}
-
-function hotelRender() {
-  const tbody = document.getElementById('hotel-tbody');
-  if (!tbody) return;
-  const delCol = document.getElementById('hotel-del-col');
-  const delColFoot = document.getElementById('hotel-del-col-foot');
-  if (delCol) delCol.style.display = hotelEditMode ? '' : 'none';
-  if (delColFoot) delColFoot.style.display = hotelEditMode ? '' : 'none';
-
-  if (!hotelRows.length) {
-    tbody.innerHTML = `<tr><td colspan="11" style="color:var(--muted);font-style:italic;text-align:center;padding:1.5rem;">— 尚無飯店詢價紀錄 —<br><span style="font-size:0.75rem;">點擊右上角「✏ 編輯」按鈕開始新增</span></td></tr>`;
-    hotelCalcTotal();
-    return;
-  }
-
-  tbody.innerHTML = hotelRows.map((r, i) => {
-    const isSelected = r.status === '已選定';
-    const rowBg = isSelected ? 'background:#f0fff4;' : '';
-    const delBtn = hotelEditMode
-      ? `<td style="text-align:center;padding:0.3rem;"><button onclick="hotelDeleteRow(${i})" style="background:none;border:none;cursor:pointer;font-size:1rem;color:#c0392b;padding:0.2rem 0.4rem;">✕</button></td>`
-      : `<td style="display:none"></td>`;
-
-    if (hotelEditMode) {
-      const statusOpts = HOTEL_STATUS.map(s => `<option value="${s}" ${r.status===s?'selected':''}>${s}</option>`).join('');
-      const sel = (field, opts) =>
-        `<select onchange="hotelEdit(${i},'${field}',this.value)" style="width:100%;font-size:0.75rem;border:1px solid #ddd;border-radius:3px;padding:0.15rem;box-sizing:border-box;">${opts}</select>`;
-      const inp = (field, val, ph) =>
-        `<input value="${(val||'').replace(/"/g,'&quot;')}" onchange="hotelEdit(${i},'${field}',this.value)" placeholder="${ph}"
-          style="width:100%;font-size:0.78rem;border:1px solid #ddd;border-radius:3px;padding:0.2rem 0.3rem;box-sizing:border-box;">`;
-      const num = (field, val) =>
-        `<input type="number" value="${val||''}" onchange="hotelEdit(${i},'${field}',this.value)" placeholder="0"
-          style="width:100%;font-size:0.78rem;border:1px solid #ddd;border-radius:3px;padding:0.2rem 0.3rem;text-align:right;font-family:'DM Mono',monospace;box-sizing:border-box;">`;
-      return `<tr data-idx="${i}" style="${rowBg}border-bottom:1px solid #f0e8dc;">
-        <td style="padding:0.35rem 0.4rem;">${inp('area',r.area,'區域')}</td>
-        <td style="padding:0.35rem 0.4rem;">${inp('name',r.name,'飯店名稱')}</td>
-        <td style="padding:0.35rem 0.4rem;">${inp('roomtype',r.roomtype,'房型')}</td>
-        <td style="padding:0.35rem 0.4rem;">${inp('note',r.note,'備註')}</td>
-        <td style="padding:0.35rem 0.4rem;">${num('cost',r.cost)}</td>
-        <td style="padding:0.35rem 0.4rem;">${inp('source',r.source,'Agoda x 玉山 -12%')}</td>
-        <td style="padding:0.35rem 0.4rem;">${inp('pricedate',r.pricedate,'1/7')}</td>
-        <td style="padding:0.35rem 0.4rem;">${inp('payment',r.payment,'玉山卡')}</td>
-        <td style="padding:0.35rem 0.4rem;">${inp('paydate',r.paydate,'4/13')}</td>
-        <td style="padding:0.35rem 0.4rem;">${inp('canceldate',r.canceldate,'取消期限')}</td>
-        ${delBtn}
-      </tr>`;
-    } else {
-      const cost = parseInt(r.cost)||0;
-      const statusTag = isSelected
-        ? `<span style="display:inline-block;background:#d4edda;color:#1a6632;font-size:0.65rem;font-family:'DM Mono',monospace;padding:0.1em 0.4em;border-radius:2px;font-weight:700;margin-right:0.3rem;">✓</span>`
-        : '';
-      return `<tr style="${rowBg}border-bottom:1px solid #f0e8dc;">
-        <td style="padding:0.6rem 0.5rem;font-size:0.78rem;color:var(--muted);">${r.area||'—'}</td>
-        <td style="padding:0.6rem 0.5rem;font-weight:700;">${statusTag}${r.name||''}</td>
-        <td style="padding:0.6rem 0.5rem;font-size:0.78rem;">${r.roomtype||'—'}</td>
-        <td style="padding:0.6rem 0.5rem;font-size:0.75rem;color:var(--muted);">${r.note||''}</td>
-        <td style="padding:0.6rem 0.5rem;font-family:'DM Mono',monospace;font-size:0.85rem;font-weight:700;text-align:right;color:${isSelected?'var(--red)':'var(--ink)'};">${cost > 0 ? cost.toLocaleString() : '—'}</td>
-        <td style="padding:0.6rem 0.5rem;font-size:0.75rem;color:#c0392b;">${r.source||'—'}</td>
-        <td style="padding:0.6rem 0.5rem;font-family:'DM Mono',monospace;font-size:0.75rem;text-align:center;color:var(--muted);">${r.pricedate||'—'}</td>
-        <td style="padding:0.6rem 0.5rem;font-size:0.78rem;">${r.payment||'—'}</td>
-        <td style="padding:0.6rem 0.5rem;font-family:'DM Mono',monospace;font-size:0.75rem;text-align:center;color:var(--muted);">${r.paydate||'—'}</td>
-        <td style="padding:0.6rem 0.5rem;font-family:'DM Mono',monospace;font-size:0.75rem;text-align:center;color:${r.canceldate?'#c0392b':'var(--muted)'};">${r.canceldate||'—'}</td>
-        <td style="display:none"></td>
-      </tr>`;
-    }
-  }).join('');
-  hotelCalcTotal();
-}
-
-function hotelEdit(idx, field, value) {
-  if (!hotelRows[idx]) return;
-  hotelRows[idx][field] = value;
-  hotelCalcTotal();
-}
-
-function hotelAddRow() {
-  hotelRows.push({ area:'神戶', name:'', roomtype:'', note:'', cost:'', source:'', pricedate:'', payment:'', paydate:'', canceldate:'', status:'詢價中' });
-  hotelRender();
-  document.getElementById('hotel-tbody')?.lastElementChild?.scrollIntoView({ behavior:'smooth', block:'center' });
-}
-
-function hotelDeleteRow(idx) {
-  if (!confirm(`確定刪除「${hotelRows[idx].name || '此飯店'}」？`)) return;
-  hotelRows.splice(idx, 1);
-  hotelRender();
-}
-
-async function hotelSave() {
-  await hotelPushToFirebase();
-  const btn = document.getElementById('hotel-edit-btn');
-  if (btn) {
-    const prevText = btn.textContent, prevBg = btn.style.background, prevColor = btn.style.color;
-    btn.textContent = '✓ 已儲存'; btn.style.color = '#27ae60'; btn.style.borderColor = '#27ae60';
-    setTimeout(() => { btn.textContent = prevText; btn.style.color = prevColor; btn.style.background = prevBg; btn.style.borderColor = ''; }, 2000);
-  }
-}
-
-async function hotelToggleEdit() {
-  hotelEditMode = !hotelEditMode;
-  const btn     = document.getElementById('hotel-edit-btn');
-  const toolbar = document.getElementById('hotel-edit-toolbar');
-  if (hotelEditMode) {
-    if (btn)     { btn.textContent = '✓ 完成'; btn.style.background = 'var(--ink)'; btn.style.color = '#f0c040'; }
-    if (toolbar) toolbar.style.display = 'flex';
-  } else {
-    await hotelPushToFirebase();
-    if (btn)     { btn.textContent = '✏ 編輯'; btn.style.background = 'transparent'; btn.style.color = 'var(--ink)'; }
-    if (toolbar) toolbar.style.display = 'none';
-  }
-  hotelRender();
-}
-
-document.addEventListener('DOMContentLoaded', hotelLoad);
-</script>
 
 <div id="cards" class="tab-panel">
 <div id="card-section">
@@ -2369,6 +2208,169 @@ async function transToggleEdit() {
 }
 
 document.addEventListener('DOMContentLoaded', transLoad);
+</script>
+
+<script>
+// ── 飯店詢價 編輯器 ──────────────────────────────────────
+const HOTEL_DOC = db.collection('kobe2026').doc('hotel');
+let hotelRows = [];
+let hotelEditMode = false;
+let hotelSyncing = false;
+
+const HOTEL_STATUS = ['詢價中','已選定','備選','已取消'];
+
+function hotelSetStatus(msg, color) {
+  const el = document.getElementById('hotel-sync-status');
+  if (el) { el.textContent = msg; el.style.color = color || 'var(--muted)'; }
+}
+
+async function hotelLoad() {
+  hotelSetStatus('⏳ 同步中…', '#b8860b');
+  try {
+    const snap = await HOTEL_DOC.get();
+    hotelRows = (snap.exists && Array.isArray(snap.data().rows)) ? snap.data().rows : [];
+    hotelSetStatus('✓ 已同步', '#27ae60');
+  } catch(e) {
+    hotelSetStatus('⚠ 讀取失敗', '#c0392b');
+    try { const s = localStorage.getItem('kobe26_hotel_rows'); if (s) hotelRows = JSON.parse(s); } catch(_) {}
+  }
+  hotelRender();
+}
+
+async function hotelPushToFirebase() {
+  if (hotelSyncing) return;
+  hotelSyncing = true;
+  hotelSetStatus('💾 儲存中…', '#b8860b');
+  try {
+    await HOTEL_DOC.set({ rows: hotelRows, updatedAt: firebase.firestore.FieldValue.serverTimestamp() });
+    localStorage.setItem('kobe26_hotel_rows', JSON.stringify(hotelRows));
+    hotelSetStatus('✓ 已儲存並同步', '#27ae60');
+  } catch(e) {
+    localStorage.setItem('kobe26_hotel_rows', JSON.stringify(hotelRows));
+    hotelSetStatus('⚠ 雲端失敗，已存本機', '#c0392b');
+  }
+  hotelSyncing = false;
+}
+
+function hotelCalcTotal() {
+  const sum = hotelRows
+    .filter(r => r.status === '已選定')
+    .reduce((acc, r) => acc + (parseInt(r.cost)||0), 0);
+  const el = document.getElementById('hotel-total');
+  if (el) el.textContent = sum > 0 ? 'NT$ ' + sum.toLocaleString() : '—';
+}
+
+function hotelRender() {
+  const tbody = document.getElementById('hotel-tbody');
+  if (!tbody) return;
+  const delCol = document.getElementById('hotel-del-col');
+  const delColFoot = document.getElementById('hotel-del-col-foot');
+  if (delCol) delCol.style.display = hotelEditMode ? '' : 'none';
+  if (delColFoot) delColFoot.style.display = hotelEditMode ? '' : 'none';
+
+  if (!hotelRows.length) {
+    tbody.innerHTML = `<tr><td colspan="11" style="color:var(--muted);font-style:italic;text-align:center;padding:1.5rem;">— 尚無飯店詢價紀錄 —<br><span style="font-size:0.75rem;">點擊右上角「✏ 編輯」按鈕開始新增</span></td></tr>`;
+    hotelCalcTotal();
+    return;
+  }
+
+  tbody.innerHTML = hotelRows.map((r, i) => {
+    const isSelected = r.status === '已選定';
+    const rowBg = isSelected ? 'background:#f0fff4;' : '';
+    const delBtn = hotelEditMode
+      ? `<td style="text-align:center;padding:0.3rem;"><button onclick="hotelDeleteRow(${i})" style="background:none;border:none;cursor:pointer;font-size:1rem;color:#c0392b;padding:0.2rem 0.4rem;">✕</button></td>`
+      : `<td style="display:none"></td>`;
+
+    if (hotelEditMode) {
+      const statusOpts = HOTEL_STATUS.map(s => `<option value="${s}" ${r.status===s?'selected':''}>${s}</option>`).join('');
+      const sel = (field, opts) =>
+        `<select onchange="hotelEdit(${i},'${field}',this.value)" style="width:100%;font-size:0.75rem;border:1px solid #ddd;border-radius:3px;padding:0.15rem;box-sizing:border-box;">${opts}</select>`;
+      const inp = (field, val, ph) =>
+        `<input value="${(val||'').replace(/"/g,'&quot;')}" onchange="hotelEdit(${i},'${field}',this.value)" placeholder="${ph}"
+          style="width:100%;font-size:0.78rem;border:1px solid #ddd;border-radius:3px;padding:0.2rem 0.3rem;box-sizing:border-box;">`;
+      const num = (field, val) =>
+        `<input type="number" value="${val||''}" onchange="hotelEdit(${i},'${field}',this.value)" placeholder="0"
+          style="width:100%;font-size:0.78rem;border:1px solid #ddd;border-radius:3px;padding:0.2rem 0.3rem;text-align:right;font-family:'DM Mono',monospace;box-sizing:border-box;">`;
+      return `<tr data-idx="${i}" style="${rowBg}border-bottom:1px solid #f0e8dc;">
+        <td style="padding:0.35rem 0.4rem;">${inp('area',r.area,'區域')}</td>
+        <td style="padding:0.35rem 0.4rem;">${inp('name',r.name,'飯店名稱')}</td>
+        <td style="padding:0.35rem 0.4rem;">${inp('roomtype',r.roomtype,'房型')}</td>
+        <td style="padding:0.35rem 0.4rem;">${inp('note',r.note,'備註')}</td>
+        <td style="padding:0.35rem 0.4rem;">${num('cost',r.cost)}</td>
+        <td style="padding:0.35rem 0.4rem;">${inp('source',r.source,'Agoda x 玉山 -12%')}</td>
+        <td style="padding:0.35rem 0.4rem;">${inp('pricedate',r.pricedate,'1/7')}</td>
+        <td style="padding:0.35rem 0.4rem;">${inp('payment',r.payment,'玉山卡')}</td>
+        <td style="padding:0.35rem 0.4rem;">${inp('paydate',r.paydate,'4/13')}</td>
+        <td style="padding:0.35rem 0.4rem;">${inp('canceldate',r.canceldate,'取消期限')}</td>
+        ${delBtn}
+      </tr>`;
+    } else {
+      const cost = parseInt(r.cost)||0;
+      const statusTag = isSelected
+        ? `<span style="display:inline-block;background:#d4edda;color:#1a6632;font-size:0.65rem;font-family:'DM Mono',monospace;padding:0.1em 0.4em;border-radius:2px;font-weight:700;margin-right:0.3rem;">✓</span>`
+        : '';
+      return `<tr style="${rowBg}border-bottom:1px solid #f0e8dc;">
+        <td style="padding:0.6rem 0.5rem;font-size:0.78rem;color:var(--muted);">${r.area||'—'}</td>
+        <td style="padding:0.6rem 0.5rem;font-weight:700;">${statusTag}${r.name||''}</td>
+        <td style="padding:0.6rem 0.5rem;font-size:0.78rem;">${r.roomtype||'—'}</td>
+        <td style="padding:0.6rem 0.5rem;font-size:0.75rem;color:var(--muted);">${r.note||''}</td>
+        <td style="padding:0.6rem 0.5rem;font-family:'DM Mono',monospace;font-size:0.85rem;font-weight:700;text-align:right;color:${isSelected?'var(--red)':'var(--ink)'};">${cost > 0 ? cost.toLocaleString() : '—'}</td>
+        <td style="padding:0.6rem 0.5rem;font-size:0.75rem;color:#c0392b;">${r.source||'—'}</td>
+        <td style="padding:0.6rem 0.5rem;font-family:'DM Mono',monospace;font-size:0.75rem;text-align:center;color:var(--muted);">${r.pricedate||'—'}</td>
+        <td style="padding:0.6rem 0.5rem;font-size:0.78rem;">${r.payment||'—'}</td>
+        <td style="padding:0.6rem 0.5rem;font-family:'DM Mono',monospace;font-size:0.75rem;text-align:center;color:var(--muted);">${r.paydate||'—'}</td>
+        <td style="padding:0.6rem 0.5rem;font-family:'DM Mono',monospace;font-size:0.75rem;text-align:center;color:${r.canceldate?'#c0392b':'var(--muted)'};">${r.canceldate||'—'}</td>
+        <td style="display:none"></td>
+      </tr>`;
+    }
+  }).join('');
+  hotelCalcTotal();
+}
+
+function hotelEdit(idx, field, value) {
+  if (!hotelRows[idx]) return;
+  hotelRows[idx][field] = value;
+  hotelCalcTotal();
+}
+
+function hotelAddRow() {
+  hotelRows.push({ area:'神戶', name:'', roomtype:'', note:'', cost:'', source:'', pricedate:'', payment:'', paydate:'', canceldate:'', status:'詢價中' });
+  hotelRender();
+  document.getElementById('hotel-tbody')?.lastElementChild?.scrollIntoView({ behavior:'smooth', block:'center' });
+}
+
+function hotelDeleteRow(idx) {
+  if (!confirm(`確定刪除「${hotelRows[idx].name || '此飯店'}」？`)) return;
+  hotelRows.splice(idx, 1);
+  hotelRender();
+}
+
+async function hotelSave() {
+  await hotelPushToFirebase();
+  const btn = document.getElementById('hotel-edit-btn');
+  if (btn) {
+    const prevText = btn.textContent, prevBg = btn.style.background, prevColor = btn.style.color;
+    btn.textContent = '✓ 已儲存'; btn.style.color = '#27ae60'; btn.style.borderColor = '#27ae60';
+    setTimeout(() => { btn.textContent = prevText; btn.style.color = prevColor; btn.style.background = prevBg; btn.style.borderColor = ''; }, 2000);
+  }
+}
+
+async function hotelToggleEdit() {
+  hotelEditMode = !hotelEditMode;
+  const btn     = document.getElementById('hotel-edit-btn');
+  const toolbar = document.getElementById('hotel-edit-toolbar');
+  if (hotelEditMode) {
+    if (btn)     { btn.textContent = '✓ 完成'; btn.style.background = 'var(--ink)'; btn.style.color = '#f0c040'; }
+    if (toolbar) toolbar.style.display = 'flex';
+  } else {
+    await hotelPushToFirebase();
+    if (btn)     { btn.textContent = '✏ 編輯'; btn.style.background = 'transparent'; btn.style.color = 'var(--ink)'; }
+    if (toolbar) toolbar.style.display = 'none';
+  }
+  hotelRender();
+}
+
+document.addEventListener('DOMContentLoaded', hotelLoad);
 </script>
 
 <!-- ══ TAB 5: 支付優惠 ══ -->
