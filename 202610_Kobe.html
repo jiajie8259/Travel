@@ -2540,7 +2540,7 @@ function spotsRender() {
         <td style="padding:0.35rem 0.4rem;">${inp('note',r.note,'備註')}</td>
         <td style="padding:0.35rem 0.4rem;">${inp('address',r.address,'貼上 Google Maps 連結或地址')}</td>
         <td style="padding:0.35rem 0.4rem;text-align:center;">
-          ${r.address ? `<a href="${/maps\.google|maps\.app\.goo\.gl|goo\.gl\/maps/i.test(r.address) ? r.address : 'https://www.google.com/maps/search/?api=1&query='+encodeURIComponent(r.address)}" target="_blank" style="display:inline-block;background:#4285f4;color:white;font-family:'DM Mono',monospace;font-size:0.6rem;font-weight:700;letter-spacing:0.05em;padding:0.25em 0.5em;border-radius:3px;text-decoration:none;">MAP</a>` : '—'}
+          ${r.address ? `<a href="${/maps\.google|maps\.app\.goo\.gl|goo\.gl\/maps/i.test(r.address) ? r.address : 'https://www.google.com/maps/search/?api=1&query='+encodeURIComponent((r.name||'')+' '+r.address)}" target="_blank" style="display:inline-block;background:#4285f4;color:white;font-family:'DM Mono',monospace;font-size:0.6rem;font-weight:700;letter-spacing:0.05em;padding:0.25em 0.5em;border-radius:3px;text-decoration:none;">MAP</a>` : '—'}
         </td>
         ${delBtn}
       </tr>`;
@@ -2557,8 +2557,9 @@ function spotsRender() {
         if (/maps\.google|maps\.app\.goo\.gl|goo\.gl\/maps/i.test(a)) return a;
         // 若是完整 https:// 連結，直接開啟
         if (/^https?:\/\//i.test(a)) return a;
-        // 一般地址或景點名稱：只用地址欄的值，不拼入景點名稱
-        return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(a)}`;
+        // 一般地址：同時帶景點名稱讓 Google 定位更準確
+        const query = name ? `${name} ${a}` : a;
+        return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(query)}`;
       }
       const mapUrl = buildMapUrl(r.name, r.address);
       const webCell = r.website
