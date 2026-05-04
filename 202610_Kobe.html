@@ -1413,16 +1413,17 @@
   <div style="overflow-x:auto;border-radius:6px;border:1px solid #e0d8cc;width:100%;">
     <table id="hotel-main-table" style="width:100%;border-collapse:collapse;font-size:0.8rem;background:white;table-layout:fixed;">
       <colgroup>
-        <col style="width:5.5rem">  <!-- 區域 -->
+        <col style="width:4rem">    <!-- 區域 -->
         <col style="width:18%">     <!-- 飯店名稱 -->
         <col style="width:10%">     <!-- 房型 -->
+        <col style="width:3.5rem">  <!-- ㎡ -->
         <col style="width:10%">     <!-- 備註 -->
-        <col style="width:7rem">    <!-- 3天費用(NT$) -->
-        <col style="width:12%">     <!-- 來源/優惠 -->
-        <col style="width:4rem">    <!-- 價格日期 -->
-        <col style="width:6rem">    <!-- 付款方式 -->
-        <col style="width:4rem">    <!-- 付款日期 -->
-        <col style="width:4.5rem">  <!-- 可取消日期 -->
+        <col style="width:6rem">    <!-- 費用(¥) -->
+        <col style="width:10%">     <!-- 來源/優惠 -->
+        <col style="width:4rem">    <!-- 查價日 -->
+        <col style="width:4rem">    <!-- 付款方式 -->
+        <col style="width:4rem">    <!-- 付款日 -->
+        <col style="width:4rem">    <!-- 取消期限 -->
         <col style="width:1.8rem">  <!-- 刪除 -->
       </colgroup>
       <thead>
@@ -1430,20 +1431,21 @@
           <th style="padding:0.6rem 0.5rem;font-family:'DM Mono',monospace;font-size:0.72rem;font-weight:600;text-align:left;white-space:nowrap;">區域</th>
           <th style="padding:0.6rem 0.5rem;font-family:'DM Mono',monospace;font-size:0.72rem;font-weight:600;text-align:left;white-space:nowrap;">飯店名稱</th>
           <th style="padding:0.6rem 0.5rem;font-family:'DM Mono',monospace;font-size:0.72rem;font-weight:600;text-align:left;white-space:nowrap;">房型</th>
+          <th style="padding:0.6rem 0.5rem;font-family:'DM Mono',monospace;font-size:0.72rem;font-weight:600;text-align:center;white-space:nowrap;">㎡</th>
           <th style="padding:0.6rem 0.5rem;font-family:'DM Mono',monospace;font-size:0.72rem;font-weight:600;text-align:left;white-space:nowrap;">備註</th>
-          <th style="padding:0.6rem 0.5rem;font-family:'DM Mono',monospace;font-size:0.72rem;font-weight:600;text-align:right;white-space:nowrap;">3天費用(NT$)<br><span style="font-size:0.6rem;opacity:0.7;">含稅服務手續費</span></th>
+          <th style="padding:0.6rem 0.5rem;font-family:'DM Mono',monospace;font-size:0.72rem;font-weight:600;text-align:right;white-space:nowrap;">費用(¥)</th>
           <th style="padding:0.6rem 0.5rem;font-family:'DM Mono',monospace;font-size:0.72rem;font-weight:600;text-align:left;white-space:nowrap;">來源 / 優惠</th>
-          <th style="padding:0.6rem 0.5rem;font-family:'DM Mono',monospace;font-size:0.72rem;font-weight:600;text-align:center;white-space:nowrap;">價格日期</th>
+          <th style="padding:0.6rem 0.5rem;font-family:'DM Mono',monospace;font-size:0.72rem;font-weight:600;text-align:center;white-space:nowrap;">查價日</th>
           <th style="padding:0.6rem 0.5rem;font-family:'DM Mono',monospace;font-size:0.72rem;font-weight:600;text-align:left;white-space:nowrap;">付款方式</th>
-          <th style="padding:0.6rem 0.5rem;font-family:'DM Mono',monospace;font-size:0.72rem;font-weight:600;text-align:center;white-space:nowrap;">付款日期</th>
-          <th style="padding:0.6rem 0.5rem;font-family:'DM Mono',monospace;font-size:0.72rem;font-weight:600;text-align:center;white-space:nowrap;">可取消日期</th>
+          <th style="padding:0.6rem 0.5rem;font-family:'DM Mono',monospace;font-size:0.72rem;font-weight:600;text-align:center;white-space:nowrap;">付款日</th>
+          <th style="padding:0.6rem 0.5rem;font-family:'DM Mono',monospace;font-size:0.72rem;font-weight:600;text-align:center;white-space:nowrap;">取消期限</th>
           <th id="hotel-del-col" style="display:none;width:1.8rem;"></th>
         </tr>
       </thead>
       <tbody id="hotel-tbody"></tbody>
       <tfoot>
         <tr>
-          <td colspan="4" style="padding:0.75rem 1rem;"></td>
+          <td colspan="5" style="padding:0.75rem 1rem;"></td>
           <td id="hotel-total" style="padding:0.75rem 0.5rem;font-weight:900;font-size:1rem;color:var(--red);font-family:'DM Mono',monospace;text-align:right;background:#fff8f8;">—</td>
           <td colspan="5" style="background:#fff8f8;padding:0.75rem 0.5rem;font-size:0.72rem;color:var(--muted);">← 已選定飯店總計</td>
           <td id="hotel-del-col-foot" style="display:none;background:#fff8f8;"></td>
@@ -2285,6 +2287,12 @@ function hotelRender() {
       const statusOpts = HOTEL_STATUS.map(s => `<option value="${s}" ${r.status===s?'selected':''}>${s}</option>`).join('');
       const sel = (field, opts) =>
         `<select onchange="hotelEdit(${i},'${field}',this.value)" style="width:100%;font-size:0.75rem;border:1px solid #ddd;border-radius:3px;padding:0.15rem;box-sizing:border-box;">${opts}</select>`;
+      // textarea 支援 Shift+Enter 換行
+      const ta = (field, val, ph) =>
+        `<textarea onchange="hotelEdit(${i},'${field}',this.value)"
+          onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();}"
+          placeholder="${ph}" rows="2"
+          style="width:100%;font-size:0.78rem;border:1px solid #ddd;border-radius:3px;padding:0.2rem 0.3rem;box-sizing:border-box;resize:vertical;font-family:inherit;">${(val||'').replace(/</g,'&lt;')}</textarea>`;
       const inp = (field, val, ph) =>
         `<input value="${(val||'').replace(/"/g,'&quot;')}" onchange="hotelEdit(${i},'${field}',this.value)" placeholder="${ph}"
           style="width:100%;font-size:0.78rem;border:1px solid #ddd;border-radius:3px;padding:0.2rem 0.3rem;box-sizing:border-box;">`;
@@ -2292,16 +2300,17 @@ function hotelRender() {
         `<input type="number" value="${val||''}" onchange="hotelEdit(${i},'${field}',this.value)" placeholder="0"
           style="width:100%;font-size:0.78rem;border:1px solid #ddd;border-radius:3px;padding:0.2rem 0.3rem;text-align:right;font-family:'DM Mono',monospace;box-sizing:border-box;">`;
       return `<tr data-idx="${i}" style="${rowBg}border-bottom:1px solid #f0e8dc;">
-        <td style="padding:0.35rem 0.4rem;">${inp('area',r.area,'區域')}</td>
-        <td style="padding:0.35rem 0.4rem;">${inp('name',r.name,'飯店名稱')}</td>
-        <td style="padding:0.35rem 0.4rem;">${inp('roomtype',r.roomtype,'房型')}</td>
-        <td style="padding:0.35rem 0.4rem;">${inp('note',r.note,'備註')}</td>
+        <td style="padding:0.35rem 0.4rem;">${inp('area',r.area,'')}</td>
+        <td style="padding:0.35rem 0.4rem;">${ta('name',r.name,'飯店名稱（Shift+Enter 換行）')}</td>
+        <td style="padding:0.35rem 0.4rem;">${ta('roomtype',r.roomtype,'房型（Shift+Enter 換行）')}</td>
+        <td style="padding:0.35rem 0.4rem;">${num('sqm',r.sqm)}</td>
+        <td style="padding:0.35rem 0.4rem;">${inp('note',r.note,'')}</td>
         <td style="padding:0.35rem 0.4rem;">${num('cost',r.cost)}</td>
-        <td style="padding:0.35rem 0.4rem;">${inp('source',r.source,'Agoda x 玉山 -12%')}</td>
-        <td style="padding:0.35rem 0.4rem;">${inp('pricedate',r.pricedate,'1/7')}</td>
-        <td style="padding:0.35rem 0.4rem;">${inp('payment',r.payment,'玉山卡')}</td>
-        <td style="padding:0.35rem 0.4rem;">${inp('paydate',r.paydate,'4/13')}</td>
-        <td style="padding:0.35rem 0.4rem;">${inp('canceldate',r.canceldate,'取消期限')}</td>
+        <td style="padding:0.35rem 0.4rem;">${inp('source',r.source,'')}</td>
+        <td style="padding:0.35rem 0.4rem;">${inp('pricedate',r.pricedate,'')}</td>
+        <td style="padding:0.35rem 0.4rem;">${inp('payment',r.payment,'')}</td>
+        <td style="padding:0.35rem 0.4rem;">${inp('paydate',r.paydate,'')}</td>
+        <td style="padding:0.35rem 0.4rem;">${inp('canceldate',r.canceldate,'')}</td>
         ${delBtn}
       </tr>`;
     } else {
@@ -2309,10 +2318,13 @@ function hotelRender() {
       const statusTag = isSelected
         ? `<span style="display:inline-block;background:#d4edda;color:#1a6632;font-size:0.65rem;font-family:'DM Mono',monospace;padding:0.1em 0.4em;border-radius:2px;font-weight:700;margin-right:0.3rem;">✓</span>`
         : '';
+      // 換行符號轉 <br>
+      const nl = s => (s||'').replace(/\n/g,'<br>');
       return `<tr style="${rowBg}border-bottom:1px solid #f0e8dc;">
         <td style="padding:0.6rem 0.5rem;font-size:0.78rem;color:var(--muted);">${r.area||'—'}</td>
-        <td style="padding:0.6rem 0.5rem;font-weight:700;">${statusTag}${r.name||''}</td>
-        <td style="padding:0.6rem 0.5rem;font-size:0.78rem;">${r.roomtype||'—'}</td>
+        <td style="padding:0.6rem 0.5rem;font-weight:700;line-height:1.5;">${statusTag}${nl(r.name)||''}</td>
+        <td style="padding:0.6rem 0.5rem;font-size:0.78rem;line-height:1.5;">${nl(r.roomtype)||'—'}</td>
+        <td style="padding:0.6rem 0.5rem;font-family:'DM Mono',monospace;font-size:0.78rem;text-align:center;color:var(--muted);">${r.sqm ? r.sqm+'㎡' : '—'}</td>
         <td style="padding:0.6rem 0.5rem;font-size:0.75rem;color:var(--muted);">${r.note||''}</td>
         <td style="padding:0.6rem 0.5rem;font-family:'DM Mono',monospace;font-size:0.85rem;font-weight:700;text-align:right;color:${isSelected?'var(--red)':'var(--ink)'};">${cost > 0 ? cost.toLocaleString() : '—'}</td>
         <td style="padding:0.6rem 0.5rem;font-size:0.75rem;color:#c0392b;">${r.source||'—'}</td>
@@ -2334,7 +2346,7 @@ function hotelEdit(idx, field, value) {
 }
 
 function hotelAddRow() {
-  hotelRows.push({ area:'神戶', name:'', roomtype:'', note:'', cost:'', source:'', pricedate:'', payment:'', paydate:'', canceldate:'', status:'詢價中' });
+  hotelRows.push({ area:'神戶', name:'', roomtype:'', sqm:'', note:'', cost:'', source:'', pricedate:'', payment:'', paydate:'', canceldate:'', status:'詢價中' });
   hotelRender();
   document.getElementById('hotel-tbody')?.lastElementChild?.scrollIntoView({ behavior:'smooth', block:'center' });
 }
