@@ -2601,15 +2601,22 @@ async function notesHandleImage(file) {
       let imgSrc = base64full;
       try { imgSrc = 'data:image/jpeg;base64,' + await notesCompressImage(base64full, 'image/jpeg'); } catch(_) {}
 
-      // 辨識語言：繁中 + 簡中 + 日文 + 英文
-      const result = await Tesseract.recognize(imgSrc, 'chi_tra+chi_sim+jpn+eng', {
+      // 辨識語言：用陣列格式，並指定語言包來源（Tesseract.js v5 正確語法）
+      const worker = await Tesseract.createWorker(['chi_tra', 'chi_sim', 'jpn', 'eng'], 1, {
+        langPath: 'https://tessdata.projectnaptha.com/4.0.0',
         logger: m => {
-          if (m.status === 'recognizing text' && status) {
-            const pct = Math.round((m.progress || 0) * 100);
-            status.textContent = `🤖 辨識中… ${pct}%`;
+          if (status) {
+            if (m.status === 'loading language traineddata') {
+              status.textContent = `⏬ 下載語言包中… ${Math.round((m.progress||0)*100)}%`;
+            } else if (m.status === 'recognizing text') {
+              status.textContent = `🤖 辨識中… ${Math.round((m.progress||0)*100)}%`;
+            }
           }
         }
       });
+
+      const result = await worker.recognize(imgSrc);
+      await worker.terminate();
 
       const text = result.data.text?.trim() || '';
 
