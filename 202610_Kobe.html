@@ -2578,62 +2578,40 @@ async function notesHandleImage(file) {
 
   const reader = new FileReader();
   reader.onload = async (e) => {
-    const base64full = e.target.result; // data:image/xxx;base64,...
+    const base64full = e.target.result;
 
     if (thumb)   { thumb.src = base64full; }
     if (preview) preview.style.display = 'block';
     if (zone)    zone.style.display = 'none';
-    if (status)  { status.style.display = 'block'; status.textContent = '🤖 AI 辨識中，請稍候…'; status.style.color = '#b8860b'; }
-
-    // 壓縮圖片到最大 2MB，Vision API 建議不超過此大小
-    let base64data;
-    try {
-      base64data = await notesCompressImage(base64full, file.type);
-    } catch(_) {
-      base64data = base64full.split(',')[1];
-    }
+    if (status)  { status.style.display = 'block'; status.textContent = '🤖 AI 辨識中，請稍候（首次載入較慢）…'; status.style.color = '#b8860b'; }
 
     try {
-      const VISION_API_KEY = 'AIzaSyCLPHCRr1uwioawNl0UXYrFNa_ftMdI3PU';
-      const res = await fetch(
-        `https://vision.googleapis.com/v1/images:annotate?key=${VISION_API_KEY}`,
-        {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            requests: [{
-              image: { content: base64data },
-              features: [{
-                type: 'DOCUMENT_TEXT_DETECTION',  // 最適合文件、表格、手寫、截圖
-                maxResults: 1
-              }],
-              imageContext: {
-                languageHints: ['zh-Hant', 'zh-Hans', 'ja', 'en'],  // 繁中、簡中、日文、英文
-              }
-            }]
-          })
+      // 動態載入 Tesseract.js（首次才下載）
+      if (!window.Tesseract) {
+        await new Promise((resolve, reject) => {
+          const s = document.createElement('script');
+          s.src = 'https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js';
+          s.onload = resolve;
+          s.onerror = reject;
+          document.head.appendChild(s);
+        });
+      }
+
+      // 壓縮圖片
+      let imgSrc = base64full;
+      try { imgSrc = 'data:image/jpeg;base64,' + await notesCompressImage(base64full, 'image/jpeg'); } catch(_) {}
+
+      // 辨識語言：繁中 + 簡中 + 日文 + 英文
+      const result = await Tesseract.recognize(imgSrc, 'chi_tra+chi_sim+jpn+eng', {
+        logger: m => {
+          if (m.status === 'recognizing text' && status) {
+            const pct = Math.round((m.progress || 0) * 100);
+            status.textContent = `🤖 辨識中… ${pct}%`;
+          }
         }
-      );
+      });
 
-      const data = await res.json();
-
-      // 除錯：印出完整回應幫助排查
-      console.log('Vision API response:', JSON.stringify(data, null, 2));
-
-      const response = data.responses?.[0];
-
-      // 檢查 API 層級錯誤
-      if (response?.error) {
-        throw new Error(response.error.message);
-      }
-
-      // DOCUMENT_TEXT_DETECTION 結果在 fullTextAnnotation
-      let text = response?.fullTextAnnotation?.text?.trim() || '';
-
-      // fallback：若 fullTextAnnotation 為空，嘗試 textAnnotations
-      if (!text && response?.textAnnotations?.length) {
-        text = response.textAnnotations[0]?.description?.trim() || '';
-      }
+      const text = result.data.text?.trim() || '';
 
       if (text) {
         if (ta) {
@@ -2644,14 +2622,11 @@ async function notesHandleImage(file) {
         }
         if (status) { status.textContent = '✓ 辨識完成，請確認內容後儲存'; status.style.color = '#27ae60'; }
       } else {
-        // 回傳空結果時，顯示 API 的原始回應幫助診斷
-        const raw = JSON.stringify(response || data);
-        console.warn('No text found. Raw:', raw);
-        if (status) { status.textContent = '⚠ 未偵測到文字（圖片可能太模糊或無文字內容）'; status.style.color = '#c0392b'; }
+        if (status) { status.textContent = '⚠ 未偵測到文字，請手動輸入'; status.style.color = '#c0392b'; }
       }
     } catch(err) {
-      console.error('Vision API error:', err);
-      if (status) { status.textContent = `⚠ 辨識失敗：${err.message||'請手動輸入'}`; status.style.color = '#c0392b'; }
+      console.error('Tesseract error:', err);
+      if (status) { status.textContent = '⚠ 辨識失敗，請手動輸入'; status.style.color = '#c0392b'; }
     }
   };
   reader.readAsDataURL(file);
