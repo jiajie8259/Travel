@@ -1227,6 +1227,7 @@
   <button class="tab-btn" onclick="switchTab('spots',this)">📍 景點</button>
   <button class="tab-btn" onclick="switchTab('hotel',this)">🏨 飯店</button>
   <button class="tab-btn" onclick="switchTab('payment',this)">💳 支付優惠</button>
+  <button class="tab-btn" onclick="switchTab('notes',this)">📝 小筆記</button>
   <button class="tab-btn" onclick="switchTab('cards',this)">🃏 隨身小卡</button>
 </div>
 
@@ -1455,6 +1456,81 @@
   </div>
 
 </div>
+</div>
+
+
+
+<!-- ══ TAB: 小筆記 ══ -->
+<div id="notes" class="tab-panel">
+<div style="max-width:1100px;margin:0 auto;padding:2.5rem 2.5rem 4rem;">
+
+  <div style="display:flex;align-items:center;justify-content:space-between;border-bottom:2px solid var(--ink);padding-bottom:0.5rem;margin-bottom:1.5rem;">
+    <h2 style="font-size:1.1rem;font-weight:700;letter-spacing:0.1em;">📝 小筆記</h2>
+    <div style="display:flex;align-items:center;gap:0.75rem;">
+      <span id="notes-sync-status" style="font-family:'DM Mono',monospace;font-size:0.68rem;color:var(--muted);"></span>
+      <button onclick="notesOpenModal()" style="font-family:'DM Mono',monospace;font-size:0.72rem;letter-spacing:0.06em;padding:0.45rem 1.1rem;border:none;border-radius:4px;background:var(--ink);color:#f0c040;cursor:pointer;">＋ 新增小筆記</button>
+    </div>
+  </div>
+
+  <!-- 便利貼區域 -->
+  <div id="notes-grid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:1.25rem;">
+    <div id="notes-empty" style="display:none;grid-column:1/-1;text-align:center;padding:3rem;color:var(--muted);font-style:italic;font-size:0.88rem;">
+      還沒有筆記，點「＋ 新增小筆記」開始記錄吧！
+    </div>
+  </div>
+
+</div>
+</div>
+
+<!-- 新增筆記 Modal -->
+<div id="notes-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.45);z-index:9999;align-items:center;justify-content:center;">
+  <div style="background:white;border-radius:10px;padding:2rem;width:min(480px,90vw);box-shadow:0 20px 60px rgba(0,0,0,0.25);position:relative;">
+    <div style="font-weight:700;font-size:1rem;margin-bottom:1.25rem;letter-spacing:0.05em;">📝 新增小筆記</div>
+
+    <!-- 分類選擇 -->
+    <div style="margin-bottom:1rem;">
+      <label style="font-size:0.78rem;color:var(--muted);font-family:'DM Mono',monospace;letter-spacing:0.08em;display:block;margin-bottom:0.35rem;">分類</label>
+      <select id="notes-modal-cat" style="width:100%;font-size:0.88rem;border:1.5px solid #ddd;border-radius:5px;padding:0.5rem 0.7rem;background:white;cursor:pointer;">
+        <option value="行程">🗓 行程</option>
+        <option value="交通">🚆 交通</option>
+        <option value="美食">🍽 美食</option>
+      </select>
+    </div>
+
+    <!-- 文字輸入 -->
+    <div style="margin-bottom:1.25rem;">
+      <label style="font-size:0.78rem;color:var(--muted);font-family:'DM Mono',monospace;letter-spacing:0.08em;display:block;margin-bottom:0.35rem;">內容 <span id="notes-modal-count" style="color:#aaa;">0 / 500</span></label>
+
+      <!-- 圖片上傳區 -->
+      <div id="notes-img-zone"
+        onclick="document.getElementById('notes-img-input').click()"
+        ondragover="event.preventDefault();this.style.borderColor='var(--gold)'"
+        ondragleave="this.style.borderColor='#ddd'"
+        ondrop="event.preventDefault();this.style.borderColor='#ddd';notesHandleImage(event.dataTransfer.files[0])"
+        style="border:2px dashed #ddd;border-radius:6px;padding:0.75rem 1rem;margin-bottom:0.75rem;cursor:pointer;text-align:center;font-size:0.78rem;color:var(--muted);transition:border-color 0.15s;background:#fafafa;">
+        <span id="notes-img-label">📷 點擊或拖曳上傳圖片，由 AI 辨識轉文字</span>
+        <input id="notes-img-input" type="file" accept="image/*" style="display:none;" onchange="notesHandleImage(this.files[0])">
+      </div>
+      <!-- 圖片預覽 -->
+      <div id="notes-img-preview" style="display:none;margin-bottom:0.75rem;position:relative;">
+        <img id="notes-img-thumb" style="max-height:120px;border-radius:6px;border:1px solid #ddd;display:block;">
+        <button onclick="notesClearImage()" style="position:absolute;top:4px;right:4px;background:rgba(0,0,0,0.5);color:white;border:none;border-radius:50%;width:22px;height:22px;cursor:pointer;font-size:0.75rem;line-height:1;">✕</button>
+      </div>
+      <!-- OCR 狀態 -->
+      <div id="notes-ocr-status" style="display:none;font-size:0.75rem;font-family:'DM Mono',monospace;color:#b8860b;margin-bottom:0.5rem;text-align:center;"></div>
+
+      <textarea id="notes-modal-text" maxlength="500" rows="6"
+        oninput="document.getElementById('notes-modal-count').textContent=this.value.length+' / 500'"
+        placeholder="在這裡輸入筆記內容，或上傳圖片讓 AI 自動辨識…"
+        style="width:100%;font-size:0.88rem;border:1.5px solid #ddd;border-radius:5px;padding:0.6rem 0.8rem;resize:vertical;box-sizing:border-box;font-family:'Noto Serif TC',serif;line-height:1.7;"></textarea>
+    </div>
+
+    <!-- 按鈕 -->
+    <div style="display:flex;gap:0.75rem;justify-content:flex-end;">
+      <button onclick="notesCloseModal()" style="font-family:'DM Mono',monospace;font-size:0.75rem;padding:0.5rem 1.1rem;border:1.5px solid #ccc;border-radius:4px;background:white;cursor:pointer;color:var(--muted);">取消</button>
+      <button onclick="notesSubmit()" style="font-family:'DM Mono',monospace;font-size:0.75rem;padding:0.5rem 1.3rem;border:none;border-radius:4px;background:var(--ink);color:#f0c040;cursor:pointer;font-weight:700;">儲存筆記</button>
+    </div>
+  </div>
 </div>
 
 
@@ -2383,6 +2459,210 @@ async function hotelToggleEdit() {
 }
 
 document.addEventListener('DOMContentLoaded', hotelLoad);
+</script>
+
+<script>
+// ── 小筆記 ──────────────────────────────────────────────
+const NOTES_DOC = db.collection('kobe2026').doc('notes');
+let notesData = [];
+
+// 分類對應色系（便利貼風）
+const NOTE_COLORS = {
+  '行程': { bg:'#fffde7', border:'#f9a825', icon:'🗓', label:'行程' },
+  '交通': { bg:'#e3f2fd', border:'#1e88e5', icon:'🚆', label:'交通' },
+  '美食': { bg:'#fce4ec', border:'#e91e63', icon:'🍽', label:'美食' },
+};
+const NOTE_DEFAULT_COLOR = { bg:'#f3e5f5', border:'#9c27b0', icon:'📝', label:'其他' };
+
+function notesSetStatus(msg, color) {
+  const el = document.getElementById('notes-sync-status');
+  if (el) { el.textContent = msg; el.style.color = color || 'var(--muted)'; }
+}
+
+async function notesLoad() {
+  notesSetStatus('⏳ 同步中…', '#b8860b');
+  try {
+    const snap = await NOTES_DOC.get();
+    notesData = (snap.exists && Array.isArray(snap.data().items)) ? snap.data().items : [];
+    notesSetStatus('✓ 已同步', '#27ae60');
+  } catch(e) {
+    notesSetStatus('⚠ 讀取失敗', '#c0392b');
+    try { const s = localStorage.getItem('kobe26_notes'); if (s) notesData = JSON.parse(s); } catch(_) {}
+  }
+  notesRender();
+}
+
+async function notesPush() {
+  notesSetStatus('💾 儲存中…', '#b8860b');
+  try {
+    await NOTES_DOC.set({ items: notesData, updatedAt: firebase.firestore.FieldValue.serverTimestamp() });
+    localStorage.setItem('kobe26_notes', JSON.stringify(notesData));
+    notesSetStatus('✓ 已同步', '#27ae60');
+  } catch(e) {
+    localStorage.setItem('kobe26_notes', JSON.stringify(notesData));
+    notesSetStatus('⚠ 雲端失敗，已存本機', '#c0392b');
+  }
+}
+
+function notesRender() {
+  const grid = document.getElementById('notes-grid');
+  const empty = document.getElementById('notes-empty');
+  if (!grid) return;
+
+  // 移除舊便利貼（保留 empty 提示）
+  Array.from(grid.children).forEach(el => { if (el.id !== 'notes-empty') el.remove(); });
+
+  if (!notesData.length) {
+    if (empty) empty.style.display = '';
+    return;
+  }
+  if (empty) empty.style.display = 'none';
+
+  notesData.forEach((note, idx) => {
+    const c = NOTE_COLORS[note.cat] || NOTE_DEFAULT_COLOR;
+    const date = note.ts ? new Date(note.ts).toLocaleDateString('zh-TW', { month:'numeric', day:'numeric', hour:'2-digit', minute:'2-digit' }) : '';
+    const card = document.createElement('div');
+    card.style.cssText = `background:${c.bg};border:1.5px solid ${c.border};border-radius:8px;padding:1rem 1.1rem 0.85rem;position:relative;box-shadow:0 2px 8px rgba(0,0,0,0.06);transition:box-shadow 0.15s;`;
+    card.onmouseenter = () => card.style.boxShadow = '0 6px 18px rgba(0,0,0,0.12)';
+    card.onmouseleave = () => card.style.boxShadow = '0 2px 8px rgba(0,0,0,0.06)';
+    card.innerHTML = `
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:0.6rem;">
+        <span style="font-size:0.68rem;font-family:'DM Mono',monospace;font-weight:700;letter-spacing:0.1em;color:${c.border};background:white;padding:0.15em 0.55em;border-radius:3px;border:1px solid ${c.border};">${c.icon} ${note.cat||'筆記'}</span>
+        <div style="display:flex;align-items:center;gap:0.5rem;">
+          <span style="font-size:0.65rem;color:#aaa;font-family:'DM Mono',monospace;">${date}</span>
+          <button onclick="notesDelete(${idx})" title="刪除"
+            style="background:none;border:none;cursor:pointer;color:#ccc;font-size:1rem;line-height:1;padding:0.1rem 0.2rem;border-radius:3px;transition:color 0.15s;"
+            onmouseenter="this.style.color='#c0392b'" onmouseleave="this.style.color='#ccc'">✕</button>
+        </div>
+      </div>
+      <div style="font-size:0.85rem;line-height:1.75;white-space:pre-wrap;word-break:break-word;color:var(--ink);">${note.text||''}</div>
+    `;
+    grid.appendChild(card);
+  });
+}
+
+function notesOpenModal() {
+  const modal = document.getElementById('notes-modal');
+  const ta = document.getElementById('notes-modal-text');
+  const counter = document.getElementById('notes-modal-count');
+  if (ta) { ta.value = ''; }
+  if (counter) counter.textContent = '0 / 500';
+  notesClearImage();
+  if (modal) modal.style.display = 'flex';
+  setTimeout(() => { if (ta) ta.focus(); }, 100);
+}
+
+function notesClearImage() {
+  const preview = document.getElementById('notes-img-preview');
+  const zone    = document.getElementById('notes-img-zone');
+  const label   = document.getElementById('notes-img-label');
+  const input   = document.getElementById('notes-img-input');
+  const status  = document.getElementById('notes-ocr-status');
+  if (preview) preview.style.display = 'none';
+  if (zone)    zone.style.display = '';
+  if (label)   label.textContent = '📷 點擊或拖曳上傳圖片，由 AI 辨識轉文字';
+  if (input)   input.value = '';
+  if (status)  { status.style.display = 'none'; status.textContent = ''; }
+}
+
+async function notesHandleImage(file) {
+  if (!file || !file.type.startsWith('image/')) return;
+
+  // 顯示預覽
+  const thumb   = document.getElementById('notes-img-thumb');
+  const preview = document.getElementById('notes-img-preview');
+  const zone    = document.getElementById('notes-img-zone');
+  const status  = document.getElementById('notes-ocr-status');
+  const ta      = document.getElementById('notes-modal-text');
+  const counter = document.getElementById('notes-modal-count');
+
+  const reader = new FileReader();
+  reader.onload = async (e) => {
+    const base64 = e.target.result; // data:image/xxx;base64,...
+    const base64data = base64.split(',')[1];
+    const mediaType = file.type;
+
+    if (thumb)   { thumb.src = base64; }
+    if (preview) preview.style.display = 'block';
+    if (zone)    zone.style.display = 'none';
+    if (status)  { status.style.display = 'block'; status.textContent = '🤖 AI 辨識中，請稍候…'; status.style.color = '#b8860b'; }
+
+    try {
+      const res = await fetch('https://api.anthropic.com/v1/messages', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          model: 'claude-sonnet-4-20250514',
+          max_tokens: 1000,
+          messages: [{
+            role: 'user',
+            content: [
+              {
+                type: 'image',
+                source: { type: 'base64', media_type: mediaType, data: base64data }
+              },
+              {
+                type: 'text',
+                text: '請將這張圖片中的所有文字內容完整擷取並轉為純文字。如果圖片是菜單、招牌、告示牌、截圖等，請照實轉錄。如果圖片沒有文字，請簡短描述圖片內容。請直接輸出文字內容，不要加任何說明或前言。'
+              }
+            ]
+          }]
+        })
+      });
+
+      const data = await res.json();
+      const text = data.content?.find(b => b.type === 'text')?.text?.trim() || '';
+
+      if (text) {
+        if (ta) {
+          // 若已有文字則換行後附加，若空白則直接填入
+          const existing = ta.value.trim();
+          ta.value = existing ? existing + '\n\n' + text : text;
+          // 限制 500 字
+          if (ta.value.length > 500) ta.value = ta.value.slice(0, 500);
+          if (counter) counter.textContent = ta.value.length + ' / 500';
+        }
+        if (status) { status.textContent = '✓ 辨識完成，請確認內容後儲存'; status.style.color = '#27ae60'; }
+      } else {
+        if (status) { status.textContent = '⚠ 無法辨識，請手動輸入'; status.style.color = '#c0392b'; }
+      }
+    } catch(e) {
+      if (status) { status.textContent = '⚠ 辨識失敗，請手動輸入'; status.style.color = '#c0392b'; }
+    }
+  };
+  reader.readAsDataURL(file);
+}
+
+function notesCloseModal() {
+  const modal = document.getElementById('notes-modal');
+  if (modal) modal.style.display = 'none';
+}
+
+// 點擊 modal 背景關閉
+document.getElementById('notes-modal')?.addEventListener('click', function(e) {
+  if (e.target === this) notesCloseModal();
+});
+
+async function notesSubmit() {
+  const cat  = document.getElementById('notes-modal-cat')?.value || '行程';
+  const text = document.getElementById('notes-modal-text')?.value?.trim() || '';
+  if (!text) { alert('請輸入筆記內容！'); return; }
+  notesData.unshift({ cat, text, ts: Date.now() }); // 最新的放最前面
+  notesCloseModal();
+  notesRender();
+  await notesPush();
+}
+
+async function notesDelete(idx) {
+  const note = notesData[idx];
+  const preview = (note.text||'').slice(0, 20) + ((note.text||'').length > 20 ? '…' : '');
+  if (!confirm(`確定刪除這則「${note.cat}」筆記？\n\n「${preview}」`)) return;
+  notesData.splice(idx, 1);
+  notesRender();
+  await notesPush();
+}
+
+document.addEventListener('DOMContentLoaded', notesLoad);
 </script>
 
 <!-- ══ TAB 5: 支付優惠 ══ -->
