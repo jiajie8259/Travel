@@ -2588,45 +2588,45 @@ async function notesHandleImage(file) {
     if (status)  { status.style.display = 'block'; status.textContent = '🤖 AI 辨識中，請稍候…'; status.style.color = '#b8860b'; }
 
     try {
-      const res = await fetch('https://api.anthropic.com/v1/messages', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          model: 'claude-sonnet-4-20250514',
-          max_tokens: 1000,
-          messages: [{
-            role: 'user',
-            content: [
-              {
-                type: 'image',
-                source: { type: 'base64', media_type: mediaType, data: base64data }
-              },
-              {
-                type: 'text',
-                text: '請將這張圖片中的所有文字內容完整擷取並轉為純文字。如果圖片是菜單、招牌、告示牌、截圖等，請照實轉錄。如果圖片沒有文字，請簡短描述圖片內容。請直接輸出文字內容，不要加任何說明或前言。'
-              }
-            ]
-          }]
-        })
-      });
+      const VISION_API_KEY = 'AIzaSyCLPHCRr1uwioawNl0UXYrFNa_ftMdI3PU';
+      const res = await fetch(
+        `https://vision.googleapis.com/v1/images:annotate?key=${VISION_API_KEY}`,
+        {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            requests: [{
+              image: { content: base64data },
+              features: [
+                { type: 'TEXT_DETECTION',     maxResults: 1 },
+                { type: 'DOCUMENT_TEXT_DETECTION', maxResults: 1 }
+              ]
+            }]
+          })
+        }
+      );
 
       const data = await res.json();
-      const text = data.content?.find(b => b.type === 'text')?.text?.trim() || '';
+      const annotation = data.responses?.[0];
+
+      // 優先用 fullTextAnnotation（排版較完整），fallback 用 textAnnotations
+      let text = annotation?.fullTextAnnotation?.text?.trim()
+        || annotation?.textAnnotations?.[0]?.description?.trim()
+        || '';
 
       if (text) {
         if (ta) {
-          // 若已有文字則換行後附加，若空白則直接填入
           const existing = ta.value.trim();
           ta.value = existing ? existing + '\n\n' + text : text;
-          // 限制 500 字
           if (ta.value.length > 500) ta.value = ta.value.slice(0, 500);
           if (counter) counter.textContent = ta.value.length + ' / 500';
         }
         if (status) { status.textContent = '✓ 辨識完成，請確認內容後儲存'; status.style.color = '#27ae60'; }
       } else {
-        if (status) { status.textContent = '⚠ 無法辨識，請手動輸入'; status.style.color = '#c0392b'; }
+        if (status) { status.textContent = '⚠ 圖片中未偵測到文字'; status.style.color = '#c0392b'; }
       }
     } catch(e) {
+      console.error('Vision API error:', e);
       if (status) { status.textContent = '⚠ 辨識失敗，請手動輸入'; status.style.color = '#c0392b'; }
     }
   };
