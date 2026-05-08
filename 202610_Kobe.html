@@ -2586,55 +2586,53 @@ async function notesHandleImage(file) {
     if (status)  { status.style.display = 'block'; status.textContent = '🤖 AI 辨識中，請稍候（首次載入較慢）…'; status.style.color = '#b8860b'; }
 
     try {
-      // 動態載入 Tesseract.js（首次才下載）
-      if (!window.Tesseract) {
-        await new Promise((resolve, reject) => {
-          const s = document.createElement('script');
-          s.src = 'https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js';
-          s.onload = resolve;
-          s.onerror = reject;
-          document.head.appendChild(s);
-        });
-      }
-
       // 壓縮圖片
-      let imgSrc = base64full;
-      try { imgSrc = 'data:image/jpeg;base64,' + await notesCompressImage(base64full, 'image/jpeg'); } catch(_) {}
+      let base64data = base64full.split(',')[1];
+      try { base64data = await notesCompressImage(base64full, file.type); } catch(_) {}
 
-      // 辨識語言：用陣列格式，並指定語言包來源（Tesseract.js v5 正確語法）
-      const worker = await Tesseract.createWorker(['chi_tra', 'chi_sim', 'jpn', 'eng'], 1, {
-        langPath: 'https://tessdata.projectnaptha.com/4.0.0',
-        logger: m => {
-          if (status) {
-            if (m.status === 'loading language traineddata') {
-              status.textContent = `⏬ 下載語言包中… ${Math.round((m.progress||0)*100)}%`;
-            } else if (m.status === 'recognizing text') {
-              status.textContent = `🤖 辨識中… ${Math.round((m.progress||0)*100)}%`;
-            }
+      try {
+        const VISION_KEY = 'AIzaSyCLPHCRr1uwioawNl0UXYrFNa_ftMdI3PU';
+        const res = await fetch(
+          `https://vision.googleapis.com/v1/images:annotate?key=${VISION_KEY}`,
+          {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              requests: [{
+                image: { content: base64data },
+                features: [{ type: 'DOCUMENT_TEXT_DETECTION', maxResults: 1 }],
+                imageContext: {
+                  languageHints: ['zh-Hant', 'zh-Hans', 'ja', 'en']
+                }
+              }]
+            })
           }
+        );
+
+        const data = await res.json();
+        const response = data.responses?.[0];
+
+        if (response?.error) throw new Error(response.error.message);
+
+        const text = response?.fullTextAnnotation?.text?.trim()
+          || response?.textAnnotations?.[0]?.description?.trim()
+          || '';
+
+        if (text) {
+          if (ta) {
+            const existing = ta.value.trim();
+            ta.value = existing ? existing + '\n\n' + text : text;
+            if (ta.value.length > 500) ta.value = ta.value.slice(0, 500);
+            if (counter) counter.textContent = ta.value.length + ' / 500';
+          }
+          if (status) { status.textContent = '✓ 辨識完成，請確認內容後儲存'; status.style.color = '#27ae60'; }
+        } else {
+          if (status) { status.textContent = '⚠ 未偵測到文字，請手動輸入'; status.style.color = '#c0392b'; }
         }
-      });
-
-      const result = await worker.recognize(imgSrc);
-      await worker.terminate();
-
-      const text = result.data.text?.trim() || '';
-
-      if (text) {
-        if (ta) {
-          const existing = ta.value.trim();
-          ta.value = existing ? existing + '\n\n' + text : text;
-          if (ta.value.length > 500) ta.value = ta.value.slice(0, 500);
-          if (counter) counter.textContent = ta.value.length + ' / 500';
-        }
-        if (status) { status.textContent = '✓ 辨識完成，請確認內容後儲存'; status.style.color = '#27ae60'; }
-      } else {
-        if (status) { status.textContent = '⚠ 未偵測到文字，請手動輸入'; status.style.color = '#c0392b'; }
+      } catch(err) {
+        console.error('Vision API error:', err);
+        if (status) { status.textContent = `⚠ 辨識失敗：${err.message||'請手動輸入'}`; status.style.color = '#c0392b'; }
       }
-    } catch(err) {
-      console.error('Tesseract error:', err);
-      if (status) { status.textContent = '⚠ 辨識失敗，請手動輸入'; status.style.color = '#c0392b'; }
-    }
   };
   reader.readAsDataURL(file);
 }
