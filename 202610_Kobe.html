@@ -2547,9 +2547,9 @@ function notesOpenModal() {
   const counter = document.getElementById('notes-modal-count');
   if (ta) { ta.value = ''; }
   if (counter) counter.textContent = '0 / 500';
-  notesClearImage();
+  try { notesClearImage(); } catch(_) {}
   if (modal) modal.style.display = 'flex';
-  setTimeout(() => { if (ta) ta.focus(); }, 100);
+  setTimeout(() => { if (ta) ta.focus(); }, 150);
 }
 
 function notesClearImage() {
@@ -2558,17 +2558,16 @@ function notesClearImage() {
   const label   = document.getElementById('notes-img-label');
   const input   = document.getElementById('notes-img-input');
   const status  = document.getElementById('notes-ocr-status');
-  if (preview) preview.style.display = 'none';
-  if (zone)    zone.style.display = '';
-  if (label)   label.textContent = '📷 點擊或拖曳上傳圖片，由 AI 辨識轉文字';
-  if (input)   input.value = '';
-  if (status)  { status.style.display = 'none'; status.textContent = ''; }
+  try { if (preview) preview.style.display = 'none'; } catch(_) {}
+  try { if (zone)    zone.style.display = ''; } catch(_) {}
+  try { if (label)   label.textContent = '📷 點擊或拖曳上傳圖片，由 AI 辨識轉文字'; } catch(_) {}
+  try { if (input)   input.value = ''; } catch(_) {}
+  try { if (status)  { status.style.display = 'none'; status.textContent = ''; } } catch(_) {}
 }
 
 async function notesHandleImage(file) {
   if (!file || !file.type.startsWith('image/')) return;
 
-  // 顯示預覽
   const thumb   = document.getElementById('notes-img-thumb');
   const preview = document.getElementById('notes-img-preview');
   const zone    = document.getElementById('notes-img-zone');
@@ -2583,56 +2582,51 @@ async function notesHandleImage(file) {
     if (thumb)   { thumb.src = base64full; }
     if (preview) preview.style.display = 'block';
     if (zone)    zone.style.display = 'none';
-    if (status)  { status.style.display = 'block'; status.textContent = '🤖 AI 辨識中，請稍候（首次載入較慢）…'; status.style.color = '#b8860b'; }
+    if (status)  { status.style.display = 'block'; status.textContent = '🤖 AI 辨識中，請稍候…'; status.style.color = '#b8860b'; }
+
+    let base64data = base64full.split(',')[1];
+    try { base64data = await notesCompressImage(base64full, file.type); } catch(_) {}
 
     try {
-      // 壓縮圖片
-      let base64data = base64full.split(',')[1];
-      try { base64data = await notesCompressImage(base64full, file.type); } catch(_) {}
-
-      try {
-        const VISION_KEY = 'AIzaSyCLPHCRr1uwioawNl0UXYrFNa_ftMdI3PU';
-        const res = await fetch(
-          `https://vision.googleapis.com/v1/images:annotate?key=${VISION_KEY}`,
-          {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              requests: [{
-                image: { content: base64data },
-                features: [{ type: 'DOCUMENT_TEXT_DETECTION', maxResults: 1 }],
-                imageContext: {
-                  languageHints: ['zh-Hant', 'zh-Hans', 'ja', 'en']
-                }
-              }]
-            })
-          }
-        );
-
-        const data = await res.json();
-        const response = data.responses?.[0];
-
-        if (response?.error) throw new Error(response.error.message);
-
-        const text = response?.fullTextAnnotation?.text?.trim()
-          || response?.textAnnotations?.[0]?.description?.trim()
-          || '';
-
-        if (text) {
-          if (ta) {
-            const existing = ta.value.trim();
-            ta.value = existing ? existing + '\n\n' + text : text;
-            if (ta.value.length > 500) ta.value = ta.value.slice(0, 500);
-            if (counter) counter.textContent = ta.value.length + ' / 500';
-          }
-          if (status) { status.textContent = '✓ 辨識完成，請確認內容後儲存'; status.style.color = '#27ae60'; }
-        } else {
-          if (status) { status.textContent = '⚠ 未偵測到文字，請手動輸入'; status.style.color = '#c0392b'; }
+      const VISION_KEY = 'AIzaSyCLPHCRr1uwioawNl0UXYrFNa_ftMdI3PU';
+      const res = await fetch(
+        `https://vision.googleapis.com/v1/images:annotate?key=${VISION_KEY}`,
+        {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            requests: [{
+              image: { content: base64data },
+              features: [{ type: 'DOCUMENT_TEXT_DETECTION', maxResults: 1 }],
+              imageContext: { languageHints: ['zh-Hant', 'zh-Hans', 'ja', 'en'] }
+            }]
+          })
         }
-      } catch(err) {
-        console.error('Vision API error:', err);
-        if (status) { status.textContent = `⚠ 辨識失敗：${err.message||'請手動輸入'}`; status.style.color = '#c0392b'; }
+      );
+
+      const data = await res.json();
+      const response = data.responses?.[0];
+      if (response?.error) throw new Error(response.error.message);
+
+      const text = response?.fullTextAnnotation?.text?.trim()
+        || response?.textAnnotations?.[0]?.description?.trim()
+        || '';
+
+      if (text) {
+        if (ta) {
+          const existing = ta.value.trim();
+          ta.value = existing ? existing + '\n\n' + text : text;
+          if (ta.value.length > 500) ta.value = ta.value.slice(0, 500);
+          if (counter) counter.textContent = ta.value.length + ' / 500';
+        }
+        if (status) { status.textContent = '✓ 辨識完成，請確認內容後儲存'; status.style.color = '#27ae60'; }
+      } else {
+        if (status) { status.textContent = '⚠ 未偵測到文字，請手動輸入'; status.style.color = '#c0392b'; }
       }
+    } catch(err) {
+      console.error('Vision API error:', err);
+      if (status) { status.textContent = `⚠ 辨識失敗：${err.message||'請手動輸入'}`; status.style.color = '#c0392b'; }
+    }
   };
   reader.readAsDataURL(file);
 }
