@@ -1402,7 +1402,10 @@
       <button id="hotel-edit-btn" onclick="hotelToggleEdit()" style="font-family:'DM Mono',monospace;font-size:0.72rem;letter-spacing:0.06em;text-transform:uppercase;padding:0.45rem 1rem;border:1.5px solid var(--ink);border-radius:4px;background:transparent;cursor:pointer;color:var(--ink);transition:all 0.15s;">✏ 編輯</button>
     </div>
   </div>
-  <p style="font-size:0.78rem;color:var(--muted);margin-bottom:1.5rem;">費用單位：台幣（已含稅、服務、手續費）　｜　可記錄詢價比較資訊</p>
+  <p style="font-size:0.78rem;color:var(--muted);margin-bottom:1.5rem;">
+    費用單位：日圓（¥）　｜　台幣欄可手動輸入或點「¥→$」自動換算　｜　
+    <span id="hotel-rate-display" style="font-family:'DM Mono',monospace;color:#2c7be5;cursor:pointer;" onclick="hotelShowRate()">📊 查看今日匯率</span>
+  </p>
 
   <!-- 編輯模式工具列 -->
   <div id="hotel-edit-toolbar" style="display:none;background:#fff8e8;border:1.5px solid var(--gold);border-radius:6px;padding:0.75rem 1rem;margin-bottom:1rem;align-items:center;gap:0.75rem;flex-wrap:wrap;">
@@ -1416,12 +1419,13 @@
       <colgroup>
         <col style="width:2.8rem">  <!-- 選定 -->
         <col style="width:4rem">    <!-- 區域 -->
-        <col style="width:16%">     <!-- 飯店名稱 -->
-        <col style="width:9%">      <!-- 房型 -->
+        <col style="width:25%">     <!-- 飯店名稱 -->
+        <col style="width:25%">     <!-- 房型 -->
         <col style="width:3.5rem">  <!-- ㎡ -->
-        <col style="width:9%">      <!-- 備註 -->
+        <col style="width:7%">      <!-- 備註 -->
         <col style="width:5.5rem">  <!-- 小計(¥) -->
-        <col style="width:9%">      <!-- 來源/優惠 -->
+        <col style="width:5.5rem">  <!-- 台幣 -->
+        <col style="width:8%">      <!-- 來源/優惠 -->
         <col style="width:4rem">    <!-- 查價日 -->
         <col style="width:4rem">    <!-- 付款方式 -->
         <col style="width:4rem">    <!-- 付款日 -->
@@ -1439,6 +1443,7 @@
           <th style="padding:0.6rem 0.5rem;font-family:'DM Mono',monospace;font-size:0.72rem;font-weight:600;text-align:center;white-space:nowrap;">㎡</th>
           <th style="padding:0.6rem 0.5rem;font-family:'DM Mono',monospace;font-size:0.72rem;font-weight:600;text-align:left;white-space:nowrap;">備註</th>
           <th style="padding:0.6rem 0.5rem;font-family:'DM Mono',monospace;font-size:0.72rem;font-weight:600;text-align:right;white-space:nowrap;">小計(¥)</th>
+          <th style="padding:0.6rem 0.5rem;font-family:'DM Mono',monospace;font-size:0.72rem;font-weight:600;text-align:right;white-space:nowrap;">台幣(NT$)</th>
           <th style="padding:0.6rem 0.5rem;font-family:'DM Mono',monospace;font-size:0.72rem;font-weight:600;text-align:left;white-space:nowrap;">來源 / 優惠</th>
           <th style="padding:0.6rem 0.5rem;font-family:'DM Mono',monospace;font-size:0.72rem;font-weight:600;text-align:center;white-space:nowrap;">查價日</th>
           <th style="padding:0.6rem 0.5rem;font-family:'DM Mono',monospace;font-size:0.72rem;font-weight:600;text-align:left;white-space:nowrap;">付款方式</th>
@@ -1454,7 +1459,8 @@
         <tr>
           <td colspan="6" style="padding:0.75rem 1rem;text-align:right;font-size:0.78rem;color:var(--muted);font-family:'DM Mono',monospace;">✓ 已選定 小計</td>
           <td id="hotel-total" style="padding:0.75rem 0.5rem;font-weight:900;font-size:1rem;color:var(--red);font-family:'DM Mono',monospace;text-align:right;background:#fff8f8;">—</td>
-          <td colspan="7" style="background:#fff8f8;"></td>
+          <td id="hotel-total-twd" style="padding:0.75rem 0.5rem;font-weight:900;font-size:1rem;color:var(--red);font-family:'DM Mono',monospace;text-align:right;background:#fff8f8;">—</td>
+          <td colspan="8" style="background:#fff8f8;"></td>
           <td id="hotel-del-col-foot" style="display:none;background:#fff8f8;"></td>
         </tr>
       </tfoot>
@@ -2337,12 +2343,13 @@ async function hotelPushToFirebase() {
 }
 
 function hotelCalcTotal() {
-  // 以 selected 勾選欄位加總，不再依 status
-  const sum = hotelRows
-    .filter(r => r.selected)
-    .reduce((acc, r) => acc + (parseInt(r.cost)||0), 0);
-  const el = document.getElementById('hotel-total');
-  if (el) el.textContent = sum > 0 ? 'NT$ ' + sum.toLocaleString() : '—';
+  const selectedRows = hotelRows.filter(r => r.selected);
+  const sumJpy = selectedRows.reduce((acc, r) => acc + (parseInt(r.cost)||0), 0);
+  const sumTwd = selectedRows.reduce((acc, r) => acc + (parseInt(r.twd)||0), 0);
+  const elJpy = document.getElementById('hotel-total');
+  const elTwd = document.getElementById('hotel-total-twd');
+  if (elJpy) elJpy.textContent = sumJpy > 0 ? sumJpy.toLocaleString() : '—';
+  if (elTwd) elTwd.textContent = sumTwd > 0 ? 'NT$ ' + sumTwd.toLocaleString() : '—';
 }
 
 function hotelRender() {
@@ -2393,6 +2400,13 @@ function hotelRender() {
         <td style="padding:0.35rem 0.4rem;">${num('sqm',r.sqm)}</td>
         <td style="padding:0.35rem 0.4rem;">${inp('note',r.note,'')}</td>
         <td style="padding:0.35rem 0.4rem;">${num('cost',r.cost)}</td>
+        <td style="padding:0.35rem 0.4rem;">
+          <div style="display:flex;gap:0.2rem;align-items:center;">
+            ${num('twd',r.twd)}
+            <button onclick="hotelConvertToTwd(${i})" title="依匯率換算台幣"
+              style="flex-shrink:0;background:#e8f4fd;color:#2c7be5;border:1px solid #bee3f8;border-radius:3px;padding:0.15rem 0.3rem;cursor:pointer;font-size:0.65rem;white-space:nowrap;line-height:1.2;">¥→$</button>
+          </div>
+        </td>
         <td style="padding:0.35rem 0.4rem;">${inp('source',r.source,'')}</td>
         <td style="padding:0.35rem 0.4rem;">${inp('pricedate',r.pricedate,'')}</td>
         <td style="padding:0.35rem 0.4rem;">${inp('payment',r.payment,'')}</td>
@@ -2414,6 +2428,7 @@ function hotelRender() {
         <td style="padding:0.6rem 0.5rem;font-family:'DM Mono',monospace;font-size:0.78rem;text-align:center;color:var(--muted);">${r.sqm ? r.sqm+'㎡' : '—'}</td>
         <td style="padding:0.6rem 0.5rem;font-size:0.75rem;color:var(--muted);">${r.note||''}</td>
         <td style="padding:0.6rem 0.5rem;font-family:'DM Mono',monospace;font-size:0.85rem;font-weight:700;text-align:right;color:${isSelected?'var(--red)':'var(--ink)'};">${cost > 0 ? cost.toLocaleString() : '—'}</td>
+        <td style="padding:0.6rem 0.5rem;font-family:'DM Mono',monospace;font-size:0.82rem;font-weight:${isSelected?'700':'400'};text-align:right;color:${isSelected?'#27ae60':'var(--muted)'};">${r.twd ? 'NT$'+parseInt(r.twd).toLocaleString() : '—'}</td>
         <td style="padding:0.6rem 0.5rem;font-size:0.75rem;color:#c0392b;">${r.source||'—'}</td>
         <td style="padding:0.6rem 0.5rem;font-family:'DM Mono',monospace;font-size:0.75rem;text-align:center;color:var(--muted);">${r.pricedate||'—'}</td>
         <td style="padding:0.6rem 0.5rem;font-size:0.78rem;">${r.payment||'—'}</td>
@@ -2434,8 +2449,79 @@ function hotelEdit(idx, field, value) {
   hotelCalcTotal();
 }
 
+// 匯率快取
+let _jpyRate = null;
+let _jpyRateTime = 0;
+
+async function hotelGetJpyRate() {
+  // 快取 1 小時
+  if (_jpyRate && Date.now() - _jpyRateTime < 3600000) return _jpyRate;
+  try {
+    const res = await fetch('https://api.exchangerate-api.com/v4/latest/JPY');
+    const data = await res.json();
+    // JPY→TWD 匯率
+    _jpyRate = data.rates?.TWD || null;
+    _jpyRateTime = Date.now();
+    return _jpyRate;
+  } catch(e) {
+    return null;
+  }
+}
+
+async function hotelShowRate() {
+  const el = document.getElementById('hotel-rate-display');
+  if (el) el.textContent = '載入中…';
+  const rate = await hotelGetJpyRate();
+  if (el) {
+    if (rate) {
+      el.textContent = `📊 ¥1 ≈ NT$ ${rate.toFixed(4)}（exchangerate-api 即時）`;
+    } else {
+      el.textContent = '⚠ 無法取得匯率';
+    }
+  }
+}
+
+async function hotelConvertToTwd(idx) {
+  const cost = parseInt(hotelRows[idx]?.cost);
+  if (!cost) { alert('請先填入小計(¥)金額！'); return; }
+
+  const btn = document.querySelector(`#hotel-tbody tr[data-idx="${idx}"] button[title="依匯率換算台幣"]`);
+  if (btn) { btn.textContent = '…'; btn.disabled = true; }
+
+  const rate = await hotelGetJpyRate();
+  if (!rate) {
+    alert('無法取得匯率，請手動輸入台幣金額。');
+    if (btn) { btn.textContent = '¥→$'; btn.disabled = false; }
+    return;
+  }
+
+  const twd = Math.round(cost * rate);
+  hotelRows[idx].twd = twd;
+
+  // 回寫到輸入框
+  const row = document.querySelector(`#hotel-tbody tr[data-idx="${idx}"]`);
+  if (row) {
+    // 台幣欄是第8個td（index 7）
+    const twdInput = row.querySelectorAll('td')[7]?.querySelector('input[type="number"]');
+    if (twdInput) twdInput.value = twd;
+  }
+  hotelCalcTotal();
+
+  if (btn) {
+    btn.textContent = '✓';
+    btn.style.background = '#d4edda';
+    btn.style.color = '#1a6632';
+    setTimeout(() => {
+      btn.textContent = '¥→$';
+      btn.style.background = '#e8f4fd';
+      btn.style.color = '#2c7be5';
+      btn.disabled = false;
+    }, 1500);
+  }
+}
+
 function hotelAddRow() {
-  hotelRows.push({ selected:false, area:'', name:'', roomtype:'', sqm:'', note:'', cost:'', source:'', pricedate:'', payment:'', paydate:'', canceldate:'', checkin:'', checkout:'' });
+  hotelRows.push({ selected:false, area:'', name:'', roomtype:'', sqm:'', note:'', cost:'', twd:'', source:'', pricedate:'', payment:'', paydate:'', canceldate:'', checkin:'', checkout:'' });
   hotelRender();
   document.getElementById('hotel-tbody')?.lastElementChild?.scrollIntoView({ behavior:'smooth', block:'center' });
 }
