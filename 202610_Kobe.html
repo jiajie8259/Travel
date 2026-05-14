@@ -1,154 +1,174 @@
-/**
- * index.js — 旅遊首頁（index.html）專用 JavaScript
- *
- * 功能：
- *   - 「新增旅程」Modal 開關
- *   - 顏色 Swatch 選擇
- *   - 產生新行程 HTML 模板並下載
- */
-
-/* ── Modal 開關 ── */
-function openModal() {
-  document.getElementById('tripModal').classList.add('open');
-}
-function closeModal() {
-  document.getElementById('tripModal').classList.remove('open');
-}
-
-document.addEventListener('DOMContentLoaded', () => {
-  // 點選 overlay 背景關閉
-  document.getElementById('tripModal')?.addEventListener('click', function(e) {
-    if (e.target === this) closeModal();
-  });
-
-  // Swatch 選色
-  document.getElementById('swatches')?.addEventListener('click', function(e) {
-    const sw = e.target.closest('.swatch');
-    if (!sw) return;
-    this.querySelectorAll('.swatch').forEach(s => s.classList.remove('selected'));
-    sw.classList.add('selected');
-  });
-
-  // ESC 關閉
-  document.addEventListener('keydown', e => {
-    if (e.key === 'Escape') closeModal();
-  });
-});
-
-/* ── 日期格式化 ── */
-function formatDate(d) {
-  if (!d) return '';
-  const [y, m, day] = d.split('-');
-  return `${y} / ${m} / ${day}`;
-}
-
-function calcNights(start, end) {
-  if (!start || !end) return { days: '?', nights: '?' };
-  const diff = (new Date(end) - new Date(start)) / 86400000;
-  return { days: diff + 1, nights: diff };
-}
-
-/* ── 產生並下載行程 HTML ── */
-function createTrip() {
-  const dest    = document.getElementById('f-dest').value.trim();
-  const sub     = document.getElementById('f-sub').value.trim();
-  const start   = document.getElementById('f-start').value;
-  const end     = document.getElementById('f-end').value;
-  const country = document.getElementById('f-country').value.trim() || '日本';
-  const flag    = document.getElementById('f-flag').value.trim()    || '🌍';
-  const tagsRaw = document.getElementById('f-tags').value.trim();
-  const grad    = document.querySelector('#swatches .swatch.selected')?.dataset.grad
-                  || 'linear-gradient(90deg,#c0392b,#e67e22)';
-
-  if (!dest) { alert('請填寫目的地名稱'); return; }
-
-  const tags         = tagsRaw ? tagsRaw.split(/[,，]/).map(t => t.trim()).filter(Boolean) : [country];
-  const { days, nights } = calcNights(start, end);
-  const year         = start ? start.split('-')[0] : new Date().getFullYear();
-  const filename     = `${year}_${dest.replace(/\s+/g, '_')}.html`;
-  const tagsHtml     = tags.map(t => `            <span class="day-badge">${t}</span>`).join('\n');
-  const dateDisplay  = start && end
-    ? `${formatDate(start)} – ${formatDate(end).slice(-8)}`
-    : '待定';
-
-  // ── 新行程 HTML 模板 ──
-  // 引用共用的 css/ 與 js/ 檔案，不再內嵌 CSS
-  const html = `<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="zh-TW">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>${dest} · 旅遊記錄</title>
+<title>神戶大阪五日遊 · 2026</title>
 <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@400;600;900&family=DM+Mono:wght@400;500&family=Cormorant+Garamond:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="css/base.css">
 <link rel="stylesheet" href="css/trip-page.css">
+<link rel="stylesheet" href="css/tracker.css">
 <style>
-  /* ── 本旅程專屬：Header 背景文字 ── */
+  /* ── 神戶頁專屬：Header 背景裝飾文字 ── */
   header::before {
-    content: '${dest.slice(0, 2)}';
+    content: '神戶';
     position: absolute;
-    font-size: 18rem;
+    font-size: 16rem;
     font-weight: 900;
     opacity: 0.04;
     top: 50%; left: 50%;
-    transform: translate(-50%,-50%);
+    transform: translate(-50%, -50%);
     white-space: nowrap;
     pointer-events: none;
-  }
-  /* ── 本旅程主色調（Banner 漸層） ── */
-  header::after {
-    content: '';
-    position: absolute; inset: 0;
-    background: ${grad};
-    opacity: 0.15;
+    font-family: 'Noto Serif TC', serif;
   }
 </style>
 </head>
 <body>
+<!-- ── TRACKER DASHBOARD (sticky, shown only in 行程支付對照 sub-panel) ── -->
+<div class="tracker-bar" id="tracker-bar">
+  <div class="tracker-bar-inner">
+    <div class="tracker-title">
+      <span>⚡ 回饋額度追蹤器 · 即時剩餘</span>
+      <div style="display:flex;align-items:center;gap:0.5rem;">
+        <span id="tracker-rate-display" style="font-family:'DM Mono',monospace;font-size:0.58rem;color:#aaa;">匯率載入中...</span>
+        <button class="tracker-reset" onclick="ledgerOpen()" style="color:#f0c040;border-color:#555;">📋 明細</button>
+        <button class="tracker-reset" onclick="exportXLSX()" style="color:#6ec88a;border-color:#3a6a4a;" title="匯出所有記帳資料為 Excel (.xlsx)">⬇ 匯出</button>
+        <button class="tracker-reset" onclick="resetConfirmOpen()">↺ 重置</button>
+      </div>
+    </div>
+    <div class="tracker-cards" id="tracker-cards"></div>
+  </div>
+</div>
+
+<!-- ── 自由記帳 MODAL ── -->
+<div class="free-modal-overlay" id="free-modal">
+  <div class="free-modal-box">
+    <div class="free-modal-title">✏️ 新增消費</div>
+    <div class="free-modal-field">
+      <label class="free-modal-label" for="free-modal-name">消費地點 / 說明</label>
+      <input class="free-modal-input" id="free-modal-name" type="text" placeholder="例：便利商店、路邊小吃…" maxlength="30">
+    </div>
+    <div class="free-modal-field">
+      <label class="free-modal-label">選擇支付方式</label>
+      <div id="free-pay-selector" style="display:flex;flex-wrap:wrap;gap:0.4rem;"></div>
+    </div>
+    <div class="free-modal-field">
+      <label class="free-modal-label" for="free-modal-amount">消費金額（日圓）</label>
+      <div class="free-modal-amount-wrap">
+        <span class="free-modal-currency">¥</span>
+        <input class="free-modal-amount" id="free-modal-amount" type="number" placeholder="0" min="0" oninput="freeModalUpdatePreview()">
+      </div>
+    </div>
+    <div class="free-modal-preview" id="free-modal-preview"></div>
+    <div class="free-modal-btns">
+      <button class="free-btn-cancel" onclick="freeModalClose()">取消</button>
+      <button class="free-btn-confirm" onclick="freeModalConfirm()">記帳 ✓</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── 重置確認 MODAL ── -->
+<div class="reset-confirm-overlay" id="reset-confirm-overlay">
+  <div class="reset-confirm-box">
+    <div class="reset-confirm-icon">⚠️</div>
+    <div class="reset-confirm-title">確定要重置全部記帳？</div>
+    <div class="reset-confirm-body">所有<strong>消費記錄與回饋額度</strong>將被清除，且<strong>無法復原</strong>。<br><span style="font-size:0.78rem;color:#aaa;">（行程略過標記不受影響）</span></div>
+    <div class="reset-confirm-btns">
+      <button class="reset-btn-cancel" onclick="resetConfirmClose()">取消，繼續保留</button>
+      <button class="reset-btn-confirm" onclick="resetConfirmDo()">確定清除</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── 消費明細 MODAL ── -->
+<div class="ledger-overlay" id="ledger-overlay">
+  <div class="ledger-box">
+    <div class="ledger-header">
+      <div class="ledger-header-title">📋 消費明細總覽</div>
+      <button class="ledger-header-close" onclick="ledgerClose()">✕ 關閉</button>
+    </div>
+    <div class="ledger-body" id="ledger-body"></div>
+  </div>
+</div>
+
+<!-- ── INPUT MODAL ── -->
+<div class="modal-overlay" id="tracker-modal">
+  <div class="modal-box">
+    <div class="modal-title-tx" id="tracker-modal-title">記錄消費</div>
+    <div class="modal-sub-tx" id="tracker-modal-sub"></div>
+
+    <!-- 支付方式選擇器 -->
+    <div style="margin:0.6rem 0 0.5rem;">
+      <div style="font-family:'DM Mono',monospace;font-size:0.6rem;letter-spacing:0.1em;text-transform:uppercase;color:#888;margin-bottom:0.45rem;">選擇支付方式</div>
+      <div id="tracker-pay-selector" style="display:flex;flex-wrap:wrap;gap:0.4rem;"></div>
+    </div>
+
+    <div class="modal-input-wrap">
+      <span class="modal-currency">¥</span>
+      <input class="modal-input-tx" id="tracker-modal-amount" type="number" placeholder="0" min="0" oninput="trackerUpdatePreview()">
+    </div>
+    <div class="modal-preview-tx" id="tracker-modal-preview"></div>
+    <div class="modal-btns-tx">
+      <button class="modal-btn-tx modal-btn-cancel-tx" onclick="trackerCloseModal()">取消</button>
+      <button class="modal-btn-tx modal-btn-confirm-tx" onclick="trackerConfirmLog()">記帳 ✓</button>
+    </div>
+  </div>
+</div>
 
 <header>
-  <div class="date-tag">${flag} ${country} · ${dateDisplay}</div>
-  <h1>${dest}</h1>
-  <p>${sub || '行程記錄'}</p>
+  <div class="date-tag">2026 · 10/22 THU → 10/26 MON</div>
+  <h1>神戶大阪五日遊</h1>
+  <p>神戶 · 大阪</p>
 </header>
-<div class="divider"></div>
 
 <div class="tab-nav">
   <button class="tab-btn active" onclick="switchTab('itinerary',this)">📅 行程總覽</button>
+  <button class="tab-btn" onclick="switchTab('transport',this)">🚆 交通</button>
+  <button class="tab-btn" onclick="switchTab('food',this)">🍽 美食</button>
+  <button class="tab-btn" onclick="switchTab('spots',this)">📍 景點</button>
+  <button class="tab-btn" onclick="switchTab('hotel',this)">🏨 飯店</button>
+  <button class="tab-btn" onclick="switchTab('payment',this)">💳 支付優惠</button>
+  <button class="tab-btn" onclick="switchTab('notes',this)">📝 小筆記</button>
+  <button class="tab-btn" onclick="switchTab('cards',this)">🃏 隨身小卡</button>
 </div>
 
-<!-- ══ TAB: 行程總覽 ══ -->
+
+
+<!-- ══ TAB 1: ITINERARY ══ -->
 <div id="itinerary" class="tab-panel active">
 <main>
-  <a class="back-link" href="index.html" style="display:inline-flex;align-items:center;gap:0.4rem;font-family:'DM Mono',monospace;font-size:0.7rem;letter-spacing:0.1em;color:var(--gold);text-decoration:none;margin-bottom:2rem;opacity:0.8;">← 返回旅遊首頁</a>
 
-  <div class="tags-row" style="display:flex;flex-wrap:wrap;gap:0.4rem;margin-bottom:2rem;">
-${tagsHtml}
-  </div>
-
-  <!-- ── DAY 1 ── -->
+  <!-- D1 -->
   <div class="day-block">
     <div class="day-header">
       <div class="day-label">D1</div>
-      <div class="day-sub">${start ? formatDate(start) : '第一天'} · 出發・抵達</div>
+      <div class="day-sub">10/22 (四) 出發日 · 抵達神戶</div>
     </div>
     <div class="period">
       <div class="period-title">早上・出發</div>
       <div class="event">
         <div class="event-type"><span class="tag tag-transport">交通</span></div>
         <div class="event-body">
-          <div class="event-name">✈ 出發</div>
-          <div class="event-note">從台灣出發，前往${country}。</div>
+          <div class="event-name">✈ JX834　桃園（TPE）06:20 → 神戶（UKB）10:00</div>
+          <div class="event-note">星宇航空　AIRBUS A350　桃園第一航廈出發　｜　飛行約 3小時40分</div>
         </div>
       </div>
     </div>
     <div class="period">
       <div class="period-title">下午・抵達</div>
       <div class="event">
+        <div class="event-type"><span class="tag tag-transport">交通</span></div>
+        <div class="event-body">
+          <div class="event-name">關西國際機場 → 神戶市區</div>
+          <div class="event-note">（交通方式待確認：港灣航線 / 利木津巴士 / 電車）</div>
+        </div>
+      </div>
+      <div class="event">
         <div class="event-type"><span class="tag tag-spot">景點</span></div>
         <div class="event-body">
-          <div class="event-name">抵達・Check-in</div>
-          <div class="event-note">抵達目的地，辦理入住手續。</div>
+          <div class="event-name">神戶舊外國人居留地・南京町</div>
+          <div class="event-note">待補充</div>
         </div>
       </div>
     </div>
@@ -157,35 +177,2428 @@ ${tagsHtml}
       <div class="event">
         <div class="event-type"><span class="tag tag-meal">餐飲</span></div>
         <div class="event-body">
-          <div class="event-name">晚餐</div>
-          <div class="event-note">探索當地餐廳，享用第一頓在地美食。</div>
+          <div class="event-name">晚餐（待安排）</div>
+          <div class="event-note">神戶牛燒肉 / 三宮居酒屋</div>
         </div>
       </div>
     </div>
   </div>
 
-  <!-- 複製上方 .day-block 區塊，修改 Day 數字與內容 -->
+  <!-- D2 -->
+  <div class="day-block">
+    <div class="day-header">
+      <div class="day-label">D2</div>
+      <div class="day-sub">10/23 (五) 神戶市區</div>
+    </div>
+    <div class="period">
+      <div class="period-title">上午</div>
+      <div class="event">
+        <div class="event-type"><span class="tag tag-spot">景點</span></div>
+        <div class="event-body">
+          <div class="event-name">待補充</div>
+        </div>
+      </div>
+    </div>
+    <div class="period">
+      <div class="period-title">下午</div>
+      <div class="event">
+        <div class="event-type"><span class="tag tag-spot">景點</span></div>
+        <div class="event-body">
+          <div class="event-name">待補充</div>
+        </div>
+      </div>
+    </div>
+    <div class="period">
+      <div class="period-title">晚上</div>
+      <div class="event">
+        <div class="event-type"><span class="tag tag-meal">餐飲</span></div>
+        <div class="event-body">
+          <div class="event-name">待補充</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- D3 -->
+  <div class="day-block">
+    <div class="day-header">
+      <div class="day-label">D3</div>
+      <div class="day-sub">10/24 (六) 待確認</div>
+    </div>
+    <div class="period">
+      <div class="period-title">全日</div>
+      <div class="event">
+        <div class="event-type"><span class="tag tag-spot">景點</span></div>
+        <div class="event-body">
+          <div class="event-name">待補充</div>
+          <div class="event-note">有馬温泉 / 大阪市區 等</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- D4 -->
+  <div class="day-block">
+    <div class="day-header">
+      <div class="day-label">D4</div>
+      <div class="day-sub">10/25 (日) 大阪</div>
+    </div>
+    <div class="period">
+      <div class="period-title">全日</div>
+      <div class="event">
+        <div class="event-type"><span class="tag tag-spot">景點</span></div>
+        <div class="event-body">
+          <div class="event-name">待補充</div>
+          <div class="event-note">道頓堀 / 心齋橋 / 難波 等</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- D5 -->
+  <div class="day-block">
+    <div class="day-header">
+      <div class="day-label">D5</div>
+      <div class="day-sub">10/26 (一) 返程日</div>
+    </div>
+    <div class="period">
+      <div class="period-title">早上</div>
+      <div class="event">
+        <div class="event-type"><span class="tag tag-spot">景點</span></div>
+        <div class="event-body">
+          <div class="event-name">待補充（返程前行程）</div>
+        </div>
+      </div>
+    </div>
+    <div class="period">
+      <div class="period-title">返程</div>
+      <div class="event">
+        <div class="event-type"><span class="tag tag-transport">交通</span></div>
+        <div class="event-body">
+          <div class="event-name">大阪市區 → 關西國際機場</div>
+          <div class="event-note">（交通方式待確認）</div>
+        </div>
+      </div>
+      <div class="event">
+        <div class="event-type"><span class="tag tag-transport">交通</span></div>
+        <div class="event-body">
+          <div class="event-name">✈ JX823　關西（KIX）15:10 → 桃園（TPE）17:05</div>
+          <div class="event-note">星宇航空　AIRBUS A350　桃園第一航廈出發　｜　飛行約 3小時40分</div>
+        </div>
+      </div>
+    </div>
+  </div>
 
 </main>
 </div>
 
+<!-- ══ TAB 2: CARDS ══ -->
+<!-- ══ TAB: 飯店 ══ -->
+<div id="hotel" class="tab-panel">
+<div style="max-width:1400px;margin:0 auto;padding:2.5rem 2.5rem 4rem;">
+
+  <div style="display:flex;align-items:center;justify-content:space-between;border-bottom:2px solid var(--ink);padding-bottom:0.5rem;margin-bottom:0.75rem;">
+    <h2 style="font-size:1.1rem;font-weight:700;letter-spacing:0.1em;">🏨 飯店詢價紀錄</h2>
+    <div style="display:flex;align-items:center;gap:0.75rem;">
+      <span id="hotel-sync-status" style="font-family:'DM Mono',monospace;font-size:0.68rem;color:var(--muted);"></span>
+      <button id="hotel-edit-btn" onclick="hotelToggleEdit()" style="font-family:'DM Mono',monospace;font-size:0.72rem;letter-spacing:0.06em;text-transform:uppercase;padding:0.45rem 1rem;border:1.5px solid var(--ink);border-radius:4px;background:transparent;cursor:pointer;color:var(--ink);transition:all 0.15s;">✏ 編輯</button>
+    </div>
+  </div>
+  <p style="font-size:0.78rem;color:var(--muted);margin-bottom:1.5rem;">
+    費用單位：日圓（¥）　｜　台幣欄可手動輸入或點「¥→$」自動換算　｜　
+    <span id="hotel-rate-display" style="font-family:'DM Mono',monospace;color:#2c7be5;cursor:pointer;" onclick="hotelShowRate()">📊 查看今日匯率</span>
+  </p>
+
+  <!-- 編輯模式工具列 -->
+  <div id="hotel-edit-toolbar" style="display:none;background:#fff8e8;border:1.5px solid var(--gold);border-radius:6px;padding:0.75rem 1rem;margin-bottom:1rem;align-items:center;gap:0.75rem;flex-wrap:wrap;">
+    <button onclick="hotelAddRow()" style="font-family:'DM Mono',monospace;font-size:0.72rem;padding:0.4rem 0.9rem;background:var(--ink);color:#f0c040;border:none;border-radius:4px;cursor:pointer;">＋ 新增飯店</button>
+    <span style="font-size:0.75rem;color:var(--muted);">點擊儲存格可直接編輯　｜　每列右側有刪除按鈕</span>
+    <button onclick="hotelSave()" style="margin-left:auto;font-family:'DM Mono',monospace;font-size:0.72rem;padding:0.4rem 0.9rem;background:#27ae60;color:white;border:none;border-radius:4px;cursor:pointer;">💾 儲存</button>
+  </div>
+
+  <div style="overflow-x:auto;border-radius:6px;border:1px solid #e0d8cc;width:100%;">
+    <table id="hotel-main-table" style="width:100%;border-collapse:collapse;font-size:0.8rem;background:white;table-layout:fixed;">
+      <colgroup>
+        <col style="width:2.8rem">  <!-- 選定 -->
+        <col style="width:3rem">    <!-- 區域 -->
+        <col style="width:28%">     <!-- 飯店名稱 -->
+        <col style="width:22%">     <!-- 房型 -->
+        <col style="width:3.5rem">  <!-- ㎡ -->
+        <col style="width:6%">      <!-- 備註 -->
+        <col style="width:5.5rem">  <!-- 小計(¥) -->
+        <col style="width:5.5rem">  <!-- 台幣 -->
+        <col style="width:7%">      <!-- 來源 -->
+        <col style="width:4rem">    <!-- 查價日 -->
+        <col style="width:4rem">    <!-- 付款方式 -->
+        <col style="width:4rem">    <!-- 付款日 -->
+        <col style="width:4rem">    <!-- 取消期限 -->
+        <col style="width:4rem">    <!-- 住宿(起) -->
+        <col style="width:4rem">    <!-- 住宿(迄) -->
+        <col style="width:1.8rem">  <!-- 刪除 -->
+      </colgroup>
+      <thead>
+        <tr style="background:var(--ink);color:var(--paper);">
+          <th style="padding:0.6rem 0.5rem;font-family:'DM Mono',monospace;font-size:0.72rem;font-weight:600;text-align:center;white-space:nowrap;">選定</th>
+          <th style="padding:0.6rem 0.5rem;font-family:'DM Mono',monospace;font-size:0.72rem;font-weight:600;text-align:left;white-space:nowrap;">區域</th>
+          <th style="padding:0.6rem 0.5rem;font-family:'DM Mono',monospace;font-size:0.72rem;font-weight:600;text-align:left;white-space:nowrap;">飯店名稱</th>
+          <th style="padding:0.6rem 0.5rem;font-family:'DM Mono',monospace;font-size:0.72rem;font-weight:600;text-align:left;white-space:nowrap;">房型</th>
+          <th style="padding:0.6rem 0.5rem;font-family:'DM Mono',monospace;font-size:0.72rem;font-weight:600;text-align:center;white-space:nowrap;">㎡</th>
+          <th style="padding:0.6rem 0.5rem;font-family:'DM Mono',monospace;font-size:0.72rem;font-weight:600;text-align:left;white-space:nowrap;">備註</th>
+          <th style="padding:0.6rem 0.5rem;font-family:'DM Mono',monospace;font-size:0.72rem;font-weight:600;text-align:right;white-space:nowrap;">小計(¥)</th>
+          <th style="padding:0.6rem 0.5rem;font-family:'DM Mono',monospace;font-size:0.72rem;font-weight:600;text-align:right;white-space:nowrap;">台幣(NT$)</th>
+          <th style="padding:0.6rem 0.5rem;font-family:'DM Mono',monospace;font-size:0.72rem;font-weight:600;text-align:left;white-space:nowrap;">來源</th>
+          <th style="padding:0.6rem 0.5rem;font-family:'DM Mono',monospace;font-size:0.72rem;font-weight:600;text-align:center;white-space:nowrap;">查價日</th>
+          <th style="padding:0.6rem 0.5rem;font-family:'DM Mono',monospace;font-size:0.72rem;font-weight:600;text-align:left;white-space:nowrap;">付款方式</th>
+          <th style="padding:0.6rem 0.5rem;font-family:'DM Mono',monospace;font-size:0.72rem;font-weight:600;text-align:center;white-space:nowrap;">付款日</th>
+          <th style="padding:0.6rem 0.5rem;font-family:'DM Mono',monospace;font-size:0.72rem;font-weight:600;text-align:center;white-space:nowrap;">取消期限</th>
+          <th style="padding:0.6rem 0.5rem;font-family:'DM Mono',monospace;font-size:0.72rem;font-weight:600;text-align:center;white-space:nowrap;">住宿(起)</th>
+          <th style="padding:0.6rem 0.5rem;font-family:'DM Mono',monospace;font-size:0.72rem;font-weight:600;text-align:center;white-space:nowrap;">住宿(迄)</th>
+          <th id="hotel-del-col" style="display:none;width:1.8rem;"></th>
+        </tr>
+      </thead>
+      <tbody id="hotel-tbody"></tbody>
+      <tfoot>
+        <tr>
+          <td colspan="6" style="padding:0.75rem 1rem;text-align:right;font-size:0.78rem;color:var(--muted);font-family:'DM Mono',monospace;">✓ 已選定 小計</td>
+          <td id="hotel-total" style="padding:0.75rem 0.5rem;font-weight:900;font-size:1rem;color:var(--red);font-family:'DM Mono',monospace;text-align:right;background:#fff8f8;">—</td>
+          <td id="hotel-total-twd" style="padding:0.75rem 0.5rem;font-weight:900;font-size:1rem;color:var(--red);font-family:'DM Mono',monospace;text-align:right;background:#fff8f8;">—</td>
+          <td colspan="8" style="background:#fff8f8;"></td>
+          <td id="hotel-del-col-foot" style="display:none;background:#fff8f8;"></td>
+        </tr>
+      </tfoot>
+    </table>
+  </div>
+
+</div>
+</div>
+
+
+
+<!-- ══ TAB: 小筆記 ══ -->
+<div id="notes" class="tab-panel">
+<div style="max-width:1100px;margin:0 auto;padding:2.5rem 2.5rem 4rem;">
+
+  <div style="display:flex;align-items:center;justify-content:space-between;border-bottom:2px solid var(--ink);padding-bottom:0.5rem;margin-bottom:1.5rem;">
+    <h2 style="font-size:1.1rem;font-weight:700;letter-spacing:0.1em;">📝 小筆記</h2>
+    <div style="display:flex;align-items:center;gap:0.75rem;">
+      <span id="notes-sync-status" style="font-family:'DM Mono',monospace;font-size:0.68rem;color:var(--muted);"></span>
+      <button onclick="notesOpenModal()" style="font-family:'DM Mono',monospace;font-size:0.72rem;letter-spacing:0.06em;padding:0.45rem 1.1rem;border:none;border-radius:4px;background:var(--ink);color:#f0c040;cursor:pointer;">＋ 新增小筆記</button>
+    </div>
+  </div>
+
+  <!-- 便利貼區域 -->
+  <div id="notes-grid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:1.25rem;">
+    <div id="notes-empty" style="display:none;grid-column:1/-1;text-align:center;padding:3rem;color:var(--muted);font-style:italic;font-size:0.88rem;">
+      還沒有筆記，點「＋ 新增小筆記」開始記錄吧！
+    </div>
+  </div>
+
+</div>
+</div>
+
+<!-- 新增筆記 Modal -->
+<div id="notes-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.45);z-index:9999;align-items:center;justify-content:center;">
+  <div style="background:white;border-radius:10px;padding:2rem;width:min(480px,90vw);box-shadow:0 20px 60px rgba(0,0,0,0.25);position:relative;">
+    <div id="notes-modal-title" style="font-weight:700;font-size:1rem;margin-bottom:1.25rem;letter-spacing:0.05em;">📝 新增小筆記</div>
+
+    <!-- 分類選擇 -->
+    <div style="margin-bottom:1rem;">
+      <label style="font-size:0.78rem;color:var(--muted);font-family:'DM Mono',monospace;letter-spacing:0.08em;display:block;margin-bottom:0.35rem;">分類</label>
+      <select id="notes-modal-cat" style="width:100%;font-size:0.88rem;border:1.5px solid #ddd;border-radius:5px;padding:0.5rem 0.7rem;background:white;cursor:pointer;">
+        <option value="行程">🗓 行程</option>
+        <option value="交通">🚆 交通</option>
+        <option value="美食">🍽 美食</option>
+      </select>
+    </div>
+
+    <!-- 文字輸入 -->
+    <div style="margin-bottom:1.25rem;">
+      <label style="font-size:0.78rem;color:var(--muted);font-family:'DM Mono',monospace;letter-spacing:0.08em;display:block;margin-bottom:0.35rem;">內容 <span id="notes-modal-count" style="color:#aaa;">0 / 500</span></label>
+
+      <!-- 圖片上傳區 -->
+      <div id="notes-img-zone"
+        onclick="document.getElementById('notes-img-input').click()"
+        ondragover="event.preventDefault();this.style.borderColor='var(--gold)'"
+        ondragleave="this.style.borderColor='#ddd'"
+        ondrop="event.preventDefault();this.style.borderColor='#ddd';notesHandleImage(event.dataTransfer.files[0])"
+        style="border:2px dashed #ddd;border-radius:6px;padding:0.75rem 1rem;margin-bottom:0.75rem;cursor:pointer;text-align:center;font-size:0.78rem;color:var(--muted);transition:border-color 0.15s;background:#fafafa;">
+        <span id="notes-img-label">📷 點擊或拖曳上傳圖片，由 AI 辨識轉文字</span>
+        <input id="notes-img-input" type="file" accept="image/*" style="display:none;" onchange="notesHandleImage(this.files[0])">
+      </div>
+      <!-- 圖片預覽 -->
+      <div id="notes-img-preview" style="display:none;margin-bottom:0.75rem;position:relative;">
+        <img id="notes-img-thumb" style="max-height:120px;border-radius:6px;border:1px solid #ddd;display:block;">
+        <button onclick="notesClearImage()" style="position:absolute;top:4px;right:4px;background:rgba(0,0,0,0.5);color:white;border:none;border-radius:50%;width:22px;height:22px;cursor:pointer;font-size:0.75rem;line-height:1;">✕</button>
+      </div>
+      <!-- OCR 狀態 -->
+      <div id="notes-ocr-status" style="display:none;font-size:0.75rem;font-family:'DM Mono',monospace;color:#b8860b;margin-bottom:0.5rem;text-align:center;"></div>
+
+      <textarea id="notes-modal-text" maxlength="500" rows="6"
+        oninput="document.getElementById('notes-modal-count').textContent=this.value.length+' / 500'"
+        placeholder="在這裡輸入筆記內容，或上傳圖片讓 AI 自動辨識…"
+        style="width:100%;font-size:0.88rem;border:1.5px solid #ddd;border-radius:5px;padding:0.6rem 0.8rem;resize:vertical;box-sizing:border-box;font-family:'Noto Serif TC',serif;line-height:1.7;"></textarea>
+    </div>
+
+    <!-- 按鈕 -->
+    <div style="display:flex;gap:0.75rem;justify-content:flex-end;">
+      <button onclick="notesCloseModal()" style="font-family:'DM Mono',monospace;font-size:0.75rem;padding:0.5rem 1.1rem;border:1.5px solid #ccc;border-radius:4px;background:white;cursor:pointer;color:var(--muted);">取消</button>
+      <button id="notes-modal-submit" onclick="notesSubmit()" style="font-family:'DM Mono',monospace;font-size:0.75rem;padding:0.5rem 1.3rem;border:none;border-radius:4px;background:var(--ink);color:#f0c040;cursor:pointer;font-weight:700;">儲存筆記</button>
+    </div>
+  </div>
+</div>
+
+
+
+<div id="cards" class="tab-panel">
+<div id="card-section">
+  <h2 style="margin-top:2rem;">✂ 隨身小卡 — 每天一張，列印後剪開攜帶</h2>
+  <div class="card-grid">
+
+    <!-- ── D1 ── -->
+    <div class="mini-card">
+      <div class="mini-card-header">
+        <div class="day-big">D1</div>
+        <div class="day-info">
+          <div>10/22 (四)　抵達神戶</div>
+          <div style="opacity:0.6;font-size:0.65rem;">JX834 去程</div>
+        </div>
+      </div>
+      <div class="mini-card-body">
+        <div class="mini-card-period">出發</div>
+        <div class="item"><div class="item-dot" style="background:#aaa"></div><div class="item-text">✈ JX834　06:20 TPE → 10:00 UKB（神戶）
+          <div class="item-sub">星宇航空　A350　桃園第一航廈出發　飛行約 3h40m</div>
+        </div></div>
+
+        <div class="mini-card-period">抵達・交通</div>
+        <div class="item"><div class="item-dot" style="background:#aaa"></div><div class="item-text">關西機場 → 神戶三宮
+          <div class="item-sub">交通方式待確認（港灣航線 / はるか+新快速）</div>
+        </div></div>
+
+        <div class="mini-card-period">下午・晚上</div>
+        <div class="item"><div class="item-dot" style="background:#6b7c5e"></div><div class="item-text">🏛 舊外國人居留地・南京町</div></div>
+        <div class="item"><div class="item-dot" style="background:#c0392b"></div><div class="item-text">🍽 晚餐（待安排）<div class="item-sub">神戶牛燒肉 / 三宮居酒屋</div></div></div>
+      </div>
+    </div>
+
+    <!-- ── D2 ── -->
+    <div class="mini-card">
+      <div class="mini-card-header">
+        <div class="day-big">D2</div>
+        <div class="day-info">
+          <div>10/23 (五)　神戶市區</div>
+          <div style="opacity:0.6;font-size:0.65rem;">待補充</div>
+        </div>
+      </div>
+      <div class="mini-card-body">
+        <div class="mini-card-period">全日</div>
+        <div class="item"><div class="item-dot" style="background:#6b7c5e"></div><div class="item-text">景點待補充</div></div>
+        <div class="item"><div class="item-dot" style="background:#c0392b"></div><div class="item-text">🍽 餐飲待補充</div></div>
+      </div>
+    </div>
+
+    <!-- ── D3 ── -->
+    <div class="mini-card">
+      <div class="mini-card-header">
+        <div class="day-big">D3</div>
+        <div class="day-info">
+          <div>10/24 (六)　待確認</div>
+          <div style="opacity:0.6;font-size:0.65rem;">有馬温泉 / 大阪等</div>
+        </div>
+      </div>
+      <div class="mini-card-body">
+        <div class="mini-card-period">全日</div>
+        <div class="item"><div class="item-dot" style="background:#6b7c5e"></div><div class="item-text">景點待補充</div></div>
+        <div class="item"><div class="item-dot" style="background:#c0392b"></div><div class="item-text">🍽 餐飲待補充</div></div>
+      </div>
+    </div>
+
+    <!-- ── D4 ── -->
+    <div class="mini-card">
+      <div class="mini-card-header">
+        <div class="day-big">D4</div>
+        <div class="day-info">
+          <div>10/25 (日)　大阪</div>
+          <div style="opacity:0.6;font-size:0.65rem;">道頓堀・心齋橋・難波</div>
+        </div>
+      </div>
+      <div class="mini-card-body">
+        <div class="mini-card-period">全日</div>
+        <div class="item"><div class="item-dot" style="background:#6b7c5e"></div><div class="item-text">景點待補充</div></div>
+        <div class="item"><div class="item-dot" style="background:#c0392b"></div><div class="item-text">🍽 餐飲待補充</div></div>
+      </div>
+    </div>
+
+    <!-- ── D5 ── -->
+    <div class="mini-card">
+      <div class="mini-card-header">
+        <div class="day-big">D5</div>
+        <div class="day-info">
+          <div>10/26 (一)　返程日</div>
+          <div style="opacity:0.6;font-size:0.65rem;">JX823 回程</div>
+        </div>
+      </div>
+      <div class="mini-card-body">
+        <div class="mini-card-period">早上</div>
+        <div class="item"><div class="item-dot" style="background:#6b7c5e"></div><div class="item-text">返程前行程（待補充）</div></div>
+
+        <div class="mini-card-period">返程</div>
+        <div class="item"><div class="item-dot" style="background:#aaa"></div><div class="item-text">大阪市區 → 關西機場
+          <div class="item-sub">交通方式待確認</div>
+        </div></div>
+        <div class="item"><div class="item-dot" style="background:#aaa"></div><div class="item-text">✈ JX823　15:10 KIX → 17:05 TPE（桃園）
+          <div class="item-sub">星宇航空　A350　關西機場出發　飛行約 2h55m</div>
+        </div></div>
+      </div>
+    </div>
+
+  </div>
+  <p style="font-size:0.75rem;color:#aaa;margin-top:1.5rem;text-align:center;">共 5 張 · 列印後剪開，每天帶當天那張即可</p>
+</div>
+</div>
+
+<!-- ══ TAB 3: 交通 ══ -->
+<div id="transport" class="tab-panel">
+<div style="max-width:1400px;margin:0 auto;padding:2.5rem 2.5rem 4rem;">
+
+  <div style="display:flex;align-items:center;justify-content:space-between;border-bottom:2px solid var(--ink);padding-bottom:0.5rem;margin-bottom:0.75rem;">
+    <h2 style="font-size:1.1rem;font-weight:700;letter-spacing:0.1em;">🚆 交通資訊</h2>
+    <div style="display:flex;align-items:center;gap:0.75rem;">
+      <span id="trans-sync-status" style="font-family:'DM Mono',monospace;font-size:0.68rem;color:var(--muted);"></span>
+      <a href="https://www.jorudan.co.jp/" target="_blank" style="font-family:'DM Mono',monospace;font-size:0.68rem;padding:0.35rem 0.75rem;border:1.5px solid var(--gold);border-radius:4px;color:var(--gold);text-decoration:none;white-space:nowrap;">🔍 乗換案内</a>
+      <button id="trans-edit-btn" onclick="transToggleEdit()" style="font-family:'DM Mono',monospace;font-size:0.72rem;letter-spacing:0.06em;text-transform:uppercase;padding:0.45rem 1rem;border:1.5px solid var(--ink);border-radius:4px;background:transparent;cursor:pointer;color:var(--ink);transition:all 0.15s;">✏ 編輯</button>
+    </div>
+  </div>
+  <p style="font-size:0.78rem;color:var(--muted);margin-bottom:1.5rem;">ICOCA / PiTaPa 感應為主要交通方式　｜　在「乗換案内」查好路線後填入下方表格</p>
+
+  <!-- 航班資訊 -->
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-bottom:1.5rem;">
+    <div style="background:var(--ink);color:var(--paper);border-radius:8px;padding:1.1rem 1.3rem;">
+      <div style="font-family:'DM Mono',monospace;font-size:0.6rem;letter-spacing:0.15em;text-transform:uppercase;color:#f0c040;margin-bottom:0.5rem;">去程 · OUTBOUND</div>
+      <div style="font-size:1.3rem;font-weight:900;letter-spacing:0.05em;margin-bottom:0.3rem;">JX834</div>
+      <div style="display:flex;align-items:center;gap:0.5rem;margin-bottom:0.5rem;">
+        <span style="font-size:1rem;font-family:'DM Mono',monospace;font-weight:700;">06:20</span>
+        <span style="color:#aaa;font-size:0.8rem;">TPE</span>
+        <span style="color:#555;font-size:0.7rem;">━━✈━━</span>
+        <span style="font-size:1rem;font-family:'DM Mono',monospace;font-weight:700;">10:00</span>
+        <span style="color:#aaa;font-size:0.8rem;">UKB</span>
+      </div>
+      <div style="font-size:0.72rem;color:rgba(255,255,255,0.5);line-height:1.7;">
+        2026/10/22　星宇航空<br>A350　飛行約 3小時40分<br>桃園第一航廈 → 神戶機場（UKB）
+      </div>
+    </div>
+    <div style="background:var(--ink);color:var(--paper);border-radius:8px;padding:1.1rem 1.3rem;">
+      <div style="font-family:'DM Mono',monospace;font-size:0.6rem;letter-spacing:0.15em;text-transform:uppercase;color:#f0c040;margin-bottom:0.5rem;">回程 · RETURN</div>
+      <div style="font-size:1.3rem;font-weight:900;letter-spacing:0.05em;margin-bottom:0.3rem;">JX823</div>
+      <div style="display:flex;align-items:center;gap:0.5rem;margin-bottom:0.5rem;">
+        <span style="font-size:1rem;font-family:'DM Mono',monospace;font-weight:700;">15:10</span>
+        <span style="color:#aaa;font-size:0.8rem;">KIX</span>
+        <span style="color:#555;font-size:0.7rem;">━━✈━━</span>
+        <span style="font-size:1rem;font-family:'DM Mono',monospace;font-weight:700;">17:05</span>
+        <span style="color:#aaa;font-size:0.8rem;">TPE</span>
+      </div>
+      <div style="font-size:0.72rem;color:rgba(255,255,255,0.5);line-height:1.7;">
+        2026/10/26　星宇航空<br>A350　飛行約 2小時55分<br>關西國際機場（KIX）→ 桃園第一航廈
+      </div>
+    </div>
+  </div>
+
+  <!-- 注意事項 -->
+  <div style="background:#fff8e8;border:1.5px solid var(--gold);border-radius:6px;padding:1rem 1.25rem;margin-bottom:1.5rem;font-size:0.82rem;line-height:1.8;">
+    🚄 關西地區建議購買 <strong>ICOCA 交通卡</strong>，可用於 JR・阪急・阪神・地下鐵等各路線感應搭乘。<br>
+    ✈️ 機場↔市區交通方式待確認（JR 特急 はるか / 南海電鐵 ラピート / 利木津巴士）
+  </div>
+
+  <!-- 編輯模式工具列 -->
+  <div id="trans-edit-toolbar" style="display:none;background:#fff8e8;border:1.5px solid var(--gold);border-radius:6px;padding:0.75rem 1rem;margin-bottom:1rem;align-items:center;gap:0.75rem;flex-wrap:wrap;">
+    <button onclick="transAddRow()" style="font-family:'DM Mono',monospace;font-size:0.72rem;padding:0.4rem 0.9rem;background:var(--ink);color:#f0c040;border:none;border-radius:4px;cursor:pointer;">＋ 新增路線</button>
+    <span style="font-size:0.75rem;color:var(--muted);">點擊儲存格可直接編輯　｜　每列右側有刪除按鈕</span>
+    <button onclick="transSave()" style="margin-left:auto;font-family:'DM Mono',monospace;font-size:0.72rem;padding:0.4rem 0.9rem;background:#27ae60;color:white;border:none;border-radius:4px;cursor:pointer;">💾 儲存</button>
+  </div>
+
+  <!-- 交通表格 -->
+  <div style="overflow-x:auto;border-radius:6px;border:1px solid #e0d8cc;width:100%;">
+    <table id="trans-main-table" style="width:100%;border-collapse:collapse;font-size:0.8rem;background:white;table-layout:fixed;">
+      <colgroup>
+        <col style="width:3rem">    <!-- D -->
+        <col style="width:9%">      <!-- 目的地 -->
+        <col style="width:16%">     <!-- 路線名稱 -->
+        <col style="width:20%">     <!-- 起站 → 迄站 -->
+        <col style="width:6rem">    <!-- 發車時間 -->
+        <col style="width:6rem">    <!-- 抵達時間 -->
+        <col style="width:4.5rem">  <!-- 費用(¥) -->
+        <col>                       <!-- 備註 -->
+        <col style="width:1.8rem">  <!-- 刪除 -->
+      </colgroup>
+      <thead>
+        <tr style="background:var(--ink);color:var(--paper);">
+          <th style="padding:0.6rem 0.5rem;font-family:'DM Mono',monospace;font-size:0.72rem;font-weight:600;text-align:center;white-space:nowrap;">D</th>
+          <th style="padding:0.6rem 0.5rem;font-family:'DM Mono',monospace;font-size:0.72rem;font-weight:600;text-align:left;white-space:nowrap;">目的地</th>
+          <th style="padding:0.6rem 0.5rem;font-family:'DM Mono',monospace;font-size:0.72rem;font-weight:600;text-align:left;white-space:nowrap;">路線名稱</th>
+          <th style="padding:0.6rem 0.5rem;font-family:'DM Mono',monospace;font-size:0.72rem;font-weight:600;text-align:left;white-space:nowrap;">起站 → 迄站</th>
+          <th style="padding:0.6rem 0.5rem;font-family:'DM Mono',monospace;font-size:0.72rem;font-weight:600;text-align:center;white-space:nowrap;">發車</th>
+          <th style="padding:0.6rem 0.5rem;font-family:'DM Mono',monospace;font-size:0.72rem;font-weight:600;text-align:center;white-space:nowrap;">抵達</th>
+          <th style="padding:0.6rem 0.5rem;font-family:'DM Mono',monospace;font-size:0.72rem;font-weight:600;text-align:center;white-space:nowrap;">費用(¥)</th>
+          <th style="padding:0.6rem 0.5rem;font-family:'DM Mono',monospace;font-size:0.72rem;font-weight:600;text-align:left;white-space:nowrap;">備註</th>
+          <th id="trans-del-col" style="display:none;width:1.8rem;"></th>
+        </tr>
+      </thead>
+      <tbody id="trans-tbody"></tbody>
+      <tfoot>
+        <tr>
+          <td colspan="6" style="text-align:right;padding:0.75rem 1rem;font-size:0.8rem;color:var(--muted);font-family:'DM Mono',monospace;">電車費小計</td>
+          <td id="trans-total" style="padding:0.75rem 0.5rem;font-weight:900;font-size:1rem;color:var(--red);font-family:'DM Mono',monospace;text-align:center;background:#fff8f8;">—</td>
+          <td style="background:#fff8f8;"></td>
+          <td id="trans-del-col-foot" style="display:none;background:#fff8f8;"></td>
+        </tr>
+      </tfoot>
+    </table>
+  </div>
+
+</div>
+</div>
+
+
+
+<div id="food" class="tab-panel">
+<div style="max-width:1400px;margin:0 auto;padding:2.5rem 2.5rem 4rem;">
+
+  <div style="display:flex;align-items:center;justify-content:space-between;border-bottom:2px solid var(--ink);padding-bottom:0.5rem;margin-bottom:0.75rem;">
+    <h2 style="font-size:1.1rem;font-weight:700;letter-spacing:0.1em;">🍽 美食清單</h2>
+    <div style="display:flex;align-items:center;gap:0.75rem;">
+      <span id="food-sync-status" style="font-family:'DM Mono',monospace;font-size:0.68rem;color:var(--muted);"></span>
+      <button id="food-edit-btn" onclick="foodToggleEdit()" style="font-family:'DM Mono',monospace;font-size:0.72rem;letter-spacing:0.06em;text-transform:uppercase;padding:0.45rem 1rem;border:1.5px solid var(--ink);border-radius:4px;background:transparent;cursor:pointer;color:var(--ink);transition:all 0.15s;">✏ 編輯</button>
+    </div>
+  </div>
+  <p style="font-size:0.78rem;color:var(--muted);margin-bottom:1.5rem;">餐價單位：日元　｜　✅ 已訂位　📋 可訂位　— 不可訂位　｜　🔴 = 只收現金</p>
+
+  <!-- ── 編輯模式工具列 ── -->
+  <div id="food-edit-toolbar" style="display:none;background:#fff8e8;border:1.5px solid var(--gold);border-radius:6px;padding:0.75rem 1rem;margin-bottom:1rem;display:none;align-items:center;gap:0.75rem;flex-wrap:wrap;">
+    <button onclick="foodAddRow()" style="font-family:'DM Mono',monospace;font-size:0.72rem;padding:0.4rem 0.9rem;background:var(--ink);color:#f0c040;border:none;border-radius:4px;cursor:pointer;">＋ 新增一列</button>
+    <span style="font-size:0.75rem;color:var(--muted);">點擊儲存格可直接編輯　｜　每列右側有刪除按鈕</span>
+    <button onclick="foodSave()" style="margin-left:auto;font-family:'DM Mono',monospace;font-size:0.72rem;padding:0.4rem 0.9rem;background:#27ae60;color:white;border:none;border-radius:4px;cursor:pointer;">💾 儲存</button>
+  </div>
+
+  <div class="food-table-wrap">
+    <table class="food-table" id="food-main-table">
+      <colgroup>
+        <col style="width:2.5rem">  <!-- D -->
+        <col style="width:12%">     <!-- 店名 -->
+        <col style="width:5.5rem">  <!-- 時間 -->
+        <col style="width:5rem">    <!-- 支付 -->
+        <col style="width:5rem">    <!-- 訂位 -->
+        <col style="width:2.8rem">  <!-- Menu -->
+        <col style="width:11%">     <!-- 餐點A -->
+        <col style="width:3.5rem">  <!-- ¥A -->
+        <col style="width:11%">     <!-- 餐點B -->
+        <col style="width:3.5rem">  <!-- ¥B -->
+        <col style="width:11%">     <!-- 餐點C -->
+        <col style="width:3.5rem">  <!-- ¥C -->
+        <col>                       <!-- 備註 -->
+        <col style="width:5rem">    <!-- 小計 -->
+        <col style="width:1.8rem">  <!-- 刪除 -->
+      </colgroup>
+      <thead>
+        <tr>
+          <th style="white-space:nowrap;font-size:0.78rem;text-align:center;">D</th>
+          <th style="font-size:0.78rem;text-align:center;">店名</th>
+          <th style="font-size:0.78rem;text-align:center;">時間</th>
+          <th style="font-size:0.78rem;text-align:center;">支付</th>
+          <th style="font-size:0.78rem;text-align:center;white-space:nowrap;">訂位</th>
+          <th style="font-size:0.78rem;text-align:center;white-space:nowrap;">Menu</th>
+          <th style="border-left:2px solid #444;font-size:0.78rem;text-align:center;">餐點 A</th>
+          <th class="col-price" style="font-size:0.78rem;text-align:center;">¥A</th>
+          <th style="border-left:2px solid #444;font-size:0.78rem;text-align:center;">餐點 B</th>
+          <th class="col-price" style="font-size:0.78rem;text-align:center;">¥B</th>
+          <th style="border-left:2px solid #444;font-size:0.78rem;text-align:center;">餐點 C</th>
+          <th class="col-price" style="font-size:0.78rem;text-align:center;">¥C</th>
+          <th style="border-left:2px solid #444;font-size:0.78rem;text-align:center;">備註</th>
+          <th class="col-price" style="font-size:0.78rem;text-align:center;white-space:nowrap;">小計（円）</th>
+          <th id="food-del-col" style="display:none;width:2rem;"></th>
+        </tr>
+      </thead>
+      <tbody id="food-tbody">
+      </tbody>
+      <tfoot>
+        <tr>
+          <td colspan="13" style="text-align:right;padding:0.75rem 1rem;font-size:0.8rem;color:var(--muted);font-family:'DM Mono',monospace;letter-spacing:0.05em;">餐食小計</td>
+          <td class="col-price" id="food-total" style="padding:0.75rem 0.5rem;font-weight:900;font-size:1rem;color:var(--red);font-family:'DM Mono',monospace;background:#fff8f8;text-align:right;">—</td>
+          <td style="background:#fff8f8;"></td>
+          <td id="food-del-col-foot" style="display:none;background:#fff8f8;"></td>
+        </tr>
+      </tfoot>
+    </table>
+  </div>
+
+</div>
+</div>
+
+<!-- Firebase SDK (compat version，無需 bundler 直接在 HTML 用) -->
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
+
+<script>
+// ── Firebase 初始化 ────────────────────────────────────────
+const firebaseConfig = {
+  apiKey:            "AIzaSyA_KFwm7pE8YqSP64OKsFFEU3lKMuF-wjI",
+  authDomain:        "travel-c9ab0.firebaseapp.com",
+  projectId:         "travel-c9ab0",
+  storageBucket:     "travel-c9ab0.firebasestorage.app",
+  messagingSenderId: "179782530206",
+  appId:             "1:179782530206:web:93d42650009b01ad56778f",
+  measurementId:     "G-30P0GGS1YE"
+};
+firebase.initializeApp(firebaseConfig);
+const db = firebase.firestore();
+// 所有美食資料存在 Firestore 的這份文件裡（單一 doc，陣列欄位）
+const FOOD_DOC = db.collection('kobe2026').doc('food');
+
+// ── 美食清單 編輯器 ──────────────────────────────────────
+let foodRows = [];
+let foodEditMode = false;
+let foodSyncing = false;   // 防止連點
+
+const PAY_OPTIONS = ['信用卡','行動支付','只收現金','Suica/ICOCA','不限'];
+const DAY_OPTIONS = ['D1','D2','D3','D4','D5','—'];
+
+// ── 狀態列訊息 ────────────────────────────────────────────
+function foodSetStatus(msg, color) {
+  const el = document.getElementById('food-sync-status');
+  if (!el) return;
+  el.textContent = msg;
+  el.style.color = color || 'var(--muted)';
+}
+
+// ── 從 Firestore 讀取 ─────────────────────────────────────
+async function foodLoad() {
+  foodSetStatus('⏳ 同步中…', '#b8860b');
+  try {
+    const snap = await FOOD_DOC.get();
+    if (snap.exists && Array.isArray(snap.data().rows)) {
+      foodRows = snap.data().rows;
+    } else {
+      foodRows = [];
+    }
+    foodSetStatus('✓ 已同步', '#27ae60');
+  } catch(e) {
+    foodSetStatus('⚠ 讀取失敗（離線模式）', '#c0392b');
+    // 離線 fallback：讀 localStorage
+    try {
+      const saved = localStorage.getItem('kobe26_food_rows');
+      if (saved) foodRows = JSON.parse(saved);
+    } catch(_) {}
+  }
+  // 舊資料相容：□ → 不可訂位，✅ → 已訂位
+  foodRows.forEach(r => {
+    if (r.booked === '□' || !r.booked) r.booked = '不可訂位';
+    else if (r.booked === '✅') r.booked = '已訂位';
+  });
+  foodRender();
+}
+async function foodPushToFirebase() {
+  if (foodSyncing) return;
+  foodSyncing = true;
+  foodSetStatus('💾 儲存中…', '#b8860b');
+  try {
+    await FOOD_DOC.set({ rows: foodRows, updatedAt: firebase.firestore.FieldValue.serverTimestamp() });
+    // 同時備份到 localStorage（離線保險）
+    localStorage.setItem('kobe26_food_rows', JSON.stringify(foodRows));
+    foodSetStatus('✓ 已儲存並同步', '#27ae60');
+  } catch(e) {
+    // Firebase 失敗時仍存 localStorage
+    localStorage.setItem('kobe26_food_rows', JSON.stringify(foodRows));
+    foodSetStatus('⚠ 雲端儲存失敗，已存本機', '#c0392b');
+  }
+  foodSyncing = false;
+}
+
+// ── 計算合計 ──────────────────────────────────────────────
+function foodCalcTotal() {
+  let sum = 0;
+  foodRows.forEach(r => { sum += (parseInt(r.priceA)||0) + (parseInt(r.priceB)||0) + (parseInt(r.priceC)||0); });
+  const el = document.getElementById('food-total');
+  if (el) el.textContent = sum > 0 ? sum.toLocaleString() : '—';
+}
+
+// ── 渲染表格 ──────────────────────────────────────────────
+function foodRender() {
+  const tbody = document.getElementById('food-tbody');
+  if (!tbody) return;
+  if (!foodRows.length) {
+    tbody.innerHTML = `<tr><td colspan="15" style="color:var(--muted);font-style:italic;text-align:center;padding:1.5rem;">— 神戶大阪美食清單待補充 —<br><span style="font-size:0.75rem;">點擊右上角「✏ 編輯」按鈕開始新增</span></td></tr>`;
+    foodCalcTotal();
+    return;
+  }
+
+  // 依 D 欄排序
+  const FOOD_DAY_ORDER = ['D1','D2','D3','D4','D5','—'];
+  const sorted = foodRows
+    .map((r, i) => ({ ...r, _orig: i }))
+    .sort((a, b) => {
+      const ai = FOOD_DAY_ORDER.indexOf(a.day) === -1 ? 99 : FOOD_DAY_ORDER.indexOf(a.day);
+      const bi = FOOD_DAY_ORDER.indexOf(b.day) === -1 ? 99 : FOOD_DAY_ORDER.indexOf(b.day);
+      return ai - bi;
+    });
+
+  // 訂位狀態樣式 helper
+  function bookedTag(state) {
+    if (state === '已訂位') return `<span style="display:inline-block;background:#d4edda;color:#1a6632;font-size:0.68rem;font-family:'DM Mono',monospace;padding:0.18em 0.55em;border-radius:3px;font-weight:700;white-space:nowrap;">✅ 已訂位</span>`;
+    if (state === '可訂位') return `<span style="display:inline-block;background:#fff3cd;color:#856404;font-size:0.68rem;font-family:'DM Mono',monospace;padding:0.18em 0.55em;border-radius:3px;font-weight:700;white-space:nowrap;">📋 可訂位</span>`;
+    return `<span style="display:inline-block;background:#f0f0f0;color:#aaa;font-size:0.68rem;font-family:'DM Mono',monospace;padding:0.18em 0.55em;border-radius:3px;white-space:nowrap;">— 不可訂</span>`;
+  }
+
+  tbody.innerHTML = sorted.map((r) => {
+    const i = r._orig;
+    const isBooked = r.booked === '已訂位';
+    const rowClass = isBooked ? 'booked-row' : '';
+    const delBtn = foodEditMode
+      ? `<td style="text-align:center;padding:0.3rem;"><button onclick="foodDeleteRow(${i})" style="background:none;border:none;cursor:pointer;font-size:1rem;color:#c0392b;padding:0.2rem 0.4rem;" title="刪除">✕</button></td>`
+      : '<td style="display:none"></td>';
+
+    if (foodEditMode) {
+      const dayOpts = DAY_OPTIONS.map(d => `<option value="${d}" ${r.day===d?'selected':''}>${d}</option>`).join('');
+      const payOpts = PAY_OPTIONS.map(p => `<option value="${p}" ${r.pay===p?'selected':''}>${p}</option>`).join('');
+      const bkOpts  = ['不可訂位','可訂位','已訂位'].map(b => `<option value="${b}" ${r.booked===b?'selected':''}>${b}</option>`).join('');
+      const inp = (field, val, ph) =>
+        `<input value="${(val||'').replace(/"/g,'&quot;')}" onchange="foodEdit(${i},'${field}',this.value)" placeholder="${ph}"
+          style="width:100%;font-size:0.78rem;border:1px solid #ddd;border-radius:3px;padding:0.2rem 0.3rem;box-sizing:border-box;">`;
+      const num = (field, val) =>
+        `<input type="number" value="${val||''}" onchange="foodEdit(${i},'${field}',this.value)" placeholder="0"
+          style="width:100%;font-size:0.78rem;border:1px solid #ddd;border-radius:3px;padding:0.2rem 0.3rem;text-align:right;font-family:'DM Mono',monospace;box-sizing:border-box;">`;
+      const sel = (field, opts) =>
+        `<select onchange="foodEdit(${i},'${field}',this.value)" style="width:100%;font-size:0.75rem;border:1px solid #ddd;border-radius:3px;padding:0.15rem;box-sizing:border-box;">${opts}</select>`;
+      return `<tr class="${rowClass}" data-idx="${i}">
+        <td>${sel('day',dayOpts)}</td>
+        <td class="food-name">${inp('name',r.name,'店名')}</td>
+        <td class="food-hours">${inp('hours',r.hours,'13001500')}</td>
+        <td>${sel('pay',payOpts)}</td>
+        <td>${sel('booked',bkOpts)}</td>
+        <td style="padding:0.35rem 0.4rem;">${inp('menu',r.menu,'https://')}</td>
+        <td style="padding:0.35rem 0.4rem;border-left:2px solid #e8d5a0;">${inp('itemA',r.itemA,'餐點名稱')}</td>
+        <td class="col-price" style="padding:0.35rem 0.4rem;">${num('priceA',r.priceA)}</td>
+        <td style="padding:0.35rem 0.4rem;border-left:2px solid #e8d5a0;">${inp('itemB',r.itemB,'餐點名稱')}</td>
+        <td class="col-price" style="padding:0.35rem 0.4rem;">${num('priceB',r.priceB)}</td>
+        <td style="padding:0.35rem 0.4rem;border-left:2px solid #e8d5a0;">${inp('itemC',r.itemC,'餐點名稱')}</td>
+        <td class="col-price" style="padding:0.35rem 0.4rem;">${num('priceC',r.priceC)}</td>
+        <td style="padding:0.35rem 0.4rem;border-left:2px solid #e8d5a0;">${inp('note',r.note,'備註')}</td>
+        <td class="col-price total-price" style="font-family:'DM Mono',monospace;">${((parseInt(r.priceA)||0)+(parseInt(r.priceB)||0)+(parseInt(r.priceC)||0))||'—'}</td>
+        ${delBtn}
+      </tr>`;
+    } else {
+      const payTag = {
+        '信用卡':     `<span class="pay-tag pay-card">信用卡</span>`,
+        '行動支付':   `<span class="pay-tag pay-mobile">行動支付</span>`,
+        '只收現金':   `<span class="pay-tag pay-cash" style="color:var(--red);font-weight:700;">🔴 現金</span>`,
+        'Suica/ICOCA':`<span class="pay-tag pay-suica">🃏 ICOCA</span>`,
+      }[r.pay] || `<span style="color:var(--muted);font-size:0.75rem;">${r.pay||'—'}</span>`;
+      const total = (parseInt(r.priceA)||0) + (parseInt(r.priceB)||0);
+      return `<tr class="${rowClass}">
+        <td style="font-family:'DM Mono',monospace;font-size:0.72rem;color:var(--muted);text-align:center;">${r.day||'—'}</td>
+        <td class="food-name">${r.name||''}</td>
+        <td class="food-hours">${r.hours||'—'}</td>
+        <td>${payTag}</td>
+        <td style="text-align:center;">${bookedTag(r.booked)}</td>
+        <td style="padding:0.6rem 0.5rem;text-align:center;">
+          ${r.menu ? `<a href="${r.menu.startsWith('http') ? r.menu : 'https://'+r.menu}" target="_blank"
+            title="${(r.menu||'').replace(/"/g,'&quot;')}"
+            style="display:inline-flex;align-items:center;justify-content:center;color:#c0392b;text-decoration:none;"
+            onmouseover="this.style.opacity=0.7" onmouseout="this.style.opacity=1">
+            <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+          </a>` : '<span style="color:#ddd;">—</span>'}
+        </td>
+        <td>${r.itemA||'—'}</td>
+        <td class="col-price" style="padding-right:1rem;">${r.priceA ? parseInt(r.priceA).toLocaleString() : '—'}</td>
+        <td style="border-left:2px solid #f0e8dc;">${r.itemB||'—'}</td>
+        <td class="col-price" style="padding-right:1rem;">${r.priceB ? parseInt(r.priceB).toLocaleString() : '—'}</td>
+        <td style="border-left:2px solid #f0e8dc;">${r.itemC||'—'}</td>
+        <td class="col-price" style="padding-right:1rem;">${r.priceC ? parseInt(r.priceC).toLocaleString() : '—'}</td>
+        <td style="font-size:0.75rem;color:var(--muted);border-left:2px solid #f0e8dc;">${r.note||''}</td>
+        <td class="col-price total-price">${((parseInt(r.priceA)||0)+(parseInt(r.priceB)||0)+(parseInt(r.priceC)||0)) > 0 ? ((parseInt(r.priceA)||0)+(parseInt(r.priceB)||0)+(parseInt(r.priceC)||0)).toLocaleString() : '—'}</td>
+        <td style="display:none"></td>
+      </tr>`;
+    }
+  }).join('');
+  foodCalcTotal();
+  const delCol = document.getElementById('food-del-col');
+  const delColFoot = document.getElementById('food-del-col-foot');
+  if (delCol) delCol.style.display = foodEditMode ? '' : 'none';
+  if (delColFoot) delColFoot.style.display = foodEditMode ? '' : 'none';
+}
+
+function formatTimeRange(val) {
+  // 移除所有非數字字元
+  const digits = val.replace(/\D/g, '');
+  if (digits.length === 0) return val;
+
+  function fmt(s) { return `${s.slice(0,2)}:${s.slice(2,4)}`; }
+
+  if (digits.length === 8) {
+    // 13001500 → 13:00-15:00
+    return `${fmt(digits.slice(0,4))}-${fmt(digits.slice(4,8))}`;
+  }
+  if (digits.length === 7) {
+    // 7001530 → 07:00-15:30（前3碼左補0=開始，後4碼=結束）
+    return `${fmt(digits.slice(0,3).padStart(4,'0'))}-${fmt(digits.slice(3,7))}`;
+  }
+  if (digits.length === 6) {
+    // 101800 → 10:00-18:00（前2碼為小時，後4碼=結束）
+    return `${fmt((digits.slice(0,2)+'00').slice(0,4))}-${fmt(digits.slice(2,6))}`;
+  }
+  if (digits.length === 5) {
+    // 91800 → 09:00-18:00（前1碼為小時個位，後4碼=結束）
+    return `${fmt(('0'+digits[0]+'00').slice(0,4))}-${fmt(digits.slice(1,5))}`;
+  }
+  // 4碼以下：單一時間，左補0到4碼
+  return fmt(digits.padStart(4, '0'));
+}
+
+function foodEdit(idx, field, value) {
+  if (!foodRows[idx]) return;
+  if (field === 'hours') {
+    value = formatTimeRange(value);
+    const row = document.querySelector(`#food-tbody tr[data-idx="${idx}"]`);
+    if (row) { const hi = row.querySelector('td:nth-child(3) input'); if (hi && hi.value !== value) hi.value = value; }
+  }
+  foodRows[idx][field] = value;
+  const total = (parseInt(foodRows[idx].priceA)||0) + (parseInt(foodRows[idx].priceB)||0);
+  document.querySelectorAll(`#food-tbody tr[data-idx="${idx}"] .total-price`)
+    .forEach(c => c.textContent = total > 0 ? total.toLocaleString() : '—');
+  foodCalcTotal();
+}
+
+function foodAddRow() {
+  foodRows.push({ day:'D1', name:'', hours:'', pay:'信用卡', booked:'不可訂位', itemA:'', priceA:'', itemB:'', priceB:'', itemC:'', priceC:'', note:'', menu:'' });
+  foodRender();
+  document.getElementById('food-tbody')?.lastElementChild?.scrollIntoView({ behavior:'smooth', block:'center' });
+}
+
+function foodDeleteRow(idx) {
+  if (!confirm(`確定刪除「${foodRows[idx].name || '此列'}」？`)) return;
+  foodRows.splice(idx, 1);
+  foodRender();
+}
+
+async function foodSave() {
+  await foodPushToFirebase();
+  const btn = document.getElementById('food-edit-btn');
+  if (btn) {
+    const prevText = btn.textContent;
+    const prevBg   = btn.style.background;
+    const prevColor = btn.style.color;
+    btn.textContent = '✓ 已儲存';
+    btn.style.color = '#27ae60';
+    btn.style.borderColor = '#27ae60';
+    setTimeout(() => {
+      btn.textContent  = prevText;
+      btn.style.color  = prevColor;
+      btn.style.background = prevBg;
+      btn.style.borderColor = '';
+    }, 2000);
+  }
+}
+
+async function foodToggleEdit() {
+  foodEditMode = !foodEditMode;
+  const btn     = document.getElementById('food-edit-btn');
+  const toolbar = document.getElementById('food-edit-toolbar');
+  if (foodEditMode) {
+    if (btn)     { btn.textContent = '✓ 完成'; btn.style.background = 'var(--ink)'; btn.style.color = '#f0c040'; }
+    if (toolbar) toolbar.style.display = 'flex';
+  } else {
+    await foodPushToFirebase();
+    if (btn)     { btn.textContent = '✏ 編輯'; btn.style.background = 'transparent'; btn.style.color = 'var(--ink)'; }
+    if (toolbar) toolbar.style.display = 'none';
+  }
+  foodRender();
+}
+
+// ── 啟動：從 Firebase 載入 ────────────────────────────────
+document.addEventListener('DOMContentLoaded', foodLoad);
+</script>
+
+<script>
+// ── 交通清單 編輯器 ──────────────────────────────────────
+const TRANS_DOC = db.collection('kobe2026').doc('transport');
+let transRows = [];
+let transEditMode = false;
+let transSyncing = false;
+
+const TRANS_DAY_OPTIONS = ['D1','D2','D3','D4','D5','—'];
+
+function transSetStatus(msg, color) {
+  const el = document.getElementById('trans-sync-status');
+  if (el) { el.textContent = msg; el.style.color = color || 'var(--muted)'; }
+}
+
+async function transLoad() {
+  transSetStatus('⏳ 同步中…', '#b8860b');
+  try {
+    const snap = await TRANS_DOC.get();
+    transRows = (snap.exists && Array.isArray(snap.data().rows)) ? snap.data().rows : [];
+    transSetStatus('✓ 已同步', '#27ae60');
+  } catch(e) {
+    transSetStatus('⚠ 讀取失敗', '#c0392b');
+    try { const s = localStorage.getItem('kobe26_trans_rows'); if (s) transRows = JSON.parse(s); } catch(_) {}
+  }
+  transRender();
+}
+
+async function transPushToFirebase() {
+  if (transSyncing) return;
+  transSyncing = true;
+  transSetStatus('💾 儲存中…', '#b8860b');
+  try {
+    await TRANS_DOC.set({ rows: transRows, updatedAt: firebase.firestore.FieldValue.serverTimestamp() });
+    localStorage.setItem('kobe26_trans_rows', JSON.stringify(transRows));
+    transSetStatus('✓ 已儲存並同步', '#27ae60');
+  } catch(e) {
+    localStorage.setItem('kobe26_trans_rows', JSON.stringify(transRows));
+    transSetStatus('⚠ 雲端失敗，已存本機', '#c0392b');
+  }
+  transSyncing = false;
+}
+
+function transCalcTotal() {
+  const sum = transRows.reduce((acc, r) => acc + (parseInt(r.fare)||0), 0);
+  const el = document.getElementById('trans-total');
+  if (el) el.textContent = sum > 0 ? sum.toLocaleString() : '—';
+}
+
+function transRender() {
+  const tbody = document.getElementById('trans-tbody');
+  if (!tbody) return;
+  const delCol = document.getElementById('trans-del-col');
+  const delColFoot = document.getElementById('trans-del-col-foot');
+  if (delCol) delCol.style.display = transEditMode ? '' : 'none';
+  if (delColFoot) delColFoot.style.display = transEditMode ? '' : 'none';
+
+  if (!transRows.length) {
+    tbody.innerHTML = `<tr><td colspan="9" style="color:var(--muted);font-style:italic;text-align:center;padding:1.5rem;">— 交通資訊待補充 —<br><span style="font-size:0.75rem;">點擊右上角「✏ 編輯」按鈕開始新增，可參考「乗換案内」查詢路線</span></td></tr>`;
+    transCalcTotal();
+    return;
+  }
+
+  // 依 D 欄排序
+  const DAY_ORDER = ['D1','D2','D3','D4','D5','—'];
+  const sorted = transRows
+    .map((r, i) => ({ ...r, _orig: i }))
+    .sort((a, b) => {
+      if (a._new && !b._new) return 1;
+      if (!a._new && b._new) return -1;
+      const ai = DAY_ORDER.indexOf(a.day) === -1 ? 99 : DAY_ORDER.indexOf(a.day);
+      const bi = DAY_ORDER.indexOf(b.day) === -1 ? 99 : DAY_ORDER.indexOf(b.day);
+      if (ai !== bi) return ai - bi;
+      // 同天依發車時間排序
+      return (a.depart||'').localeCompare(b.depart||'');
+    });
+
+  tbody.innerHTML = sorted.map((r) => {
+    const i = r._orig;
+    const delBtn = transEditMode
+      ? `<td style="text-align:center;padding:0.3rem;"><button onclick="transDeleteRow(${i})" style="background:none;border:none;cursor:pointer;font-size:1rem;color:#c0392b;padding:0.2rem 0.4rem;">✕</button></td>`
+      : `<td style="display:none"></td>`;
+
+    if (transEditMode) {
+      const dayOpts = TRANS_DAY_OPTIONS.map(d => `<option value="${d}" ${r.day===d?'selected':''}>${d}</option>`).join('');
+      const sel = (field, opts) =>
+        `<select onchange="transEdit(${i},'${field}',this.value)" style="width:100%;font-size:0.75rem;border:1px solid #ddd;border-radius:3px;padding:0.15rem;box-sizing:border-box;">${opts}</select>`;
+      const inp = (field, val, ph) =>
+        `<input value="${(val||'').replace(/"/g,'&quot;')}" onchange="transEdit(${i},'${field}',this.value)" placeholder="${ph}"
+          style="width:100%;font-size:0.78rem;border:1px solid #ddd;border-radius:3px;padding:0.2rem 0.3rem;box-sizing:border-box;">`;
+      const time = (field, val) =>
+        `<input value="${val||''}" onchange="transEdit(${i},'${field}',this.value)" placeholder="0900"
+          style="width:100%;font-size:0.78rem;border:1px solid #ddd;border-radius:3px;padding:0.2rem 0.3rem;text-align:center;font-family:'DM Mono',monospace;box-sizing:border-box;">`;
+      const num = (field, val) =>
+        `<input type="number" value="${val||''}" onchange="transEdit(${i},'${field}',this.value)" placeholder="0"
+          style="width:100%;font-size:0.78rem;border:1px solid #ddd;border-radius:3px;padding:0.2rem 0.3rem;text-align:right;font-family:'DM Mono',monospace;box-sizing:border-box;">`;
+      return `<tr data-idx="${i}" style="border-bottom:1px solid #f0e8dc;">
+        <td style="padding:0.35rem 0.4rem;">${sel('day',dayOpts)}</td>
+        <td style="padding:0.35rem 0.4rem;">${inp('dest',r.dest,'目的地')}</td>
+        <td style="padding:0.35rem 0.4rem;">${inp('line',r.line,'路線名稱')}</td>
+        <td style="padding:0.35rem 0.4rem;">${inp('route',r.route,'起站 → 迄站')}</td>
+        <td style="padding:0.35rem 0.4rem;">${time('depart',r.depart)}</td>
+        <td style="padding:0.35rem 0.4rem;">${time('arrive',r.arrive)}</td>
+        <td style="padding:0.35rem 0.4rem;">${num('fare',r.fare)}</td>
+        <td style="padding:0.35rem 0.4rem;">${inp('note',r.note,'備註・月台・車廂')}</td>
+        ${delBtn}
+      </tr>`;
+    } else {
+      const fare = parseInt(r.fare)||0;
+      // 發車/抵達時間格式化
+      const fmtTime = t => {
+        if (!t) return '—';
+        const d = t.replace(/\D/g,'');
+        if (d.length >= 4) return `${d.slice(0,2)}:${d.slice(2,4)}`;
+        return t;
+      };
+      return `<tr style="border-bottom:1px solid #f0e8dc;">
+        <td style="padding:0.6rem 0.5rem;font-family:'DM Mono',monospace;font-size:0.72rem;color:var(--muted);text-align:center;">${r.day||'—'}</td>
+        <td style="padding:0.6rem 0.5rem;font-weight:700;">${r.dest||'—'}</td>
+        <td style="padding:0.6rem 0.5rem;font-size:0.78rem;">${r.line||'—'}</td>
+        <td style="padding:0.6rem 0.5rem;font-size:0.78rem;color:var(--muted);">${r.route||'—'}</td>
+        <td style="padding:0.6rem 0.5rem;font-family:'DM Mono',monospace;font-size:0.8rem;font-weight:700;text-align:center;color:var(--ink);">${fmtTime(r.depart)}</td>
+        <td style="padding:0.6rem 0.5rem;font-family:'DM Mono',monospace;font-size:0.8rem;font-weight:700;text-align:center;color:var(--ink);">${fmtTime(r.arrive)}</td>
+        <td style="padding:0.6rem 0.5rem;font-family:'DM Mono',monospace;font-size:0.78rem;text-align:center;">${fare > 0 ? fare.toLocaleString() : '—'}</td>
+        <td style="padding:0.6rem 0.5rem;font-size:0.75rem;color:var(--muted);">${r.note||''}</td>
+        <td style="display:none"></td>
+      </tr>`;
+    }
+  }).join('');
+  transCalcTotal();
+}
+
+function transEdit(idx, field, value) {
+  if (!transRows[idx]) return;
+  if ((field === 'depart' || field === 'arrive') && value) {
+    value = formatTimeRange(value);
+    const row = document.querySelector(`#trans-tbody tr[data-idx="${idx}"]`);
+    if (row) {
+      const col = field === 'depart' ? 5 : 6;
+      const inp = row.querySelector(`td:nth-child(${col}) input`);
+      if (inp && inp.value !== value) inp.value = value;
+    }
+  }
+  if (transRows[idx]._new) delete transRows[idx]._new;
+  transRows[idx][field] = value;
+  transCalcTotal();
+}
+
+function transAddRow() {
+  transRows.push({ day:'D1', dest:'', line:'', route:'', depart:'', arrive:'', fare:'', note:'', _new:true });
+  transRender();
+  document.getElementById('trans-tbody')?.lastElementChild?.scrollIntoView({ behavior:'smooth', block:'center' });
+}
+
+function transDeleteRow(idx) {
+  if (!confirm(`確定刪除此路線？`)) return;
+  transRows.splice(idx, 1);
+  transRender();
+}
+
+async function transSave() {
+  await transPushToFirebase();
+  const btn = document.getElementById('trans-edit-btn');
+  if (btn) {
+    const prevText = btn.textContent, prevBg = btn.style.background, prevColor = btn.style.color;
+    btn.textContent = '✓ 已儲存'; btn.style.color = '#27ae60'; btn.style.borderColor = '#27ae60';
+    setTimeout(() => { btn.textContent = prevText; btn.style.color = prevColor; btn.style.background = prevBg; btn.style.borderColor = ''; }, 2000);
+  }
+}
+
+async function transToggleEdit() {
+  transEditMode = !transEditMode;
+  const btn     = document.getElementById('trans-edit-btn');
+  const toolbar = document.getElementById('trans-edit-toolbar');
+  if (transEditMode) {
+    if (btn)     { btn.textContent = '✓ 完成'; btn.style.background = 'var(--ink)'; btn.style.color = '#f0c040'; }
+    if (toolbar) toolbar.style.display = 'flex';
+  } else {
+    await transPushToFirebase();
+    if (btn)     { btn.textContent = '✏ 編輯'; btn.style.background = 'transparent'; btn.style.color = 'var(--ink)'; }
+    if (toolbar) toolbar.style.display = 'none';
+  }
+  transRender();
+}
+
+document.addEventListener('DOMContentLoaded', transLoad);
+</script>
+
+<script>
+// ── 飯店詢價 編輯器 ──────────────────────────────────────
+const HOTEL_DOC = db.collection('kobe2026').doc('hotel');
+let hotelRows = [];
+let hotelEditMode = false;
+let hotelSyncing = false;
+
+const HOTEL_STATUS = ['詢價中','已選定','備選','已取消'];
+
+function hotelSetStatus(msg, color) {
+  const el = document.getElementById('hotel-sync-status');
+  if (el) { el.textContent = msg; el.style.color = color || 'var(--muted)'; }
+}
+
+async function hotelLoad() {
+  hotelSetStatus('⏳ 同步中…', '#b8860b');
+  try {
+    const snap = await HOTEL_DOC.get();
+    hotelRows = (snap.exists && Array.isArray(snap.data().rows)) ? snap.data().rows : [];
+    hotelSetStatus('✓ 已同步', '#27ae60');
+  } catch(e) {
+    hotelSetStatus('⚠ 讀取失敗', '#c0392b');
+    try { const s = localStorage.getItem('kobe26_hotel_rows'); if (s) hotelRows = JSON.parse(s); } catch(_) {}
+  }
+  hotelRender();
+}
+
+async function hotelPushToFirebase() {
+  if (hotelSyncing) return;
+  hotelSyncing = true;
+  hotelSetStatus('💾 儲存中…', '#b8860b');
+  try {
+    await HOTEL_DOC.set({ rows: hotelRows, updatedAt: firebase.firestore.FieldValue.serverTimestamp() });
+    localStorage.setItem('kobe26_hotel_rows', JSON.stringify(hotelRows));
+    hotelSetStatus('✓ 已儲存並同步', '#27ae60');
+  } catch(e) {
+    localStorage.setItem('kobe26_hotel_rows', JSON.stringify(hotelRows));
+    hotelSetStatus('⚠ 雲端失敗，已存本機', '#c0392b');
+  }
+  hotelSyncing = false;
+}
+
+function hotelCalcTotal() {
+  const selectedRows = hotelRows.filter(r => r.selected);
+  const sumJpy = selectedRows.reduce((acc, r) => acc + (parseInt(r.cost)||0), 0);
+  const sumTwd = selectedRows.reduce((acc, r) => acc + (parseInt(r.twd)||0), 0);
+  const elJpy = document.getElementById('hotel-total');
+  const elTwd = document.getElementById('hotel-total-twd');
+  if (elJpy) elJpy.textContent = sumJpy > 0 ? sumJpy.toLocaleString() : '—';
+  if (elTwd) elTwd.textContent = sumTwd > 0 ? 'NT$ ' + sumTwd.toLocaleString() : '—';
+}
+
+function hotelRender() {
+  const tbody = document.getElementById('hotel-tbody');
+  if (!tbody) return;
+  const delCol = document.getElementById('hotel-del-col');
+  const delColFoot = document.getElementById('hotel-del-col-foot');
+  if (delCol) delCol.style.display = hotelEditMode ? '' : 'none';
+  if (delColFoot) delColFoot.style.display = hotelEditMode ? '' : 'none';
+
+  if (!hotelRows.length) {
+    tbody.innerHTML = `<tr><td colspan="15" style="color:var(--muted);font-style:italic;text-align:center;padding:1.5rem;">— 尚無飯店詢價紀錄 —<br><span style="font-size:0.75rem;">點擊右上角「✏ 編輯」按鈕開始新增</span></td></tr>`;
+    hotelCalcTotal();
+    return;
+  }
+
+  tbody.innerHTML = hotelRows.map((r, i) => {
+    const isSelected = !!r.selected;
+    const rowBg = isSelected ? 'background:#f0fff4;' : '';
+    const delBtn = hotelEditMode
+      ? `<td style="text-align:center;padding:0.3rem;"><button onclick="hotelDeleteRow(${i})" style="background:none;border:none;cursor:pointer;font-size:1rem;color:#c0392b;padding:0.2rem 0.4rem;">✕</button></td>`
+      : `<td style="display:none"></td>`;
+
+    // 勾選框（編輯模式和檢視模式都可點擊）
+    const chk = `<input type="checkbox" ${isSelected?'checked':''} onchange="hotelEdit(${i},'selected',this.checked)"
+      style="width:1rem;height:1rem;cursor:pointer;accent-color:#27ae60;">`;
+
+    if (hotelEditMode) {
+      const ta = (field, val, ph) =>
+        `<textarea onchange="hotelEdit(${i},'${field}',this.value)"
+          onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();}"
+          placeholder="${ph}" rows="2"
+          style="width:100%;font-size:0.78rem;border:1px solid #ddd;border-radius:3px;padding:0.2rem 0.3rem;box-sizing:border-box;resize:vertical;font-family:inherit;">${(val||'').replace(/</g,'&lt;')}</textarea>`;
+      const inp = (field, val, ph) =>
+        `<input value="${(val||'').replace(/"/g,'&quot;')}" onchange="hotelEdit(${i},'${field}',this.value)" placeholder="${ph}"
+          style="width:100%;font-size:0.78rem;border:1px solid #ddd;border-radius:3px;padding:0.2rem 0.3rem;box-sizing:border-box;">`;
+      const num = (field, val) =>
+        `<input type="number" value="${val||''}" onchange="hotelEdit(${i},'${field}',this.value)" placeholder="0"
+          style="width:100%;font-size:0.78rem;border:1px solid #ddd;border-radius:3px;padding:0.2rem 0.3rem;text-align:right;font-family:'DM Mono',monospace;box-sizing:border-box;">`;
+      const date = (field, val) =>
+        `<input type="date" value="${val||''}" onchange="hotelEdit(${i},'${field}',this.value)"
+          style="width:100%;font-size:0.72rem;border:1px solid #ddd;border-radius:3px;padding:0.2rem 0.2rem;box-sizing:border-box;font-family:'DM Mono',monospace;">`;
+      return `<tr data-idx="${i}" style="${rowBg}border-bottom:1px solid #f0e8dc;">
+        <td style="padding:0.35rem 0.4rem;text-align:center;">${chk}</td>
+        <td style="padding:0.35rem 0.4rem;">${inp('area',r.area,'')}</td>
+        <td style="padding:0.35rem 0.4rem;">${ta('name',r.name,'飯店名稱')}</td>
+        <td style="padding:0.35rem 0.4rem;">${ta('roomtype',r.roomtype,'房型')}</td>
+        <td style="padding:0.35rem 0.4rem;">${num('sqm',r.sqm)}</td>
+        <td style="padding:0.35rem 0.4rem;">${inp('note',r.note,'')}</td>
+        <td style="padding:0.35rem 0.4rem;">${num('cost',r.cost)}</td>
+        <td style="padding:0.35rem 0.4rem;">
+          <div style="display:flex;gap:0.2rem;align-items:center;">
+            ${num('twd',r.twd)}
+            <button onclick="hotelConvertToTwd(${i})" title="依匯率換算台幣"
+              style="flex-shrink:0;background:#e8f4fd;color:#2c7be5;border:1px solid #bee3f8;border-radius:3px;padding:0.15rem 0.3rem;cursor:pointer;font-size:0.65rem;white-space:nowrap;line-height:1.2;">¥→$</button>
+          </div>
+        </td>
+        <td style="padding:0.35rem 0.4rem;">${inp('source',r.source,'')}</td>
+        <td style="padding:0.35rem 0.4rem;">${inp('pricedate',r.pricedate,'')}</td>
+        <td style="padding:0.35rem 0.4rem;">${inp('payment',r.payment,'')}</td>
+        <td style="padding:0.35rem 0.4rem;">${inp('paydate',r.paydate,'')}</td>
+        <td style="padding:0.35rem 0.4rem;">${inp('canceldate',r.canceldate,'')}</td>
+        <td style="padding:0.35rem 0.4rem;">${date('checkin',r.checkin)}</td>
+        <td style="padding:0.35rem 0.4rem;">${date('checkout',r.checkout)}</td>
+        ${delBtn}
+      </tr>`;
+    } else {
+      const cost = parseInt(r.cost)||0;
+      const nl = s => (s||'').replace(/\n/g,'<br>');
+      const fmtDate = d => d ? d.replace(/^(\d{4})-(\d{2})-(\d{2})$/, '$2/$3') : '—';
+      return `<tr style="${rowBg}border-bottom:1px solid #f0e8dc;">
+        <td style="padding:0.6rem 0.5rem;text-align:center;">${chk}</td>
+        <td style="padding:0.6rem 0.5rem;font-size:0.78rem;color:var(--muted);">${r.area||'—'}</td>
+        <td style="padding:0.6rem 0.5rem;font-weight:700;line-height:1.5;">${nl(r.name)||''}</td>
+        <td style="padding:0.6rem 0.5rem;font-size:0.78rem;line-height:1.5;">${nl(r.roomtype)||'—'}</td>
+        <td style="padding:0.6rem 0.5rem;font-family:'DM Mono',monospace;font-size:0.78rem;text-align:center;color:var(--muted);">${r.sqm ? r.sqm+'㎡' : '—'}</td>
+        <td style="padding:0.6rem 0.5rem;font-size:0.75rem;color:var(--muted);">${r.note||''}</td>
+        <td style="padding:0.6rem 0.5rem;font-family:'DM Mono',monospace;font-size:0.85rem;font-weight:700;text-align:right;color:${isSelected?'var(--red)':'var(--ink)'};">${cost > 0 ? cost.toLocaleString() : '—'}</td>
+        <td style="padding:0.6rem 0.5rem;font-family:'DM Mono',monospace;font-size:0.82rem;font-weight:${isSelected?'700':'400'};text-align:right;color:${isSelected?'#27ae60':'var(--muted)'};">${r.twd ? 'NT$'+parseInt(r.twd).toLocaleString() : '—'}</td>
+        <td style="padding:0.6rem 0.5rem;font-size:0.75rem;color:#c0392b;">${r.source||'—'}</td>
+        <td style="padding:0.6rem 0.5rem;font-family:'DM Mono',monospace;font-size:0.75rem;text-align:center;color:var(--muted);">${r.pricedate||'—'}</td>
+        <td style="padding:0.6rem 0.5rem;font-size:0.78rem;">${r.payment||'—'}</td>
+        <td style="padding:0.6rem 0.5rem;font-family:'DM Mono',monospace;font-size:0.75rem;text-align:center;color:var(--muted);">${r.paydate||'—'}</td>
+        <td style="padding:0.6rem 0.5rem;font-family:'DM Mono',monospace;font-size:0.75rem;text-align:center;color:${r.canceldate?'#c0392b':'var(--muted)'};">${r.canceldate||'—'}</td>
+        <td style="padding:0.6rem 0.5rem;font-family:'DM Mono',monospace;font-size:0.75rem;text-align:center;color:var(--muted);">${fmtDate(r.checkin)}</td>
+        <td style="padding:0.6rem 0.5rem;font-family:'DM Mono',monospace;font-size:0.75rem;text-align:center;color:var(--muted);">${fmtDate(r.checkout)}</td>
+        <td style="display:none"></td>
+      </tr>`;
+    }
+  }).join('');
+  hotelCalcTotal();
+}
+
+function hotelEdit(idx, field, value) {
+  if (!hotelRows[idx]) return;
+  hotelRows[idx][field] = value;
+  hotelCalcTotal();
+}
+
+// 匯率快取
+let _jpyRate = null;
+let _jpyRateTime = 0;
+
+async function hotelGetJpyRate() {
+  // 快取 1 小時
+  if (_jpyRate && Date.now() - _jpyRateTime < 3600000) return _jpyRate;
+  try {
+    const res = await fetch('https://api.exchangerate-api.com/v4/latest/JPY');
+    const data = await res.json();
+    // JPY→TWD 匯率
+    _jpyRate = data.rates?.TWD || null;
+    _jpyRateTime = Date.now();
+    return _jpyRate;
+  } catch(e) {
+    return null;
+  }
+}
+
+async function hotelShowRate() {
+  const el = document.getElementById('hotel-rate-display');
+  if (el) el.textContent = '載入中…';
+  const rate = await hotelGetJpyRate();
+  if (el) {
+    if (rate) {
+      el.textContent = `📊 ¥1 ≈ NT$ ${rate.toFixed(4)}（exchangerate-api 即時）`;
+    } else {
+      el.textContent = '⚠ 無法取得匯率';
+    }
+  }
+}
+
+async function hotelConvertToTwd(idx) {
+  const cost = parseInt(hotelRows[idx]?.cost);
+  if (!cost) { alert('請先填入小計(¥)金額！'); return; }
+
+  const btn = document.querySelector(`#hotel-tbody tr[data-idx="${idx}"] button[title="依匯率換算台幣"]`);
+  if (btn) { btn.textContent = '…'; btn.disabled = true; }
+
+  const rate = await hotelGetJpyRate();
+  if (!rate) {
+    alert('無法取得匯率，請手動輸入台幣金額。');
+    if (btn) { btn.textContent = '¥→$'; btn.disabled = false; }
+    return;
+  }
+
+  const twd = Math.round(cost * rate);
+  hotelRows[idx].twd = twd;
+
+  // 回寫到輸入框
+  const row = document.querySelector(`#hotel-tbody tr[data-idx="${idx}"]`);
+  if (row) {
+    // 台幣欄是第8個td（index 7）
+    const twdInput = row.querySelectorAll('td')[7]?.querySelector('input[type="number"]');
+    if (twdInput) twdInput.value = twd;
+  }
+  hotelCalcTotal();
+
+  if (btn) {
+    btn.textContent = '✓';
+    btn.style.background = '#d4edda';
+    btn.style.color = '#1a6632';
+    setTimeout(() => {
+      btn.textContent = '¥→$';
+      btn.style.background = '#e8f4fd';
+      btn.style.color = '#2c7be5';
+      btn.disabled = false;
+    }, 1500);
+  }
+}
+
+function hotelAddRow() {
+  hotelRows.push({ selected:false, area:'', name:'', roomtype:'', sqm:'', note:'', cost:'', twd:'', source:'', pricedate:'', payment:'', paydate:'', canceldate:'', checkin:'', checkout:'' });
+  hotelRender();
+  document.getElementById('hotel-tbody')?.lastElementChild?.scrollIntoView({ behavior:'smooth', block:'center' });
+}
+
+function hotelDeleteRow(idx) {
+  if (!confirm(`確定刪除「${hotelRows[idx].name || '此飯店'}」？`)) return;
+  hotelRows.splice(idx, 1);
+  hotelRender();
+}
+
+async function hotelSave() {
+  await hotelPushToFirebase();
+  const btn = document.getElementById('hotel-edit-btn');
+  if (btn) {
+    const prevText = btn.textContent, prevBg = btn.style.background, prevColor = btn.style.color;
+    btn.textContent = '✓ 已儲存'; btn.style.color = '#27ae60'; btn.style.borderColor = '#27ae60';
+    setTimeout(() => { btn.textContent = prevText; btn.style.color = prevColor; btn.style.background = prevBg; btn.style.borderColor = ''; }, 2000);
+  }
+}
+
+async function hotelToggleEdit() {
+  hotelEditMode = !hotelEditMode;
+  const btn     = document.getElementById('hotel-edit-btn');
+  const toolbar = document.getElementById('hotel-edit-toolbar');
+  if (hotelEditMode) {
+    if (btn)     { btn.textContent = '✓ 完成'; btn.style.background = 'var(--ink)'; btn.style.color = '#f0c040'; }
+    if (toolbar) toolbar.style.display = 'flex';
+  } else {
+    await hotelPushToFirebase();
+    if (btn)     { btn.textContent = '✏ 編輯'; btn.style.background = 'transparent'; btn.style.color = 'var(--ink)'; }
+    if (toolbar) toolbar.style.display = 'none';
+  }
+  hotelRender();
+}
+
+document.addEventListener('DOMContentLoaded', hotelLoad);
+</script>
+
+<script>
+// ── 小筆記 ──────────────────────────────────────────────
+const NOTES_DOC = db.collection('kobe2026').doc('notes');
+let notesData = [];
+
+// 分類對應色系（便利貼風）
+const NOTE_COLORS = {
+  '行程': { bg:'#fffde7', border:'#f9a825', icon:'🗓', label:'行程' },
+  '交通': { bg:'#e3f2fd', border:'#1e88e5', icon:'🚆', label:'交通' },
+  '美食': { bg:'#fce4ec', border:'#e91e63', icon:'🍽', label:'美食' },
+};
+const NOTE_DEFAULT_COLOR = { bg:'#f3e5f5', border:'#9c27b0', icon:'📝', label:'其他' };
+
+function notesSetStatus(msg, color) {
+  const el = document.getElementById('notes-sync-status');
+  if (el) { el.textContent = msg; el.style.color = color || 'var(--muted)'; }
+}
+
+async function notesLoad() {
+  notesSetStatus('⏳ 同步中…', '#b8860b');
+  try {
+    const snap = await NOTES_DOC.get();
+    notesData = (snap.exists && Array.isArray(snap.data().items)) ? snap.data().items : [];
+    notesSetStatus('✓ 已同步', '#27ae60');
+  } catch(e) {
+    notesSetStatus('⚠ 讀取失敗', '#c0392b');
+    try { const s = localStorage.getItem('kobe26_notes'); if (s) notesData = JSON.parse(s); } catch(_) {}
+  }
+  notesRender();
+}
+
+async function notesPush() {
+  notesSetStatus('💾 儲存中…', '#b8860b');
+  try {
+    await NOTES_DOC.set({ items: notesData, updatedAt: firebase.firestore.FieldValue.serverTimestamp() });
+    localStorage.setItem('kobe26_notes', JSON.stringify(notesData));
+    notesSetStatus('✓ 已同步', '#27ae60');
+  } catch(e) {
+    localStorage.setItem('kobe26_notes', JSON.stringify(notesData));
+    notesSetStatus('⚠ 雲端失敗，已存本機', '#c0392b');
+  }
+}
+
+function notesRender() {
+  const grid = document.getElementById('notes-grid');
+  const empty = document.getElementById('notes-empty');
+  if (!grid) return;
+
+  // 移除舊便利貼（保留 empty 提示）
+  Array.from(grid.children).forEach(el => { if (el.id !== 'notes-empty') el.remove(); });
+
+  if (!notesData.length) {
+    if (empty) empty.style.display = '';
+    return;
+  }
+  if (empty) empty.style.display = 'none';
+
+  notesData.forEach((note, idx) => {
+    const c = NOTE_COLORS[note.cat] || NOTE_DEFAULT_COLOR;
+    const date = note.ts ? new Date(note.ts).toLocaleDateString('zh-TW', { month:'numeric', day:'numeric', hour:'2-digit', minute:'2-digit' }) : '';
+    const card = document.createElement('div');
+    card.style.cssText = `background:${c.bg};border:1.5px solid ${c.border};border-radius:8px;padding:1rem 1.1rem 0.85rem;position:relative;box-shadow:0 2px 8px rgba(0,0,0,0.06);transition:box-shadow 0.15s;`;
+    card.onmouseenter = () => card.style.boxShadow = '0 6px 18px rgba(0,0,0,0.12)';
+    card.onmouseleave = () => card.style.boxShadow = '0 2px 8px rgba(0,0,0,0.06)';
+    card.innerHTML = `
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:0.6rem;">
+        <span style="font-size:0.68rem;font-family:'DM Mono',monospace;font-weight:700;letter-spacing:0.1em;color:${c.border};background:white;padding:0.15em 0.55em;border-radius:3px;border:1px solid ${c.border};">${c.icon} ${note.cat||'筆記'}</span>
+        <div style="display:flex;align-items:center;gap:0.4rem;">
+          <span style="font-size:0.65rem;color:#aaa;font-family:'DM Mono',monospace;">${date}</span>
+          <button onclick="notesOpenModal(${idx})" title="編輯"
+            style="background:none;border:none;cursor:pointer;color:#bbb;font-size:0.85rem;line-height:1;padding:0.1rem 0.3rem;border-radius:3px;transition:color 0.15s;"
+            onmouseenter="this.style.color='#2c7be5'" onmouseleave="this.style.color='#bbb'">✏</button>
+          <button onclick="notesDelete(${idx})" title="刪除"
+            style="background:none;border:none;cursor:pointer;color:#ccc;font-size:1rem;line-height:1;padding:0.1rem 0.2rem;border-radius:3px;transition:color 0.15s;"
+            onmouseenter="this.style.color='#c0392b'" onmouseleave="this.style.color='#ccc'">✕</button>
+        </div>
+      </div>
+      <div style="font-size:0.85rem;line-height:1.75;white-space:pre-wrap;word-break:break-word;color:var(--ink);">${note.text||''}</div>
+    `;
+    grid.appendChild(card);
+  });
+}
+
+let notesEditIdx = -1; // -1 = 新增，≥0 = 編輯第幾則
+
+function notesOpenModal(idx) {
+  const modal   = document.getElementById('notes-modal');
+  const ta      = document.getElementById('notes-modal-text');
+  const counter = document.getElementById('notes-modal-count');
+  const cat     = document.getElementById('notes-modal-cat');
+  const title   = document.getElementById('notes-modal-title');
+  const btn     = document.getElementById('notes-modal-submit');
+
+  notesEditIdx = (idx !== undefined) ? idx : -1;
+
+  if (notesEditIdx >= 0) {
+    // 編輯模式：填入原有內容
+    const note = notesData[notesEditIdx];
+    if (cat) cat.value = note.cat || '行程';
+    if (ta)  { ta.value = note.text || ''; }
+    if (counter) counter.textContent = (note.text||'').length + ' / 500';
+    if (title) title.textContent = '✏ 編輯筆記';
+    if (btn)   btn.textContent = '更新筆記';
+  } else {
+    // 新增模式
+    if (cat) cat.value = '行程';
+    if (ta)  { ta.value = ''; }
+    if (counter) counter.textContent = '0 / 500';
+    if (title) title.textContent = '📝 新增小筆記';
+    if (btn)   btn.textContent = '儲存筆記';
+  }
+
+  try { notesClearImage(); } catch(_) {}
+  if (modal) modal.style.display = 'flex';
+  setTimeout(() => { if (ta) ta.focus(); }, 150);
+}
+
+function notesClearImage() {
+  const preview = document.getElementById('notes-img-preview');
+  const zone    = document.getElementById('notes-img-zone');
+  const label   = document.getElementById('notes-img-label');
+  const input   = document.getElementById('notes-img-input');
+  const status  = document.getElementById('notes-ocr-status');
+  try { if (preview) preview.style.display = 'none'; } catch(_) {}
+  try { if (zone)    zone.style.display = ''; } catch(_) {}
+  try { if (label)   label.textContent = '📷 點擊或拖曳上傳圖片，由 AI 辨識轉文字'; } catch(_) {}
+  try { if (input)   input.value = ''; } catch(_) {}
+  try { if (status)  { status.style.display = 'none'; status.textContent = ''; } } catch(_) {}
+}
+
+async function notesHandleImage(file) {
+  if (!file || !file.type.startsWith('image/')) return;
+
+  const thumb   = document.getElementById('notes-img-thumb');
+  const preview = document.getElementById('notes-img-preview');
+  const zone    = document.getElementById('notes-img-zone');
+  const status  = document.getElementById('notes-ocr-status');
+  const ta      = document.getElementById('notes-modal-text');
+  const counter = document.getElementById('notes-modal-count');
+
+  const reader = new FileReader();
+  reader.onload = async (e) => {
+    const base64full = e.target.result;
+
+    if (thumb)   { thumb.src = base64full; }
+    if (preview) preview.style.display = 'block';
+    if (zone)    zone.style.display = 'none';
+    if (status)  { status.style.display = 'block'; status.textContent = '🤖 AI 辨識中，請稍候…'; status.style.color = '#b8860b'; }
+
+    let base64data = base64full.split(',')[1];
+    try { base64data = await notesCompressImage(base64full, file.type); } catch(_) {}
+
+    try {
+      const VISION_KEY = 'AIzaSyCLPHCRr1uwioawNl0UXYrFNa_ftMdI3PU';
+      const res = await fetch(
+        `https://vision.googleapis.com/v1/images:annotate?key=${VISION_KEY}`,
+        {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            requests: [{
+              image: { content: base64data },
+              features: [{ type: 'DOCUMENT_TEXT_DETECTION', maxResults: 1 }],
+              imageContext: { languageHints: ['zh-Hant', 'zh-Hans', 'ja', 'en'] }
+            }]
+          })
+        }
+      );
+
+      const data = await res.json();
+      const response = data.responses?.[0];
+      if (response?.error) throw new Error(response.error.message);
+
+      const text = response?.fullTextAnnotation?.text?.trim()
+        || response?.textAnnotations?.[0]?.description?.trim()
+        || '';
+
+      if (text) {
+        if (ta) {
+          const existing = ta.value.trim();
+          ta.value = existing ? existing + '\n\n' + text : text;
+          if (ta.value.length > 500) ta.value = ta.value.slice(0, 500);
+          if (counter) counter.textContent = ta.value.length + ' / 500';
+        }
+        if (status) { status.textContent = '✓ 辨識完成，請確認內容後儲存'; status.style.color = '#27ae60'; }
+      } else {
+        if (status) { status.textContent = '⚠ 未偵測到文字，請手動輸入'; status.style.color = '#c0392b'; }
+      }
+    } catch(err) {
+      console.error('Vision API error:', err);
+      if (status) { status.textContent = `⚠ 辨識失敗：${err.message||'請手動輸入'}`; status.style.color = '#c0392b'; }
+    }
+  };
+  reader.readAsDataURL(file);
+}
+
+// 壓縮圖片：將圖片縮放至長邊最大 2048px，輸出 base64（不含前綴）
+function notesCompressImage(dataUrl, mimeType) {
+  return new Promise((resolve, reject) => {
+    const img = new Image();
+    img.onload = () => {
+      const MAX = 2048;
+      let w = img.width, h = img.height;
+      if (w > MAX || h > MAX) {
+        if (w > h) { h = Math.round(h * MAX / w); w = MAX; }
+        else       { w = Math.round(w * MAX / h); h = MAX; }
+      }
+      const canvas = document.createElement('canvas');
+      canvas.width = w; canvas.height = h;
+      canvas.getContext('2d').drawImage(img, 0, 0, w, h);
+      // jpeg 壓縮品質 0.85
+      const out = canvas.toDataURL(mimeType === 'image/png' ? 'image/png' : 'image/jpeg', 0.85);
+      resolve(out.split(',')[1]);
+    };
+    img.onerror = reject;
+    img.src = dataUrl;
+  });
+}
+
+function notesCloseModal() {
+  const modal = document.getElementById('notes-modal');
+  if (modal) modal.style.display = 'none';
+  notesEditIdx = -1;
+}
+
+// 點擊 modal 背景關閉
+document.getElementById('notes-modal')?.addEventListener('click', function(e) {
+  if (e.target === this) notesCloseModal();
+});
+
+async function notesSubmit() {
+  const cat  = document.getElementById('notes-modal-cat')?.value || '行程';
+  const text = document.getElementById('notes-modal-text')?.value?.trim() || '';
+  if (!text) { alert('請輸入筆記內容！'); return; }
+
+  if (notesEditIdx >= 0) {
+    // 更新既有筆記（保留原始時間戳，加上編輯時間）
+    notesData[notesEditIdx] = { ...notesData[notesEditIdx], cat, text, edited: Date.now() };
+  } else {
+    // 新增
+    notesData.unshift({ cat, text, ts: Date.now() });
+  }
+  notesEditIdx = -1;
+  notesCloseModal();
+  notesRender();
+  await notesPush();
+}
+
+async function notesDelete(idx) {
+  const note = notesData[idx];
+  const preview = (note.text||'').slice(0, 20) + ((note.text||'').length > 20 ? '…' : '');
+  if (!confirm(`確定刪除這則「${note.cat}」筆記？\n\n「${preview}」`)) return;
+  notesData.splice(idx, 1);
+  notesRender();
+  await notesPush();
+}
+
+document.addEventListener('DOMContentLoaded', notesLoad);
+</script>
+
+<!-- ══ TAB 5: 支付優惠 ══ -->
+<div id="spots" class="tab-panel">
+<div style="max-width:1400px;margin:0 auto;padding:2.5rem 2.5rem 4rem;">
+
+  <div style="display:flex;align-items:center;justify-content:space-between;border-bottom:2px solid var(--ink);padding-bottom:0.5rem;margin-bottom:0.75rem;">
+    <h2 style="font-size:1.1rem;font-weight:700;letter-spacing:0.1em;">📍 景點清單</h2>
+    <div style="display:flex;align-items:center;gap:0.75rem;">
+      <span id="spots-sync-status" style="font-family:'DM Mono',monospace;font-size:0.68rem;color:var(--muted);"></span>
+      <button id="spots-edit-btn" onclick="spotsToggleEdit()" style="font-family:'DM Mono',monospace;font-size:0.72rem;letter-spacing:0.06em;text-transform:uppercase;padding:0.45rem 1rem;border:1.5px solid var(--ink);border-radius:4px;background:transparent;cursor:pointer;color:var(--ink);transition:all 0.15s;">✏ 編輯</button>
+    </div>
+  </div>
+  <p style="font-size:0.78rem;color:var(--muted);margin-bottom:1.5rem;">✅ = 必去　｜　⭐ = 推薦　｜　□ = 備選</p>
+
+  <!-- 編輯模式工具列 -->
+  <div id="spots-edit-toolbar" style="display:none;background:#fff8e8;border:1.5px solid var(--gold);border-radius:6px;padding:0.75rem 1rem;margin-bottom:1rem;align-items:center;gap:0.75rem;flex-wrap:wrap;">
+    <button onclick="spotsAddRow()" style="font-family:'DM Mono',monospace;font-size:0.72rem;padding:0.4rem 0.9rem;background:var(--ink);color:#f0c040;border:none;border-radius:4px;cursor:pointer;">＋ 新增景點</button>
+    <span style="font-size:0.75rem;color:var(--muted);">點擊儲存格可直接編輯　｜　每列右側有刪除按鈕</span>
+    <button onclick="spotsSave()" style="margin-left:auto;font-family:'DM Mono',monospace;font-size:0.72rem;padding:0.4rem 0.9rem;background:#27ae60;color:white;border:none;border-radius:4px;cursor:pointer;">💾 儲存</button>
+  </div>
+
+  <div style="overflow-x:auto;border-radius:6px;border:1px solid #e0d8cc;width:100%;">
+    <table id="spots-main-table" style="width:100%;border-collapse:collapse;font-size:0.8rem;background:white;table-layout:fixed;">
+      <colgroup>
+        <col style="width:2.5rem">  <!-- D -->
+        <col style="width:13%">     <!-- 景點名稱 -->
+        <col style="width:3rem">    <!-- 官網 -->
+        <col style="width:5rem">    <!-- 優先度 -->
+        <col style="width:6.5rem">  <!-- 開放時間 -->
+        <col style="width:3.5rem">  <!-- 費用(¥) -->
+        <col style="width:22%">     <!-- 備註 -->
+        <col style="width:18%">     <!-- 地址 -->
+        <col style="width:3rem">    <!-- MAP -->
+        <col style="width:1.8rem">  <!-- 刪除 -->
+      </colgroup>
+      <thead>
+        <tr style="background:var(--ink);color:var(--paper);">
+          <th style="padding:0.6rem 0.5rem;font-family:'DM Mono',monospace;font-size:0.72rem;letter-spacing:0.08em;font-weight:600;text-align:left;white-space:nowrap;">D</th>
+          <th style="padding:0.6rem 0.5rem;font-family:'DM Mono',monospace;font-size:0.72rem;letter-spacing:0.08em;font-weight:600;text-align:left;white-space:nowrap;">景點名稱</th>
+          <th style="padding:0.6rem 0.5rem;font-family:'DM Mono',monospace;font-size:0.72rem;letter-spacing:0.08em;font-weight:600;text-align:center;white-space:nowrap;">官網</th>
+          <th style="padding:0.6rem 0.5rem;font-family:'DM Mono',monospace;font-size:0.72rem;letter-spacing:0.08em;font-weight:600;text-align:left;white-space:nowrap;">優先度</th>
+          <th style="padding:0.6rem 0.5rem;font-family:'DM Mono',monospace;font-size:0.72rem;letter-spacing:0.08em;font-weight:600;text-align:left;white-space:nowrap;">開放時間</th>
+          <th style="padding:0.6rem 0.5rem;font-family:'DM Mono',monospace;font-size:0.72rem;letter-spacing:0.08em;font-weight:600;text-align:center;white-space:nowrap;">費用(¥)</th>
+          <th style="padding:0.6rem 0.5rem;font-family:'DM Mono',monospace;font-size:0.72rem;letter-spacing:0.08em;font-weight:600;text-align:left;white-space:nowrap;">備註</th>
+          <th style="padding:0.6rem 0.5rem;font-family:'DM Mono',monospace;font-size:0.72rem;letter-spacing:0.08em;font-weight:600;text-align:left;white-space:nowrap;">地址</th>
+          <th style="padding:0.6rem 0.5rem;font-family:'DM Mono',monospace;font-size:0.72rem;letter-spacing:0.08em;font-weight:600;text-align:center;white-space:nowrap;">MAP</th>
+          <th id="spots-del-col" style="display:none;width:1.8rem;"></th>
+        </tr>
+      </thead>
+      <tbody id="spots-tbody"></tbody>
+    </table>
+  </div>
+
+</div>
+</div>
+
+<script>
+// ── 景點清單 編輯器 ──────────────────────────────────────
+const SPOTS_DOC = db.collection('kobe2026').doc('spots');
+let spotsRows = [];
+let spotsEditMode = false;
+let spotsSyncing = false;
+
+const SPOTS_DAY_OPTIONS  = ['D1','D2','D3','D4','D5','—'];
+const SPOTS_PRIO_OPTIONS = ['✅ 必去','⭐ 推薦','□ 備選'];
+const SPOTS_AREA_OPTIONS = ['神戶','大阪','關西其他','—'];
+
+function spotsSetStatus(msg, color) {
+  const el = document.getElementById('spots-sync-status');
+  if (el) { el.textContent = msg; el.style.color = color || 'var(--muted)'; }
+}
+
+async function spotsLoad() {
+  spotsSetStatus('⏳ 同步中…', '#b8860b');
+  try {
+    const snap = await SPOTS_DOC.get();
+    spotsRows = (snap.exists && Array.isArray(snap.data().rows)) ? snap.data().rows : [];
+    spotsSetStatus('✓ 已同步', '#27ae60');
+  } catch(e) {
+    spotsSetStatus('⚠ 讀取失敗（離線模式）', '#c0392b');
+    try { const s = localStorage.getItem('kobe26_spots_rows'); if (s) spotsRows = JSON.parse(s); } catch(_) {}
+  }
+  spotsRender();
+}
+
+async function spotsPushToFirebase() {
+  if (spotsSyncing) return;
+  spotsSyncing = true;
+  spotsSetStatus('💾 儲存中…', '#b8860b');
+  try {
+    await SPOTS_DOC.set({ rows: spotsRows, updatedAt: firebase.firestore.FieldValue.serverTimestamp() });
+    localStorage.setItem('kobe26_spots_rows', JSON.stringify(spotsRows));
+    spotsSetStatus('✓ 已儲存並同步', '#27ae60');
+  } catch(e) {
+    localStorage.setItem('kobe26_spots_rows', JSON.stringify(spotsRows));
+    spotsSetStatus('⚠ 雲端儲存失敗，已存本機', '#c0392b');
+  }
+  spotsSyncing = false;
+}
+
+function spotsRender() {
+  const tbody = document.getElementById('spots-tbody');
+  if (!tbody) return;
+  const delCol = document.getElementById('spots-del-col');
+  if (delCol) delCol.style.display = spotsEditMode ? '' : 'none';
+
+  if (!spotsRows.length) {
+    tbody.innerHTML = `<tr><td colspan="10" style="color:var(--muted);font-style:italic;text-align:center;padding:1.5rem;">— 景點清單待補充 —<br><span style="font-size:0.75rem;">點擊右上角「✏ 編輯」按鈕開始新增</span></td></tr>`;
+    return;
+  }
+
+  // 依 D 欄排序，但 _new 標記的列永遠排最後
+  const DAY_ORDER = ['D1','D2','D3','D4','D5','—'];
+  const sorted = spotsRows
+    .map((r, i) => ({ ...r, _orig: i }))
+    .sort((a, b) => {
+      // 新增未填寫的列排最後
+      if (a._new && !b._new) return 1;
+      if (!a._new && b._new) return -1;
+      const ai = DAY_ORDER.indexOf(a.day) === -1 ? 99 : DAY_ORDER.indexOf(a.day);
+      const bi = DAY_ORDER.indexOf(b.day) === -1 ? 99 : DAY_ORDER.indexOf(b.day);
+      return ai - bi;
+    });
+
+  // 官網小圖示
+  const webIcon = `<svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>`;
+
+  tbody.innerHTML = sorted.map((r) => {
+    const i = r._orig;
+    const isMust = r.prio === '✅ 必去';
+    const rowBg  = isMust ? 'background:#fef9f0;' : '';
+    const delBtn = spotsEditMode
+      ? `<td style="text-align:center;padding:0.3rem;"><button onclick="spotsDeleteRow(${i})" style="background:none;border:none;cursor:pointer;font-size:1rem;color:#c0392b;padding:0.2rem 0.4rem;">✕</button></td>`
+      : `<td style="display:none"></td>`;
+
+    if (spotsEditMode) {
+      const dayOpts  = SPOTS_DAY_OPTIONS.map(d  => `<option value="${d}" ${r.day===d?'selected':''}>${d}</option>`).join('');
+      const prioOpts = SPOTS_PRIO_OPTIONS.map(p => `<option value="${p}" ${r.prio===p?'selected':''}>${p}</option>`).join('');
+      const sel = (field, opts) =>
+        `<select onchange="spotsEdit(${i},'${field}',this.value)" style="width:100%;font-size:0.75rem;border:1px solid #ddd;border-radius:3px;padding:0.15rem;box-sizing:border-box;">${opts}</select>`;
+      const inp = (field, val, ph) =>
+        `<input value="${(val||'').replace(/"/g,'&quot;')}" onchange="spotsEdit(${i},'${field}',this.value)" placeholder="${ph}" style="width:100%;font-size:0.78rem;border:1px solid #ddd;border-radius:3px;padding:0.2rem 0.3rem;box-sizing:border-box;">`;
+      const num = (field, val) =>
+        `<input type="number" value="${val||''}" onchange="spotsEdit(${i},'${field}',this.value)" placeholder="0" style="width:100%;font-size:0.78rem;border:1px solid #ddd;border-radius:3px;padding:0.2rem 0.3rem;text-align:right;font-family:'DM Mono',monospace;box-sizing:border-box;">`;
+      return `<tr data-idx="${i}" style="${rowBg}border-bottom:1px solid #f0e8dc;">
+        <td style="padding:0.35rem 0.4rem;">${sel('day',dayOpts)}</td>
+        <td style="padding:0.35rem 0.4rem;"><input value="${(r.name||'').replace(/"/g,'&quot;')}"
+          onchange="spotsEdit(${i},'name',this.value)"
+          placeholder="景點名稱"
+          style="width:100%;font-size:0.78rem;border:1px solid #ddd;border-radius:3px;padding:0.2rem 0.3rem;box-sizing:border-box;"></td>
+        <td style="padding:0.35rem 0.4rem;">
+          <div style="display:flex;gap:0.3rem;align-items:center;">
+            <input value="${(r.website||'').replace(/"/g,'&quot;')}"
+              onchange="spotsEdit(${i},'website',this.value)"
+              placeholder="https://"
+              id="website-inp-${i}"
+              style="flex:1;font-size:0.78rem;border:1px solid #ddd;border-radius:3px;padding:0.2rem 0.3rem;box-sizing:border-box;min-width:0;">
+            <button onclick="spotsAutoFetchWebsite(${i}, spotsRows[${i}].name)"
+              title="Google 搜尋官網"
+              style="flex-shrink:0;background:#4285f4;color:white;border:none;border-radius:3px;padding:0.15rem 0.3rem;cursor:pointer;font-size:0.65rem;line-height:1;white-space:nowrap;">🔍</button>
+          </div>
+        </td>
+        <td style="padding:0.35rem 0.4rem;">${sel('prio',prioOpts)}</td>
+        <td style="padding:0.35rem 0.4rem;"><input value="${(r.hours||'').replace(/"/g,'&quot;')}" onchange="spotsEdit(${i},'hours',this.value)" placeholder="09001700" style="width:100%;font-size:0.7rem;border:1px solid #ddd;border-radius:3px;padding:0.2rem 0.25rem;box-sizing:border-box;"></td>
+        <td style="padding:0.35rem 0.4rem;">${num('fee',r.fee)}</td>
+        <td style="padding:0.35rem 0.4rem;">${inp('note',r.note,'備註')}</td>
+        <td style="padding:0.35rem 0.4rem;">${inp('address',r.address,'貼上 Google Maps 連結或地址')}</td>
+        <td style="padding:0.35rem 0.4rem;text-align:center;">
+          ${r.address ? `<a href="${/maps\.google|maps\.app\.goo\.gl|goo\.gl\/maps/i.test(r.address) ? r.address : 'https://www.google.com/maps/search/?api=1&query='+encodeURIComponent((r.name||'')+' '+r.address)}" target="_blank" style="display:inline-block;background:#4285f4;color:white;font-family:'DM Mono',monospace;font-size:0.6rem;font-weight:700;letter-spacing:0.05em;padding:0.25em 0.5em;border-radius:3px;text-decoration:none;">MAP</a>` : '—'}
+        </td>
+        ${delBtn}
+      </tr>`;
+    } else {
+      const prioStyle = isMust
+        ? 'color:#27ae60;font-weight:700;'
+        : r.prio === '⭐ 推薦' ? 'color:#b8860b;' : 'color:var(--muted);';
+      const fee = parseInt(r.fee)||0;
+      // MAP 連結邏輯：若地址欄貼的是 Google Maps 連結則直接用，否則用名稱+地址搜尋
+      function buildMapUrl(name, address) {
+        if (!address) return '';
+        const a = address.trim();
+        // 若已是 Google Maps / goo.gl 短網址，直接使用
+        if (/maps\.google|maps\.app\.goo\.gl|goo\.gl\/maps/i.test(a)) return a;
+        // 若是完整 https:// 連結，直接開啟
+        if (/^https?:\/\//i.test(a)) return a;
+        // 一般地址：同時帶景點名稱讓 Google 定位更準確
+        const query = name ? `${name} ${a}` : a;
+        return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(query)}`;
+      }
+      const mapUrl = buildMapUrl(r.name, r.address);
+      const webCell = r.website
+        ? `<a href="${r.website.startsWith('http') ? r.website : 'https://'+r.website}" target="_blank" title="${(r.website||'').replace(/"/g,'&quot;')}" style="display:inline-flex;align-items:center;justify-content:center;color:#2c7be5;text-decoration:none;">${webIcon}</a>`
+        : '<span style="color:#ddd;">—</span>';
+      return `<tr style="${rowBg}border-bottom:1px solid #f0e8dc;">
+        <td style="padding:0.6rem 0.5rem;font-family:'DM Mono',monospace;font-size:0.72rem;color:var(--muted);text-align:center;">${r.day||'—'}</td>
+        <td style="padding:0.6rem 0.5rem;font-weight:700;">${r.name||''}</td>
+        <td style="padding:0.6rem 0.5rem;text-align:center;">${webCell}</td>
+        <td style="padding:0.6rem 0.5rem;font-size:0.78rem;${prioStyle}">${r.prio||'—'}</td>
+        <td style="padding:0.6rem 0.5rem;font-size:0.78rem;color:var(--muted);">${r.hours||'—'}</td>
+        <td style="padding:0.6rem 0.5rem;font-family:'DM Mono',monospace;font-size:0.78rem;text-align:center;">${fee > 0 ? fee.toLocaleString() : '免費'}</td>
+        <td style="padding:0.6rem 0.5rem;font-size:0.75rem;color:var(--muted);">${r.note||''}</td>
+        <td style="padding:0.6rem 0.5rem;font-size:0.72rem;color:var(--muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="${(r.address||'').replace(/"/g,'&quot;')}">${r.address||'—'}</td>
+        <td style="padding:0.6rem 0.5rem;text-align:center;">
+          ${mapUrl ? `<a href="${mapUrl}" target="_blank" style="display:inline-block;background:#4285f4;color:white;font-family:'DM Mono',monospace;font-size:0.6rem;font-weight:700;letter-spacing:0.05em;padding:0.25em 0.55em;border-radius:3px;text-decoration:none;white-space:nowrap;">MAP</a>` : '—'}
+        </td>
+        <td style="display:none"></td>
+      </tr>`;
+    }
+  }).join('');
+}
+
+function spotsEdit(idx, field, value) {
+  if (!spotsRows[idx]) return;
+  if (field === 'hours') {
+    value = formatTimeRange(value);
+    const row = document.querySelector(`#spots-tbody tr[data-idx="${idx}"]`);
+    if (row) { const inp = row.querySelector('td:nth-child(5) input'); if (inp && inp.value !== value) inp.value = value; }
+  }
+  // 使用者開始編輯任何欄位，移除「新列」標記讓它參與正常排序
+  if (spotsRows[idx]._new) delete spotsRows[idx]._new;
+  spotsRows[idx][field] = value;
+}
+
+async function spotsAutoFetchWebsite(idx, name) {
+  // 無法自動搜尋，改為開啟 Google 搜尋讓使用者自行複製官網
+  const searchQuery = encodeURIComponent(`${name} 公式サイト OR official site`);
+  window.open(`https://www.google.com/search?q=${searchQuery}`, '_blank');
+}
+
+function spotsAddRow() {
+  spotsRows.push({ day:'D1', name:'', prio:'⭐ 推薦', area:'神戶', hours:'', fee:'', note:'', address:'', website:'', _new: true });
+  spotsRender();
+  document.getElementById('spots-tbody')?.lastElementChild?.scrollIntoView({ behavior:'smooth', block:'center' });
+}
+
+function spotsDeleteRow(idx) {
+  if (!confirm(`確定刪除「${spotsRows[idx].name || '此景點'}」？`)) return;
+  spotsRows.splice(idx, 1);
+  spotsRender();
+}
+
+async function spotsSave() {
+  await spotsPushToFirebase();
+  const btn = document.getElementById('spots-edit-btn');
+  if (btn) {
+    const prevText = btn.textContent, prevBg = btn.style.background, prevColor = btn.style.color;
+    btn.textContent = '✓ 已儲存'; btn.style.color = '#27ae60'; btn.style.borderColor = '#27ae60';
+    setTimeout(() => { btn.textContent = prevText; btn.style.color = prevColor; btn.style.background = prevBg; btn.style.borderColor = ''; }, 2000);
+  }
+}
+
+async function spotsToggleEdit() {
+  spotsEditMode = !spotsEditMode;
+  const btn     = document.getElementById('spots-edit-btn');
+  const toolbar = document.getElementById('spots-edit-toolbar');
+  if (spotsEditMode) {
+    if (btn)     { btn.textContent = '✓ 完成'; btn.style.background = 'var(--ink)'; btn.style.color = '#f0c040'; }
+    if (toolbar) toolbar.style.display = 'flex';
+  } else {
+    await spotsPushToFirebase();
+    if (btn)     { btn.textContent = '✏ 編輯'; btn.style.background = 'transparent'; btn.style.color = 'var(--ink)'; }
+    if (toolbar) toolbar.style.display = 'none';
+  }
+  spotsRender();
+}
+
+document.addEventListener('DOMContentLoaded', spotsLoad);
+</script>
+
+<div id="payment" class="tab-panel">
+<div style="max-width:960px;margin:0 auto;padding:2.5rem 1.5rem 4rem;">
+  <h2 style="font-size:1.1rem;font-weight:700;border-bottom:2px solid var(--ink);padding-bottom:0.5rem;margin-bottom:1rem;letter-spacing:0.1em;">💳 支付優惠建議</h2>
+  <div class="pay-trip-badge">
+    ✈ 2026/10/22–10/26 神戶大阪五日遊
+    <span class="q-badge">Q4 優惠期間 ✓</span>
+  </div>
+
+  <!-- Sub tabs (4 tabs now) -->
+  <div class="pay-sub-tabs">
+    <button class="pay-sub-btn active" onclick="switchPayTab('itinerary',this)">📍 行程支付對照</button>
+    <button class="pay-sub-btn" onclick="switchPayTab('advisor',this)">🎯 場域支付建議</button>
+    <button class="pay-sub-btn" onclick="switchPayTab('overview',this)">📋 各卡優惠總覽</button>
+    <button class="pay-sub-btn" onclick="switchPayTab('tips',this)">💡 使用攻略</button>
+  </div>
+
+  <!-- ── Sub panel 0: 神戶大阪行程支付對照 ── -->
+  <div id="pay-panel-itinerary" class="pay-sub-panel active">
+    <div style="font-family:'DM Mono',monospace;font-size:0.63rem;letter-spacing:0.14em;text-transform:uppercase;color:var(--muted);margin-bottom:0.4rem;">Kobe · Osaka Itinerary · 2026/10/22–10/26 · 逐據點支付建議</div>
+
+    <!-- 色碼說明 -->
+    <div style="display:flex;flex-wrap:wrap;gap:0.5rem;margin-bottom:0.9rem;font-size:0.75rem;">
+      <span class="pb pb-kuma">🐻 熊本熊 8.5%</span>
+      <span class="pb pb-eco">🌿 星展eco 5%</span>
+      <span class="pb pb-pay">🔴 PayPay 5%</span>
+      <span class="pb pb-suica">🍉 Suica</span>
+      <span class="pb pb-rich">🐶 Richart 淨1.8%</span>
+      <span class="pb pb-cash">💴 現金</span>
+    </div>
+
+    <!-- ⚠ 海外手續費說明 -->
+    <div style="background:#fff8e7;border:1.5px solid #e0c060;border-radius:8px;padding:0.85rem 1.1rem;margin-bottom:0.9rem;font-size:0.78rem;line-height:1.85;color:var(--muted);">
+      💳 <strong style="color:var(--ink);">國外交易手續費說明</strong><br>
+      <strong>🐻 熊本熊 8.5%</strong>（加碼回饋6%，每期上限NT$500）需同時滿足三個條件：<br>
+      &nbsp;&nbsp;① <strong>完成活動登錄</strong>（每期帳單週期登錄一次，官網或App均可）<br>
+      &nbsp;&nbsp;② <strong>於指定商店消費</strong>（熊好買：唐吉軻德/松本清/BicCamera/UNIQLO/3Coins等；熊好用：Suica/PASMO/ICOCA儲值；<a href="https://event.esunbank.com.tw/credit/kumamon-card/japan-discount.html#!" target="_blank" style="color:var(--blue);">完整清單</a>）<br>
+      &nbsp;&nbsp;③ <strong>持熊本熊實體卡刷卡</strong>（不可綁定玉山Wallet電子支付消費）<br>
+      未符合條件時，一般日本消費仍享2.5%無上限基本回饋。
+      <strong>🌿 星展eco</strong>：帳單會列示國外交易手續費，但5%回饋是在此條件下計算，<strong>宣稱5%已為含手續費後的帳面值</strong>。<br>
+      <strong>🔴 PayPay</strong>：透過玉山Wallet走行動支付通道，<strong>不收海外交易手續費</strong>，5%為實際淨回饋。✅<br>
+      <strong>🐶 Richart 玩旅刷</strong>：宣稱3.3%，但仍收1.5%手續費，<strong>實際淨回饋僅約1.8%</strong>（備用卡，僅在其他卡額度用盡時使用）。⚠️
+    </div>
+
+    <!-- 啟動追蹤器 -->
+    <div style="background:linear-gradient(135deg,var(--ink),#2a1828);border-radius:8px;padding:1rem 1.3rem;margin-bottom:1.2rem;display:flex;align-items:center;justify-content:space-between;gap:1rem;flex-wrap:wrap;">
+      <div>
+        <div style="font-family:'DM Mono',monospace;font-size:0.62rem;letter-spacing:0.1em;text-transform:uppercase;color:#f0c040;margin-bottom:0.3rem;">⚡ 動態回饋追蹤器</div>
+        <div style="font-size:0.8rem;color:rgba(255,255,255,0.75);line-height:1.55;">在每個據點按「＋記帳」輸入消費金額，即時計算剩餘回饋額度，額度耗盡時自動建議次優支付方式。</div>
+      </div>
+      <button style="font-family:'DM Mono',monospace;font-size:0.72rem;letter-spacing:0.06em;text-transform:uppercase;padding:0.55rem 1.2rem;border:none;border-radius:4px;cursor:pointer;background:var(--ink);color:#f0c040;border:1px solid #444;white-space:nowrap;" onclick="trackerActivate()">開始追蹤 →</button>
+    </div>
+
+    <!-- ⚠ 現金警示 -->
+    <div class="itin-alert-box">
+      ⚠️ <strong style="color:var(--red);">神戶大阪商店街部分小攤可能只收現金！</strong>
+      建議出發前備好 ¥10,000–15,000 日幣現金。<br>
+      各據點支付建議待行程確認後補充。
+    </div>
+
+    <!-- D1–D5 待補充 -->
+    <div class="itin-day">
+      <div class="itin-day-head">
+        <div class="itin-day-num">D1</div>
+        <div class="itin-day-meta">
+          <div class="itin-day-title">10/22（四）抵達神戶</div>
+          <div class="itin-day-sub">JX834 → 關西機場 → 神戶市區</div>
+        </div>
+      </div>
+      <div class="period-lbl">交通</div>
+      <div class="spot-row">
+        <div class="spot-ico">🚃</div>
+        <div class="spot-body">
+          <div class="spot-name">關西機場 → 神戶三宮（ICOCA 或購票）</div>
+          <div class="spot-note">待確認交通方式及支付建議</div>
+        </div>
+        <div class="pay-col"><span class="pb pb-suica">🃏 ICOCA</span><span class="pb-rate gray">感應</span></div>
+      </div>
+      <!-- D1 自由記帳 -->
+      <div class="free-log-strip" id="free-strip-d1" data-day="d1">
+        <div class="free-log-strip-header">
+          <span class="free-log-strip-label">D1 · 其他消費</span>
+          <button class="free-add-btn" id="free-btn-d1" onclick="freeModalOpen('d1')">＋ 新增消費</button>
+        </div>
+        <div class="free-log-list" id="free-logs-d1"></div>
+      </div>
+    </div>
+
+    <div class="itin-day">
+      <div class="itin-day-head">
+        <div class="itin-day-num">D2</div>
+        <div class="itin-day-meta">
+          <div class="itin-day-title">10/23（五）神戶市區</div>
+          <div class="itin-day-sub">待補充</div>
+        </div>
+      </div>
+      <!-- D2 自由記帳 -->
+      <div class="free-log-strip" id="free-strip-d2" data-day="d2">
+        <div class="free-log-strip-header">
+          <span class="free-log-strip-label">D2 · 其他消費</span>
+          <button class="free-add-btn" id="free-btn-d2" onclick="freeModalOpen('d2')">＋ 新增消費</button>
+        </div>
+        <div class="free-log-list" id="free-logs-d2"></div>
+      </div>
+    </div>
+
+    <div class="itin-day">
+      <div class="itin-day-head">
+        <div class="itin-day-num">D3</div>
+        <div class="itin-day-meta">
+          <div class="itin-day-title">10/24（六）待確認</div>
+          <div class="itin-day-sub">待補充</div>
+        </div>
+      </div>
+      <!-- D3 自由記帳 -->
+      <div class="free-log-strip" id="free-strip-d3" data-day="d3">
+        <div class="free-log-strip-header">
+          <span class="free-log-strip-label">D3 · 其他消費</span>
+          <button class="free-add-btn" id="free-btn-d3" onclick="freeModalOpen('d3')">＋ 新增消費</button>
+        </div>
+        <div class="free-log-list" id="free-logs-d3"></div>
+      </div>
+    </div>
+
+    <div class="itin-day">
+      <div class="itin-day-head">
+        <div class="itin-day-num">D4</div>
+        <div class="itin-day-meta">
+          <div class="itin-day-title">10/25（日）大阪</div>
+          <div class="itin-day-sub">待補充</div>
+        </div>
+      </div>
+      <!-- D4 自由記帳 -->
+      <div class="free-log-strip" id="free-strip-d4" data-day="d4">
+        <div class="free-log-strip-header">
+          <span class="free-log-strip-label">D4 · 其他消費</span>
+          <button class="free-add-btn" id="free-btn-d4" onclick="freeModalOpen('d4')">＋ 新增消費</button>
+        </div>
+        <div class="free-log-list" id="free-logs-d4"></div>
+      </div>
+    </div>
+
+    <div class="itin-day">
+      <div class="itin-day-head">
+        <div class="itin-day-num">D5</div>
+        <div class="itin-day-meta">
+          <div class="itin-day-title">10/26（一）返程日</div>
+          <div class="itin-day-sub">JX823 → 關西機場 → 桃園</div>
+        </div>
+      </div>
+      <div class="period-lbl">返程</div>
+      <div class="spot-row">
+        <div class="spot-ico">✈️</div>
+        <div class="spot-body">
+          <div class="spot-name">✈ JX823　關西（KIX）→ 桃園（TPE）</div>
+          <div class="spot-note">15:10 KIX → 17:05 TPE</div>
+        </div>
+        <div class="pay-col"><span class="pb pb-eco">🌿 星展eco</span><span class="pb-rate green">5%</span></div>
+      </div>
+    </div>
+
+    <!-- 行程支付彙總表 -->
+    <hr style="border:none;border-top:2px solid #e0d8cc;margin:1.5rem 0;">
+    <div style="font-family:'DM Mono',monospace;font-size:0.63rem;letter-spacing:0.14em;text-transform:uppercase;color:var(--muted);margin-bottom:0.5rem;">行程支付彙總 · 待行程確認後補充</div>
+    <div style="background:white;border:1.5px solid #ddd5c8;border-radius:8px;overflow:hidden;margin-bottom:1rem;">
+      <table class="itin-summary-table">
+        <thead><tr><th>據點</th><th>日次</th><th>最佳支付</th><th>回饋</th><th>理由</th></tr></thead>
+        <tbody>
+          <tr><td colspan="5" style="text-align:center;color:var(--muted);font-style:italic;padding:1.5rem;">— 待補充 —</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="itin-note-box">
+      <strong>💡 關西行額度分配建議（初稿）</strong><br>
+      🐻 熊本熊 8.5% → 唐吉軻德・藥妝・3Coins・UNIQLO 等指定通路<br>
+      🌿 星展eco 5% → 百貨公司・一般餐廳・大型商場<br>
+      🔴 PayPay 5% → 商店街小店・小型咖啡館・行動支付掃碼<br>
+      🃏 ICOCA → 關西全線電車、巴士感應扣款<br>
+      詳細支付建議待行程確認後補充。
+    </div>
+  </div>
+  <!-- ── Sub panel 1: 場域建議 ── -->
+  <div id="pay-panel-advisor" class="pay-sub-panel">
+    <div style="background:white;border:1.5px solid #ddd5c8;border-radius:8px;padding:1.2rem 1.4rem;margin-bottom:1.2rem;">
+      <div class="pay-section-label" style="margin-bottom:0.75rem;">選擇消費場域</div>
+      <div class="pay-venue-grid" id="pay-venue-selector">
+        <div class="pay-venue-btn active" data-venue="drugstore" onclick="paySelectVenue(this)"><span class="icon">💊</span>藥妝電器</div>
+        <div class="pay-venue-btn" data-venue="convenience" onclick="paySelectVenue(this)"><span class="icon">🏪</span>便利商店</div>
+        <div class="pay-venue-btn" data-venue="restaurant" onclick="paySelectVenue(this)"><span class="icon">🍜</span>餐廳美食</div>
+        <div class="pay-venue-btn" data-venue="transport" onclick="paySelectVenue(this)"><span class="icon">🚃</span>交通</div>
+        <div class="pay-venue-btn" data-venue="hotel" onclick="paySelectVenue(this)"><span class="icon">🏨</span>住宿</div>
+        <div class="pay-venue-btn" data-venue="entertainment" onclick="paySelectVenue(this)"><span class="icon">⛩️</span>樂園觀光</div>
+        <div class="pay-venue-btn" data-venue="smallshop" onclick="paySelectVenue(this)"><span class="icon">🏮</span>小店現金</div>
+        <div class="pay-venue-btn" data-venue="fashion" onclick="paySelectVenue(this)"><span class="icon">👗</span>服飾購物</div>
+      </div>
+      <button class="pay-analyze-btn" onclick="payGetAdvice()">✦ 取得最佳支付建議</button>
+    </div>
+    <div id="pay-loading" style="display:none;">
+      <div class="pay-shimmer"></div>
+      <div class="pay-shimmer-text" id="pay-status">分析中...</div>
+    </div>
+    <div id="pay-result"></div>
+  </div>
+
+  <!-- ── Sub panel 2: 各卡總覽 ── -->
+  <div id="pay-panel-overview" class="pay-sub-panel">
+    <div class="pay-card-grid">
+
+      <div class="pay-card-promo">
+        <div class="pay-card-issuer">玉山銀行 · JCB</div>
+        <div class="pay-card-name">🐻 玉山熊本熊卡</div>
+        <ul class="pay-promo-list">
+          <li><span class="pay-promo-desc">日本指定通路（藥妝/電器/交通卡/餐廳）</span><span class="pay-promo-rate">8.5%</span></li>
+          <li><span class="pay-promo-desc">日本一般消費（無上限）</span><span class="pay-promo-rate">2.5%</span></li>
+          <li><span class="pay-promo-desc">玉山Wallet → PayPay 支付</span><span class="pay-promo-rate">5%</span></li>
+        </ul>
+        <div class="pay-promo-cap">⚠ 8.5%需活動期間登錄一次（不限量）<br>⚠ 加碼6%每期回饋上限NT$500（≒刷8,333元）<br>⚠ PayPay 3.5%每季上限NT$100<br>📌 指定通路：松本清、唐吉軻德、BicCamera、Yodobashi、UNIQLO、GU、壽司郎、一蘭拉麵、東京迪士尼、環球影城等<br>✅ 有效期：2026/1/1–6/30</div>
+      </div>
+
+      <div class="pay-card-promo">
+        <div class="pay-card-issuer">台新銀行 · VISA/MC/JCB</div>
+        <div class="pay-card-name">🐶 台新Richart卡</div>
+        <ul class="pay-promo-list">
+          <li><span class="pay-promo-desc">切換「玩旅刷」海外實體消費（無上限）</span><span class="pay-promo-rate">3.3%</span></li>
+          <li><span class="pay-promo-desc">日本福岡機場免稅店</span><span class="pay-promo-rate">4.3%</span></li>
+          <li><span class="pay-promo-desc">JCB卡日本消費最高</span><span class="pay-promo-rate">50%</span></li>
+        </ul>
+        <div class="pay-promo-cap">⚠ 3.3%需設定台新帳戶自動扣繳(Level 2)，每日切換一次<br>⚠ JCB 50%限量限時活動（2026/2/3–6/30）請見官網<br>✅ 玩旅刷支援Suica/ICOCA交通卡儲值<br>✅ 有效期：2026/1/1–6/30</div>
+      </div>
+
+      <div class="pay-card-promo">
+        <div class="pay-card-issuer">星展銀行（原花旗）· VISA</div>
+        <div class="pay-card-name">🌿 星展永續極簡卡</div>
+        <ul class="pay-promo-list">
+          <li><span class="pay-promo-desc">日本實體刷卡 / Apple Pay / Samsung Pay</span><span class="pay-promo-rate">5%</span></li>
+          <li><span class="pay-promo-desc">一般消費無上限（基本）</span><span class="pay-promo-rate">1%</span></li>
+          <li><span class="pay-promo-desc">完成星禧任務行動支付加碼</span><span class="pay-promo-rate">+2.5%</span></li>
+        </ul>
+        <div class="pay-promo-cap">⚠ 5%加碼每期上限NT$600（≒刷15,000元）<br>⚠ 超過15,000元仍享1%無上限<br>⚠ 注意：Suica/PASMO儲值不計入5%加碼<br>✅ 有效期：5%回饋 2026/1/1–12/31</div>
+      </div>
+
+      <div class="pay-card-promo">
+        <div class="pay-card-issuer">聯邦銀行 · VISA</div>
+        <div class="pay-card-name">📱 聯邦賴點卡</div>
+        <ul class="pay-promo-list">
+          <li><span class="pay-promo-desc">日本海外一般消費（LINE POINTS 無上限）</span><span class="pay-promo-rate">3%</span></li>
+          <li><span class="pay-promo-desc">國內LINE Pay 偶數日指定通路</span><span class="pay-promo-rate">7%</span></li>
+        </ul>
+        <div class="pay-promo-cap">⚠ 回饋為LINE POINTS（非現金）<br>⚠ 日本海外3%：無需登錄、不設門檻<br>✅ 有效期：2026/1/1–6/30</div>
+      </div>
+
+      <div class="pay-card-promo">
+        <div class="pay-card-issuer">聯邦銀行 × LINE Bank · VISA</div>
+        <div class="pay-card-name">🐻 聯邦LINE Bank熊大卡</div>
+        <ul class="pay-promo-list">
+          <li><span class="pay-promo-desc">日本海外一般消費（無上限，折抵帳單）</span><span class="pay-promo-rate">2.5%</span></li>
+          <li><span class="pay-promo-desc">指定網購（MOMO/蝦皮/Netflix等）</span><span class="pay-promo-rate">+3%</span></li>
+        </ul>
+        <div class="pay-promo-cap">⚠ 日本海外2.5%無上限、條件寬鬆<br>⚠ 指定網購+3%，每月上限NT$300<br>✅ 有效期：2025/8/1–2026/7/31</div>
+      </div>
+
+      <div class="pay-card-promo">
+        <div class="pay-card-issuer">PayPay株式会社 · 日本行動支付</div>
+        <div class="pay-card-name">🔴 PayPay（玉山Wallet）</div>
+        <ul class="pay-promo-list">
+          <li><span class="pay-promo-desc">綁玉山熊本熊卡，全場PayPay消費</span><span class="pay-promo-rate">5%</span></li>
+          <li><span class="pay-promo-desc">特定店家PayPay祭活動</span><span class="pay-promo-rate">最高20%+</span></li>
+        </ul>
+        <div class="pay-promo-cap">📌 玉山Wallet → 電子支付 → PayPay → 出示條碼<br>⚠ 每季上限NT$100（≒2,857元）<br>✅ 全家、麥當勞、居酒屋、小商家皆可用</div>
+      </div>
+
+      <div class="pay-card-promo">
+        <div class="pay-card-issuer">JR East / Apple Wallet · 電子票證</div>
+        <div class="pay-card-name">🍉 西瓜卡 Suica</div>
+        <ul class="pay-promo-list">
+          <li><span class="pay-promo-desc">加值：用玉山熊本熊卡（Apple Pay）</span><span class="pay-promo-rate">8.5%回饋</span></li>
+          <li><span class="pay-promo-desc">使用：JR/地鐵/巴士/便利商店</span><span class="pay-promo-rate">全日本通用</span></li>
+        </ul>
+        <div class="pay-promo-cap">📌 iPhone：Apple錢包新增Suica，用熊本熊卡加值最划算<br>⚠ Suica加值屬「熊好用」指定通路<br>✅ 不需現金、不需買票、閘門直接感應</div>
+      </div>
+
+      <div class="pay-card-promo" style="border-color:#e8b84b;background:linear-gradient(135deg,#fffdf5,white);">
+        <div class="pay-card-issuer" style="color:#b8860b;">國泰世華銀行 · VISA ✦ 限時日本賞</div>
+        <div class="pay-card-name">🟡 國泰CUBE卡
+          <span style="background:#e8b84b;color:#fff;font-size:0.58rem;font-family:'DM Mono',monospace;padding:0.15em 0.5em;border-radius:3px;vertical-align:middle;margin-left:0.3em;">日本賞 3/1–4/30（請確認Q4是否延續）</span>
+        </div>
+        <ul class="pay-promo-list">
+          <li><span class="pay-promo-desc">【日本賞】日本實體消費（無上限）</span><span class="pay-promo-rate" style="color:#b8860b;">3.5%</span></li>
+          <li><span class="pay-promo-desc">【日本賞】Apple Pay Suica/PASMO/ICOCA 加值（領券）</span><span class="pay-promo-rate" style="color:#b8860b;">5%</span></li>
+          <li><span class="pay-promo-desc">【日本賞】吉伊卡哇、三麗鷗指定名店</span><span class="pay-promo-rate" style="color:#b8860b;">5%</span></li>
+          <li><span class="pay-promo-desc">【日本賞】三井Outlet、三越、伊勢丹等百貨滿額</span><span class="pay-promo-rate" style="color:#b8860b;">最高10%</span></li>
+          <li><span class="pay-promo-desc">【日本賞】IG投票勝出通路（藍瓶咖啡/HARBS等吃喝通）</span><span class="pay-promo-rate" style="color:#b8860b;">5%</span></li>
+          <li><span class="pay-promo-desc">一般消費（非指定通路）</span><span class="pay-promo-rate">0.3%</span></li>
+        </ul>
+        <div class="pay-promo-cap">
+          ⭐ <strong style="color:#b8860b;">注意：CUBE 日本賞有效期 2026/3/1–4/30，本次行程 10/22–10/26 已不在活動期間，請確認屆時是否有新一期優惠。</strong><br>
+          📌 使用前需在 CUBE App 切換「日本賞」權益（每日限切換1次）<br>
+          📌 Level 2 條件：持有國泰帳戶 + 設定自動扣繳 or CUBE App 手動繳卡費<br>
+          📌 Suica 加值 5% 需先至 CUBE App 領券<br>
+          ⚠ 回饋為「小樹點」（1點=1元），可直接折抵帳單<br>
+          ⚠ 指定通路限實體刷卡或 Apple Pay/Samsung Pay/Google Pay，不含 LINE Pay、街口等第三方支付<br>
+          ⚠ 非指定通路僅 0.3%，務必先確認通路再刷<br>
+          ✅ 有效期：日本賞 2026/3/1–4/30
+        </div>
+      </div>
+
+    </div>
+
+    <div class="pay-section-label" style="margin-bottom:0.5rem;">優先使用順序口訣</div>
+    <div class="pay-tip-box">
+      <strong>📌 2026 Q4 日本消費策略（請出發前確認各卡優惠是否延續）</strong><br><br>
+      1️⃣ <strong>日本實體消費（無上限）→ 國泰CUBE卡【日本賞】</strong>（3.5%無上限，切換後免登錄）<br>
+      2️⃣ <strong>指定通路（藥妝/電器/Suica加值 8.5%）→ 玉山熊本熊</strong>（每期NT$8,333封頂，超出換CUBE）<br>
+      3️⃣ <strong>Suica加值 → CUBE App領券後用CUBE卡</strong>（5%）或玉山熊本熊（8.5%但有上限）<br>
+      4️⃣ <strong>超出熊本熊額度 / 大額消費 → 星展eco極簡卡</strong>（5%，每期NT$15,000封頂）<br>
+      5️⃣ <strong>不收信用卡的小店 → PayPay（玉山Wallet）</strong>（5%，每季NT$2,857封頂）<br>
+      6️⃣ <strong>超出以上額度 → 聯邦LINE Bank熊大卡</strong>（2.5%無上限）<br>
+      7️⃣ <strong>台新Richart 玩旅刷</strong>（3.3%無上限）大額補位最安心<br>
+      8️⃣ <strong>聯邦賴點卡</strong>（3% LINE Points）喜歡Points的人適用
+    </div>
+  </div>
+
+  <!-- ── Sub panel 3: 攻略速查 ── -->
+  <div id="pay-panel-tips" class="pay-sub-panel">
+
+    <div style="background:var(--ink);color:var(--paper);border-radius:8px;padding:1.3rem 1.6rem;margin-bottom:1rem;">
+      <div style="font-family:'DM Mono',monospace;font-size:0.68rem;letter-spacing:0.1em;text-transform:uppercase;color:#f0c040;margin-bottom:0.75rem;">⚡ 最高效率場景速查</div>
+      <table class="pay-rank-table" style="color:var(--paper);">
+        <thead><tr>
+          <th style="color:rgba(255,255,255,0.4);">消費場景</th>
+          <th style="color:rgba(255,255,255,0.4);">最佳支付</th>
+          <th style="color:rgba(255,255,255,0.4);">回饋</th>
+          <th style="color:rgba(255,255,255,0.4);">備註</th>
+        </tr></thead>
+        <tbody>
+          <tr><td>日本實體消費（無上限保底）</td><td>國泰CUBE卡【日本賞】</td><td style="color:#e8b84b;font-family:'DM Mono',monospace;font-weight:700;">3.5%</td><td style="font-size:0.72rem;color:rgba(255,255,255,0.5)">無上限，切換日本賞即可</td></tr>
+          <tr><td>Suica加值</td><td>玉山熊本熊 + Apple Pay</td><td style="color:#f0c040;font-family:'DM Mono',monospace;font-weight:700;">8.5%</td><td style="font-size:0.72rem;color:rgba(255,255,255,0.5)">每期NT$500封頂；或CUBE領券5%無上限</td></tr>
+          <tr><td>唐吉軻德 / 松本清</td><td>玉山熊本熊（實體或Apple Pay）</td><td style="color:#f0c040;font-family:'DM Mono',monospace;font-weight:700;">8.5%</td><td style="font-size:0.72rem;color:rgba(255,255,255,0.5)">指定通路</td></tr>
+          <tr><td>BicCamera / Yodobashi</td><td>玉山熊本熊（實體或Apple Pay）</td><td style="color:#f0c040;font-family:'DM Mono',monospace;font-weight:700;">8.5%</td><td style="font-size:0.72rem;color:rgba(255,255,255,0.5)">可疊加電器折扣</td></tr>
+          <tr><td>壽司郎 / 一蘭 / 鳥貴族</td><td>玉山熊本熊（實體）</td><td style="color:#f0c040;font-family:'DM Mono',monospace;font-weight:700;">8.5%</td><td style="font-size:0.72rem;color:rgba(255,255,255,0.5)">熊好吃通路</td></tr>
+          <tr><td>一般大額消費</td><td>星展eco極簡（實體）</td><td style="color:#7ec8e3;font-family:'DM Mono',monospace;font-weight:700;">5%</td><td style="font-size:0.72rem;color:rgba(255,255,255,0.5)">每期NT$15,000封頂</td></tr>
+          <tr><td>不收信用卡小店</td><td>PayPay（玉山Wallet）</td><td style="color:#7ec8e3;font-family:'DM Mono',monospace;font-weight:700;">5%</td><td style="font-size:0.72rem;color:rgba(255,255,255,0.5)">季上限NT$2,857</td></tr>
+          <tr><td>超出Richart額度</td><td>聯邦LINE Bank熊大卡</td><td style="color:#a0d4a0;font-family:'DM Mono',monospace;font-weight:700;">2.5%</td><td style="font-size:0.72rem;color:rgba(255,255,255,0.5)">無上限備用卡</td></tr>
+          <tr><td>搭電車地鐵</td><td>ICOCA / Suica 感應（已加值）</td><td style="color:rgba(255,255,255,0.4);font-family:'DM Mono',monospace;">—</td><td style="font-size:0.72rem;color:rgba(255,255,255,0.5)">回饋在加值時已賺</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div style="background:linear-gradient(135deg,#fffdf5,white);border:1.5px solid #e8b84b;border-radius:8px;padding:1.2rem 1.4rem;margin-bottom:1rem;">
+      <div style="font-weight:900;margin-bottom:0.75rem;font-size:0.95rem;">🟡 國泰CUBE卡【日本賞】— 出發前確認 <span style="font-size:0.72rem;color:#b8860b;font-family:'DM Mono',monospace;">⚠ 請確認 10/22–10/26 是否在活動期間</span></div>
+      <div style="font-size:0.82rem;line-height:2;color:var(--muted);">
+        ✅ CUBE App 切換「<strong style="color:#b8860b;">日本賞</strong>」權益（每日限切換1次，出發當天切好即可）<br>
+        ✅ Level 2 資格：持有國泰台幣帳戶 + 設定自動扣繳，或每月用 CUBE App 手動繳1元卡費<br>
+        ✅ Suica/ICOCA 加值 5%：CUBE App → 領取優惠 → 領取「Apple Pay交通卡加值」券後再加值<br>
+        ✅ 日本實體消費 3.5% 無上限，比玉山熊本熊更無腦（不怕額度爆掉）<br>
+        ✅ 回饋為小樹點（1點=1元），可直接折抵帳單<br>
+        ⚠ 僅限實體刷卡或 Apple Pay/Google Pay/Samsung Pay，不含 LINE Pay、街口等第三方支付<br>
+        ⚠ 非指定通路只有 0.3%，務必確認已切換「日本賞」再消費<br>
+        ⚠ 2026 Q1–Q2 日本賞至 4/30，Q4 是否延續請於出發前查官網確認
+      </div>
+    </div>
+
+    <div style="background:white;border:1.5px solid #ddd5c8;border-radius:8px;padding:1.2rem 1.4rem;margin-bottom:1rem;">
+      <div style="font-weight:900;margin-bottom:0.75rem;font-size:0.95rem;">🐻 玉山熊本熊卡 — 出發前必做</div>
+      <div style="font-size:0.82rem;line-height:2;color:var(--muted);">
+        ✅ 登錄「指定日本商店加碼6%」活動（官網登錄一次即可，整期有效）<br>
+        ✅ 下載「玉山Wallet」App，開通電子支付 → 日本可用PayPay<br>
+        ✅ iPhone：Apple錢包加入Suica，綁定熊本熊卡加值享8.5%<br>
+        ⚠ 加碼6%每期上限NT$500（約可刷8,333元，滿了換其他卡）
+      </div>
+    </div>
+
+    <div style="background:white;border:1.5px solid #ddd5c8;border-radius:8px;padding:1.2rem 1.4rem;margin-bottom:1rem;">
+      <div style="font-weight:900;margin-bottom:0.75rem;font-size:0.95rem;">🐶 台新Richart卡 — 出發前必做</div>
+      <div style="font-size:0.82rem;line-height:2;color:var(--muted);">
+        ✅ 設定台新帳戶自動扣繳升級Level 2，才能享3.3%<br>
+        ✅ 出國前在Richart Life App切換到「玩旅刷」方案<br>
+        ⚠ 玩旅刷宣稱3.3%，但仍收1.5%手續費，實際淨回饋約1.8%（補底備用）<br>
+        ✅ 支援Apple Pay / Google Pay / Samsung Pay
+      </div>
+    </div>
+
+    <div style="background:white;border:1.5px solid #ddd5c8;border-radius:8px;padding:1.2rem 1.4rem;margin-bottom:1rem;">
+      <div style="font-weight:900;margin-bottom:0.75rem;font-size:0.95rem;">🔴 PayPay — 使用教學</div>
+      <div style="font-size:0.82rem;line-height:2;color:var(--muted);">
+        ✅ 玉山Wallet → 電子支付 → 綁定熊本熊卡<br>
+        ✅ 消費時：支付 → 條碼付 → 玉山電子支付 → PayPay → 出示條碼<br>
+        ✅ 適用：居酒屋、拉麵店、計程車、藥妝小店等不接受信用卡感應的地方<br>
+        ⚠ 每季回饋上限NT$100（≒NT$2,857消費）
+      </div>
+    </div>
+
+    <div style="background:white;border:1.5px solid #ddd5c8;border-radius:8px;padding:1.2rem 1.4rem;">
+      <div style="font-weight:900;margin-bottom:0.75rem;font-size:0.95rem;">🃏 ICOCA / Suica 交通卡加值攻略</div>
+      <div style="font-size:0.82rem;line-height:2;color:var(--muted);">
+        ✅ 關西建議使用 <strong>ICOCA</strong>（JR西日本）或 Suica，兩者在關西 JR・阪急・阪神・地鐵均可感應<br>
+        ✅ iPhone：Apple錢包 → ＋ → 交通卡 → Suica 或 ICOCA → 用熊本熊卡加值 → 享8.5%<br>
+        ✅ 可提前在台灣完成開卡和加值<br>
+        ✅ 適用：JR、私鐵、地下鐵、巴士、全家/7-11/Lawson、自販機<br>
+        ⚠ 餘額建議維持3,000–5,000日圓，用完再補值繼續賺8.5%
+      </div>
+    </div>
+
+  </div>
+</div>
+</div>
+
 <footer>
-  Travel / ${filename} &nbsp;·&nbsp; ${dest} &nbsp;·&nbsp; ${year}
+  Travel / 202610_Kobe.html &nbsp;·&nbsp; 神戶大阪五日遊 &nbsp;·&nbsp; 2026
 </footer>
 
-<script src="js/tabs.js"><\/script>
-</body>
-</html>`;
+<!-- ════════════════════════════════════════════════
+     本頁行程專屬設定
+     ════════════════════════════════════════════════ -->
+<script>
+// ── 支付顧問資料（本旅程專屬） ──────────────────────────────
+const PAY_VENUES = {
+  drugstore:    '藥妝 / 電器',
+  convenience:  '便利商店',
+  restaurant:   '餐廳美食',
+  transport:    '交通',
+  hotel:        '住宿',
+  entertainment:'樂園觀光',
+  smallshop:    '小店（現金限定）',
+  fashion:      '服飾購物（UNIQLO等）'
+};
 
-  // ── 下載 ──
-  const blob = new Blob([html], { type: 'text/html;charset=utf-8' });
-  const url  = URL.createObjectURL(blob);
-  const a    = document.createElement('a');
-  a.href     = url;
-  a.download = filename;
-  a.click();
-  URL.revokeObjectURL(url);
+const PAY_ADVICE = {
+  drugstore: {
+    best: '玉山熊本熊卡（實體 or Apple Pay）', rate: '8.5%',
+    reason: '松本清、唐吉軻德、大國藥妝、BicCamera、Yodobashi 皆在指定通路，享 2.5% + 加碼6% = 8.5%，每期回饋上限 NT$500，約8,333元消費封頂。',
+    tips: '⚠ 超出額度後改刷星展eco極簡卡（5%），或聯邦LINE Bank熊大卡（2.5%無上限）補位。',
+    ranking: [
+      { pay: '玉山熊本熊卡', rate: '8.5%', note: '指定通路（松本清/唐吉軻德/BicCamera）', cap: '每期NT$500' },
+      { pay: '星展eco極簡卡', rate: '5%', note: '實體刷卡 or Apple Pay/Samsung Pay', cap: '每期NT$600' },
+      { pay: 'PayPay（玉山Wallet）', rate: '5%', note: '現金店/掃碼店適用', cap: '每季NT$100' },
+      { pay: '台新Richart（玩旅刷）', rate: '3.3%（淨1.8%）', note: '無上限保底', cap: '無上限' },
+    ]
+  },
+  convenience: {
+    best: 'Suica / ICOCA（西瓜卡/伊可卡）', rate: '加值8.5% / 免帶現金',
+    reason: '關西地區建議以 ICOCA 為主，7-11、全家、Lawson 全面支援感應付款。加值時用玉山熊本熊卡（交通卡屬熊好用指定通路）可享8.5%回饋。',
+    tips: '✅ 備用：PayPay掃碼付款也通（5%，但額度有限）。',
+    ranking: [
+      { pay: 'ICOCA/Suica（加值用熊本熊）', rate: '加值8.5%', note: '關西交通+超商通用，最便利', cap: '加值NT$8,333封頂' },
+      { pay: 'PayPay（玉山Wallet）', rate: '5%', note: '掃碼付款備用', cap: '每季NT$100' },
+      { pay: '玉山熊本熊卡（實體）', rate: '2.5%', note: '一般日本消費無上限', cap: '無上限' },
+    ]
+  },
+  restaurant: {
+    best: '玉山熊本熊卡（指定餐廳）', rate: '8.5%（指定通路）',
+    reason: '壽司郎、藏壽司、松屋、牛角、SUKIYA、一蘭拉麵、鳥貴族 皆在熊好吃指定通路。道頓堀一帶的居酒屋多支援PayPay。',
+    tips: '✅ 進店前先確認該餐廳是否接受PayPay，許多居酒屋、拉麵店都支援。',
+    ranking: [
+      { pay: '玉山熊本熊卡（指定餐廳）', rate: '8.5%', note: '壽司郎/一蘭/鳥貴族/牛角等（有上限）', cap: '每期NT$500' },
+      { pay: 'PayPay（玉山Wallet）', rate: '5%', note: '不收信用卡的小餐廳適用', cap: '每季NT$100' },
+      { pay: '星展eco極簡卡', rate: '5%', note: '一般餐廳實體刷卡', cap: '每期NT$600' },
+      { pay: '台新Richart（玩旅刷）', rate: '3.3%（淨1.8%）', note: '補位無上限', cap: '無上限' },
+    ]
+  },
+  transport: {
+    best: 'ICOCA/Suica（玉山熊本熊加值）', rate: '加值8.5% + 搭車零接觸',
+    reason: 'ICOCA 覆蓋關西JR、阪急、阪神、地鐵、バス全線。加值時以Apple Pay綁定玉山熊本熊卡，享8.5%回饋。',
+    tips: '✅ 建議每次加值3,000–5,000日圓，餘額不足時再用熊本熊卡補值，持續賺8.5%。',
+    ranking: [
+      { pay: 'ICOCA（熊本熊加值）', rate: '加值8.5%', note: '關西JR/私鐵/地鐵/巴士全通', cap: '加值NT$8,333封頂' },
+      { pay: '台新Richart（玩旅刷）', rate: '3.3%（淨1.8%）', note: '含Suica/ICOCA交通卡儲值', cap: '無上限' },
+    ]
+  },
+  hotel: {
+    best: '玉山熊本熊卡（指定住宿）', rate: '8.5%',
+    reason: '樂天旅遊、東橫INN、APA飯店、星野集團皆在指定通路（熊好遊）。',
+    tips: '✅ 建議預訂時即以熊本熊卡付款，而非到現場刷卡。',
+    ranking: [
+      { pay: '玉山熊本熊卡', rate: '8.5%', note: '樂天旅遊/東橫INN/APA/星野集團', cap: '每期NT$500' },
+      { pay: '星展eco極簡卡', rate: '5%', note: '實體刷卡付帳', cap: '每期NT$600' },
+      { pay: '台新Richart（玩旅刷）', rate: '3.3%（淨1.8%）', note: '補位大額住宿費用', cap: '無上限' },
+    ]
+  },
+  entertainment: {
+    best: '玉山熊本熊卡', rate: '8.5%',
+    reason: '日本環球影城（USJ）在熊好玩指定通路，享8.5%回饋。神戶花鳥園、有馬温泉門票建議提前線上購買。',
+    tips: '✅ 建議提前線上購票時即用熊本熊卡付款。',
+    ranking: [
+      { pay: '玉山熊本熊卡', rate: '8.5%', note: 'USJ等指定通路', cap: '每期NT$500' },
+      { pay: '星展eco極簡卡', rate: '5%', note: '現場門票或其他景點', cap: '每期NT$600' },
+      { pay: '台新Richart（玩旅刷）', rate: '3.3%（淨1.8%）', note: '無上限補位', cap: '無上限' },
+    ]
+  },
+  smallshop: {
+    best: 'PayPay（玉山Wallet）', rate: '5%',
+    reason: '神戶南京町、道頓堀一帶的小商店、居酒屋大多支援PayPay掃碼，使用玉山Wallet綁定熊本熊卡可享5%回饋。',
+    tips: '✅ 台灣不需另外申請PayPay，玉山Wallet出示條碼給店家掃即可。\n⚠ 每季回饋上限NT$100，超額後改用ICOCA。',
+    ranking: [
+      { pay: 'PayPay（玉山Wallet）', rate: '5%', note: '小店掃碼付款神器', cap: '每季NT$100' },
+      { pay: 'ICOCA（電子錢包）', rate: '—', note: '便利/自販機無回饋但最便利', cap: '—' },
+    ]
+  },
+  fashion: {
+    best: '玉山熊本熊卡（UNIQLO/GU）', rate: '8.5%',
+    reason: 'UNIQLO、GU 已納入指定通路（熊好買），享8.5%。心齋橋一帶的大型購物商場多可刷卡。',
+    tips: '✅ 建議在熊本熊卡額度用在購買金額較大的服飾，超額後改星展eco（5%）。',
+    ranking: [
+      { pay: '玉山熊本熊卡', rate: '8.5%', note: 'UNIQLO/GU等指定通路', cap: '每期NT$500' },
+      { pay: '星展eco極簡卡', rate: '5%', note: '補位大額購物', cap: '每期NT$600' },
+      { pay: '台新Richart（玩旅刷）', rate: '3.3%（淨1.8%）', note: '無上限後盾', cap: '無上限' },
+    ]
+  }
+};
 
-  closeModal();
-  alert(`✅ 已產生 ${filename}！\n請將檔案放入 Travel/ 資料夾，並手動將此旅程加入 index.html 的卡片列表。`);
+let currentPayVenue = 'drugstore';
+
+function paySelectVenue(el) {
+  document.querySelectorAll('.pay-venue-btn').forEach(b => b.classList.remove('active'));
+  el.classList.add('active');
+  currentPayVenue = el.dataset.venue;
+  document.getElementById('pay-result').innerHTML = '';
 }
+
+async function payGetAdvice() {
+  const loading = document.getElementById('pay-loading');
+  const status  = document.getElementById('pay-status');
+  const result  = document.getElementById('pay-result');
+  loading.style.display = 'block';
+  result.innerHTML = '';
+  const msgs = ['比對指定通路清單...', '計算2026 Q4回饋額度...', '確認各卡封頂限制...', '排序最佳支付方案...'];
+  let i = 0;
+  const interval = setInterval(() => { if (i < msgs.length) status.textContent = msgs[i++]; }, 400);
+  await new Promise(r => setTimeout(r, 1700));
+  clearInterval(interval);
+  loading.style.display = 'none';
+  const d = PAY_ADVICE[currentPayVenue];
+  if (!d) return;
+  const venueName = PAY_VENUES[currentPayVenue];
+  const rankColors = ['#b8860b', '#aaa', '#cd7f32', '#7a8a9a'];
+  result.innerHTML = `
+    <div class="pay-ai-box">
+      <div class="pay-ai-title">✦ 2026 Q4 最佳建議 — ${venueName}</div>
+      <div class="pay-ai-best">最佳選擇：${d.best} <span style="font-family:'DM Mono',monospace;color:#f0c040;font-size:0.9rem;">${d.rate}</span></div>
+      <div class="pay-ai-reason">${d.reason}<br><br>${d.tips}</div>
+    </div>
+    <div style="background:white;border:1.5px solid #ddd5c8;border-radius:8px;padding:1.2rem 1.4rem;">
+      <div class="pay-section-label" style="margin-bottom:0.75rem;">支付方式排名</div>
+      <table class="pay-rank-table">
+        <thead><tr><th>#</th><th>支付工具</th><th>回饋率</th><th>適用說明</th><th>回饋上限</th></tr></thead>
+        <tbody>
+          ${d.ranking.map((r, i) => `
+          <tr class="pay-rank-${i+1}">
+            <td style="font-weight:700;color:${rankColors[i]||'var(--muted)'}">${['🥇','🥈','🥉','4️⃣'][i]||i+1}</td>
+            <td style="font-weight:700">${r.pay}</td>
+            <td style="color:var(--red);font-weight:700;font-family:'DM Mono',monospace;white-space:nowrap">${r.rate}</td>
+            <td style="font-size:0.78rem;color:var(--muted)">${r.note}</td>
+            <td><span class="pay-badge ${r.cap==='無上限'?'pay-badge-green':'pay-badge-gray'}">${r.cap}</span></td>
+          </tr>`).join('')}
+        </tbody>
+      </table>
+    </div>`;
+}
+
+// ── 本旅程 TRIP_CONFIG（tracker.js 引擎讀取此設定） ──────────
+const TRIP_CONFIG = {
+  storageKey:  'kobe2610',
+  exportName:  '神戶大阪五日遊記帳',
+  dayLabels: {
+    d1: 'D1 · 10/22（四）神戶',
+    d2: 'D2 · 10/23（五）神戶',
+    d3: 'D3 · 10/24（六）',
+    d4: 'D4 · 10/25（日）大阪',
+    d5: 'D5 · 10/26（一）返程日',
+  },
+  dayOrder: [
+    'D1 · 10/22（四）神戶',
+    'D2 · 10/23（五）神戶',
+    'D3 · 10/24（六）',
+    'D4 · 10/25（日）大阪',
+    'D5 · 10/26（一）返程日',
+    '其他'
+  ],
+  freeDays: ['d1','d2','d3','d4','d5'],
+  TRACKER_CAPS: {
+    kuma:  { label: '🐻 熊本熊', cap: 500,   rate: 0.085, color: '#b8680b', unlimited: false, condNote: '須：① 指定通路 ② 活動登錄1次 ③ 加碼6%每期上限NT$500', feeNote: '含1.5%手續費（已含於回饋結構中）' },
+    eco:   { label: '🌿 星展eco', cap: 600,  rate: 0.05,  color: '#2e7d52', unlimited: false, feeNote: '含1.5%手續費（已含於回饋結構中）' },
+    pay:   { label: '🔴 PayPay',  cap: 100,  rate: 0.05,  color: '#cc0033', unlimited: false, feeNote: '免收海外手續費；每季上限NT$100' },
+    rich:  { label: '🐶 Richart', cap: 99999,rate: 0.018, color: '#2c5f8a', unlimited: true,  feeNote: '玩旅刷3.3%－手續費1.5%＝淨回饋1.8%' },
+    suica: { label: '🍉 ICOCA',   cap: 0,    rate: 0,     color: '#3a8a4a', unlimited: true,  noRebate: true, feeNote: '交通卡消費，無回饋，僅作支出記帳' },
+    cash:  { label: '💴 日幣現金', cap: 0,   rate: 0,     color: '#888',    unlimited: true,  noRebate: true, feeNote: '現金消費，無回饋，僅作支出記帳' },
+  },
+  TRACKER_SPOTS: {
+    'd1-kobe-arrival': { name: '神戶市區',      primary: 'eco',  fallback: 'rich' },
+    'd1-donki-kobe':   { name: '唐吉軻德 神戶', primary: 'kuma', fallback: 'eco'  },
+    'd2-osaka-dept':   { name: '大阪百貨',      primary: 'eco',  fallback: 'rich' },
+    'd3-arima':        { name: '有馬温泉',      primary: 'eco',  fallback: 'rich' },
+    'd3-spot':         { name: '景點待補充',    primary: 'eco',  fallback: 'rich' },
+    'd5-airport-tax':  { name: '關西機場免稅',  primary: 'eco',  fallback: 'rich' },
+  },
+  CARD_CHIP_STYLE: {
+    kuma:  'background:#fff0d4;color:#b8680b;border:1px solid #e8c080;',
+    eco:   'background:#d4f0e0;color:#2e7d52;border:1px solid #80c8a0;',
+    pay:   'background:#ffe0e0;color:#cc0033;border:1px solid #f0a0a0;',
+    rich:  'background:#d4e4f5;color:#2c5f8a;border:1px solid #80a8d8;',
+    suica: 'background:#d8f0dc;color:#3a8a4a;border:1px solid #88cc90;',
+    cash:  'background:#f0ebe5;color:#777;border:1px solid #ccc;',
+  },
+};
+</script>
+
+<!-- ── 共用 JS（順序重要：先 TRIP_CONFIG，再 tracker, export, tabs） ── -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/exceljs/4.4.0/exceljs.min.js"></script>
+<script src="js/tracker.js"></script>
+<script src="js/export.js"></script>
+<script src="js/tabs.js"></script>
+</body>
+</html>
