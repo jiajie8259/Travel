@@ -1,0 +1,2001 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>東京四日遊 · 2026</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@400;600;900&family=DM+Mono:wght@400;500&family=Cormorant+Garamond:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/base.css">
+<link rel="stylesheet" href="css/trip-page.css">
+<link rel="stylesheet" href="css/tracker.css">
+<style>
+  /* ── 東京頁專屬：Header 背景裝飾文字 ── */
+  header::before {
+    content: '東京';
+    position: absolute;
+    font-size: 16rem;
+    font-weight: 900;
+    opacity: 0.04;
+    top: 50%; left: 50%;
+    transform: translate(-50%, -50%);
+    white-space: nowrap;
+    pointer-events: none;
+    font-family: 'Noto Serif TC', serif;
+  }
+</style>
+</head>
+<body>
+<!-- ── TRACKER DASHBOARD (sticky, shown only in 行程支付對照 sub-panel) ── -->
+<div class="tracker-bar" id="tracker-bar">
+  <div class="tracker-bar-inner">
+    <div class="tracker-title">
+      <span>⚡ 回饋額度追蹤器 · 即時剩餘</span>
+      <div style="display:flex;align-items:center;gap:0.5rem;">
+        <span id="tracker-rate-display" style="font-family:'DM Mono',monospace;font-size:0.58rem;color:#aaa;">匯率載入中...</span>
+        <button class="tracker-reset" onclick="ledgerOpen()" style="color:#f0c040;border-color:#555;">📋 明細</button>
+        <button class="tracker-reset" onclick="exportXLSX()" style="color:#6ec88a;border-color:#3a6a4a;" title="匯出所有記帳資料為 Excel (.xlsx)">⬇ 匯出</button>
+        <button class="tracker-reset" onclick="resetConfirmOpen()">↺ 重置</button>
+      </div>
+    </div>
+    <div class="tracker-cards" id="tracker-cards"></div>
+  </div>
+</div>
+
+<!-- ── 自由記帳 MODAL ── -->
+<div class="free-modal-overlay" id="free-modal">
+  <div class="free-modal-box">
+    <div class="free-modal-title">✏️ 新增消費</div>
+    <div class="free-modal-field">
+      <label class="free-modal-label" for="free-modal-name">消費地點 / 說明</label>
+      <input class="free-modal-input" id="free-modal-name" type="text" placeholder="例：便利商店、路邊小吃…" maxlength="30">
+    </div>
+    <div class="free-modal-field">
+      <label class="free-modal-label">選擇支付方式</label>
+      <div id="free-pay-selector" style="display:flex;flex-wrap:wrap;gap:0.4rem;"></div>
+    </div>
+    <div class="free-modal-field">
+      <label class="free-modal-label" for="free-modal-amount">消費金額（日圓）</label>
+      <div class="free-modal-amount-wrap">
+        <span class="free-modal-currency">¥</span>
+        <input class="free-modal-amount" id="free-modal-amount" type="number" placeholder="0" min="0" oninput="freeModalUpdatePreview()">
+      </div>
+    </div>
+    <div class="free-modal-preview" id="free-modal-preview"></div>
+    <div class="free-modal-btns">
+      <button class="free-btn-cancel" onclick="freeModalClose()">取消</button>
+      <button class="free-btn-confirm" onclick="freeModalConfirm()">記帳 ✓</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── 重置確認 MODAL ── -->
+<div class="reset-confirm-overlay" id="reset-confirm-overlay">
+  <div class="reset-confirm-box">
+    <div class="reset-confirm-icon">⚠️</div>
+    <div class="reset-confirm-title">確定要重置全部記帳？</div>
+    <div class="reset-confirm-body">所有<strong>消費記錄與回饋額度</strong>將被清除，且<strong>無法復原</strong>。<br><span style="font-size:0.78rem;color:#aaa;">（行程略過標記不受影響）</span></div>
+    <div class="reset-confirm-btns">
+      <button class="reset-btn-cancel" onclick="resetConfirmClose()">取消，繼續保留</button>
+      <button class="reset-btn-confirm" onclick="resetConfirmDo()">確定清除</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── 消費明細 MODAL ── -->
+<div class="ledger-overlay" id="ledger-overlay">
+  <div class="ledger-box">
+    <div class="ledger-header">
+      <div class="ledger-header-title">📋 消費明細總覽</div>
+      <button class="ledger-header-close" onclick="ledgerClose()">✕ 關閉</button>
+    </div>
+    <div class="ledger-body" id="ledger-body"></div>
+  </div>
+</div>
+
+<!-- ── INPUT MODAL ── -->
+<div class="modal-overlay" id="tracker-modal">
+  <div class="modal-box">
+    <div class="modal-title-tx" id="tracker-modal-title">記錄消費</div>
+    <div class="modal-sub-tx" id="tracker-modal-sub"></div>
+
+    <!-- 支付方式選擇器 -->
+    <div style="margin:0.6rem 0 0.5rem;">
+      <div style="font-family:'DM Mono',monospace;font-size:0.6rem;letter-spacing:0.1em;text-transform:uppercase;color:#888;margin-bottom:0.45rem;">選擇支付方式</div>
+      <div id="tracker-pay-selector" style="display:flex;flex-wrap:wrap;gap:0.4rem;"></div>
+    </div>
+
+    <div class="modal-input-wrap">
+      <span class="modal-currency">¥</span>
+      <input class="modal-input-tx" id="tracker-modal-amount" type="number" placeholder="0" min="0" oninput="trackerUpdatePreview()">
+    </div>
+    <div class="modal-preview-tx" id="tracker-modal-preview"></div>
+    <div class="modal-btns-tx">
+      <button class="modal-btn-tx modal-btn-cancel-tx" onclick="trackerCloseModal()">取消</button>
+      <button class="modal-btn-tx modal-btn-confirm-tx" onclick="trackerConfirmLog()">記帳 ✓</button>
+    </div>
+  </div>
+</div>
+
+<header>
+  <div class="date-tag">2026 · April 16 Thu → 19 Sun</div>
+  <h1>東京四日遊</h1>
+  <p>新宿 · 澀谷 · 品川 · 代代木</p>
+</header>
+
+<div class="legend">
+  <div class="legend-item"><div class="dot dot-transport"></div>交通</div>
+  <div class="legend-item"><div class="dot dot-walk"></div>逛街</div>
+  <div class="legend-item"><div class="dot dot-spot"></div>景點</div>
+  <div class="legend-item"><div class="dot dot-meal"></div>餐飲</div>
+</div>
+
+<div class="tab-nav">
+  <button class="tab-btn active" onclick="switchTab('itinerary',this)">📅 行程總覽</button>
+  <button class="tab-btn" onclick="switchTab('cards',this)">🃏 隨身小卡</button>
+  <button class="tab-btn" onclick="switchTab('transport',this)">🚆 交通</button>
+  <button class="tab-btn" onclick="switchTab('food',this)">🍽 美食</button>
+  <button class="tab-btn" onclick="switchTab('payment',this)">💳 支付優惠</button>
+</div>
+
+<!-- ══ TAB 1: ITINERARY ══ -->
+<div id="itinerary" class="tab-panel active">
+<main>
+
+  <!-- D1 -->
+  <div class="day-block">
+    <div class="day-header">
+      <div class="day-label">D1</div>
+      <div class="day-sub">4/16 (四) 抵達東京 · 新宿</div>
+    </div>
+
+    <div class="period">
+      <div class="period-title">早上・出發</div>
+      <div class="event">
+        <div class="event-type"><span class="tag tag-transport">交通</span></div>
+        <div class="event-body booked">
+          <div class="event-name">🚗 機場專車　文山區興隆路三段55號 → 桃園國際機場 第一航廈</div>
+          <div class="event-note">
+            出發 04:55　｜　總計 $900　｜　機場四人專車（21～25吋行李1件）<br>
+            訂單編號：zrNBwi-202603025420<br>
+            車號：RED-7022　｜　司機：邱裕煌　｜　電話：0908-766-323<br>
+            ⚠ 司機資訊 04/15 提供　｜　24小時前可免費取消　｜　查詢：(02) 8195-3512
+          </div>
+        </div>
+      </div>
+      <div class="event">
+        <div class="event-type"><span class="tag tag-transport">交通</span></div>
+        <div class="event-body">
+          <div class="event-name">✈ JX800　桃園（TPE）→ 成田（NRT）</div>
+          <div class="event-note">星宇航空　AIRBUS A350-1000　經濟艙<br>出發 08:30（第1航廈）　｜　抵達 12:55（第2航廈）　｜　飛行 3小時25分鐘</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="period">
+      <div class="period-title">下午</div>
+
+      <div class="event">
+        <div class="event-type"><span class="tag tag-transport">交通</span></div>
+        <div class="event-body">
+          <div class="event-name">入境後，機場取票劃位→搭 N'EX 到品川→再轉高輪</div>
+          <div class="event-note">抵達飯店時間約 16:15</div>
+        </div>
+      </div>
+
+      <div class="event">
+        <div class="event-type"><span class="tag tag-walk">逛街</span></div>
+        <div class="event-body">
+          <div class="event-name">新宿伊勢丹本館 B1F noix de beurre</div>
+          <div class="event-note">走新宿東口</div>
+        </div>
+      </div>
+      <div class="event">
+        <div class="event-type"><span class="tag tag-walk">逛街</span></div>
+        <div class="event-body">
+          <div class="event-name">HANDS 新宿店（TIMES SQUARE大樓 2～8F）</div>
+          <div class="event-note">鞋墊 4～5F，21:00前專門櫃台退稅</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="period">
+      <div class="period-title">晚上</div>
+      <div class="event">
+        <div class="event-type"><span class="tag tag-meal">餐飲</span></div>
+        <div class="event-body booked">
+          <div class="event-name">牛たんの檸檬</div>
+          <div class="event-note">訂位 20:00（ID：UP5YW3）</div>
+        </div>
+      </div>
+      <div class="event">
+        <div class="event-type"><span class="tag tag-walk">逛街</span></div>
+        <div class="event-body">
+          <div class="event-name">唐吉軻德 新宿東南口店</div>
+          <div class="event-note">買京喚羽、DHC（藥妝1840）、熱眠蓋（藥妝1170）、護唇、護手霜</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- D2 -->
+  <div class="day-block">
+    <div class="day-header">
+      <div class="day-label">D2</div>
+      <div class="day-sub">4/17 (五) 澀谷 · 代代木 · 品川</div>
+    </div>
+
+    <div class="period">
+      <div class="period-title">上午</div>
+      <div class="event">
+        <div class="event-type"><span class="tag tag-spot">景點</span></div>
+        <div class="event-body">
+          <div class="event-name">南大塚三丁目櫻並木通（西巢鴨中學前櫻花隧道）</div>
+          <div class="event-note">早餐 便利商店／飯店吃完再出門</div>
+        </div>
+      </div>
+      <div class="event">
+        <div class="event-type"><span class="tag tag-walk">逛街</span></div>
+        <div class="event-body">
+          <div class="event-name">逛池袋（IT tower TOKYO、唐吉軻德 池袋西口店）</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="period">
+      <div class="period-title">下午</div>
+      <div class="event">
+        <div class="event-type"><span class="tag tag-meal">餐飲</span></div>
+        <div class="event-body must">
+          <div class="event-name">Little Pool Coffee＿蛋包飯</div>
+          <div class="event-note">午餐 11:00～</div>
+        </div>
+      </div>
+      <div class="event">
+        <div class="event-type"><span class="tag tag-walk">逛街</span></div>
+        <div class="event-body">
+          <div class="event-name">HAY TOKYO（澀谷）</div>
+          <div class="event-note">GYRE商場B1F</div>
+        </div>
+      </div>
+      <div class="event">
+        <div class="event-type"><span class="tag tag-walk">逛街</span></div>
+        <div class="event-body">
+          <div class="event-name">3COINS 原宿旗艦店</div>
+        </div>
+      </div>
+      <div class="event">
+        <div class="event-type"><span class="tag tag-walk">逛街</span></div>
+        <div class="event-body">
+          <div class="event-name">and ST TOKYO</div>
+          <div class="event-note">11點～21點</div>
+        </div>
+      </div>
+      <div class="event">
+        <div class="event-type"><span class="tag tag-meal">餐飲</span></div>
+        <div class="event-body">
+          <div class="event-name">neel 神宮前</div>
+          <div class="event-note">1 順位</div>
+        </div>
+      </div>
+      <div class="event">
+        <div class="event-type"><span class="tag tag-meal">餐飲</span></div>
+        <div class="event-body">
+          <div class="event-name">dotcom space</div>
+          <div class="event-note">2 順位</div>
+        </div>
+      </div>
+      <div class="event">
+        <div class="event-type"><span class="tag tag-spot">景點</span></div>
+        <div class="event-body">
+          <div class="event-name">代代木公園</div>
+        </div>
+      </div>
+      <div class="event">
+        <div class="event-type"><span class="tag tag-walk">逛街</span></div>
+        <div class="event-body">
+          <div class="event-name">奧澀谷商圈</div>
+        </div>
+      </div>
+      <div class="event">
+        <div class="event-type"><span class="tag tag-walk">逛街</span></div>
+        <div class="event-body">
+          <div class="event-name">HANDS 澀谷店</div>
+          <div class="event-note">20:30前專門櫃台退稅</div>
+        </div>
+      </div>
+      <div class="event">
+        <div class="event-type"><span class="tag tag-walk">逛街</span></div>
+        <div class="event-body">
+          <div class="event-name">3 COINS @Shibuya 109</div>
+          <div class="event-note">買口蓋＋收納袋</div>
+        </div>
+      </div>
+      <div class="event">
+        <div class="event-type"><span class="tag tag-walk">逛街</span></div>
+        <div class="event-body">
+          <div class="event-name">SEAM GINZA</div>
+          <div class="event-note">11:00～19:00，買京喚羽</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="period">
+      <div class="period-title">晚上</div>
+      <div class="event">
+        <div class="event-type"><span class="tag tag-meal">餐飲</span></div>
+        <div class="event-body must">
+          <div class="event-name">拉麵 Hayashida 品川港南口店</div>
+          <div class="event-note">晚餐</div>
+        </div>
+      </div>
+      <div class="event">
+        <div class="event-type"><span class="tag tag-spot">景點</span></div>
+        <div class="event-body">
+          <div class="event-name">品川 SEASON TERRACE</div>
+          <div class="event-note">2樓戶外賞景 拍東京鐵塔剪影</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- D3 -->
+  <div class="day-block">
+    <div class="day-header">
+      <div class="day-label">D3</div>
+      <div class="day-sub">4/18 (六) 品川 · 大井町 · 高輪</div>
+    </div>
+
+    <div class="period">
+      <div class="period-title">上午</div>
+      <div class="event">
+        <div class="event-type"><span class="tag tag-spot">景點</span></div>
+        <div class="event-body">
+          <div class="event-name">天王洲島</div>
+        </div>
+      </div>
+      <div class="event">
+        <div class="event-type"><span class="tag tag-meal">餐飲</span></div>
+        <div class="event-body">
+          <div class="event-name">Etomo 大井町店（茶泡飯）</div>
+          <div class="event-note">8:00～</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="period">
+      <div class="period-title">下午</div>
+      <div class="event">
+        <div class="event-type"><span class="tag tag-walk">逛街</span></div>
+        <div class="event-body">
+          <div class="event-name">Wing 高輪</div>
+          <div class="event-note">～20:00</div>
+        </div>
+      </div>
+      <div class="event">
+        <div class="event-type"><span class="tag tag-walk">逛街</span></div>
+        <div class="event-body">
+          <div class="event-name">武藏小山 Palms 商店街（甜點・雜貨・熟食・超市）</div>
+        </div>
+      </div>
+      <div class="event">
+        <div class="event-type"><span class="tag tag-walk">逛街</span></div>
+        <div class="event-body">
+          <div class="event-name">戶越銀座商店街（晚餐・肉と米 ハジメ）</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="period">
+      <div class="period-title">晚上</div>
+      <div class="event">
+        <div class="event-type"><span class="tag tag-meal">餐飲</span></div>
+        <div class="event-body">
+          <div class="event-name alt">MILK TEA SERVICE（NEWoMan 高輪北館 4F）</div>
+          <div class="event-note"><span class="replaceable">可互換</span></div>
+        </div>
+      </div>
+      <div class="event">
+        <div class="event-type"><span class="tag tag-walk">逛街</span></div>
+        <div class="event-body">
+          <div class="event-name">NEWoMan 高輪（南館）28F 空中庭園「LUFTBAUM」</div>
+          <div class="event-note"><span class="minus24">-24:00</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- D4 -->
+  <div class="day-block">
+    <div class="day-header">
+      <div class="day-label">D4</div>
+      <div class="day-sub">4/19 (日) 返程日</div>
+    </div>
+    <div class="period">
+      <div class="period-title">早上</div>
+      <div class="event">
+        <div class="event-type"><span class="tag tag-meal">餐飲</span></div>
+        <div class="event-body">
+          <div class="event-name">鰻之成瀨 泉嶽寺店</div>
+          <div class="event-note">並重梅、上重梅<br>[予約番号] PL7760905993792dd</div>
+        </div>
+      </div>
+      <div class="event">
+        <div class="event-type"><span class="tag tag-meal">餐飲</span></div>
+        <div class="event-body">
+          <div class="event-name alt">星巴克（NEWoMan 高輪北館 5F）</div>
+          <div class="event-note"><span class="replaceable">可互換 或外帶</span></div>
+        </div>
+      </div>
+      <div class="event">
+        <div class="event-type"><span class="tag tag-transport">交通</span></div>
+        <div class="event-body">
+          <div class="event-name">12:50–13:53 前往成田機場</div>
+          <div class="event-note">成田特快27號（N'EX）　品川 → 成田機場第2航廈　｜　13號月台，10車廂10號C、D</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="period">
+      <div class="period-title">下午・返程</div>
+      <div class="event">
+        <div class="event-type"><span class="tag tag-transport">交通</span></div>
+        <div class="event-body">
+          <div class="event-name">✈ JX803　成田（NRT）→ 桃園（TPE）</div>
+          <div class="event-note">星宇航空　AIRBUS A350-1000　經濟艙<br>出發 16:20（第2航廈）　｜　抵達 19:00（第1航廈）　｜　飛行 3小時40分鐘</div>
+        </div>
+      </div>
+      <div class="event">
+        <div class="event-type"><span class="tag tag-transport">交通</span></div>
+        <div class="event-body booked">
+          <div class="event-name">🚗 機場專車　桃園國際機場 第一航廈 → 臺北市文山區興德路22號</div>
+          <div class="event-note">
+            抵達接機 19:00　｜　總計 $700　｜　機場四人專車<br>
+            20吋以下行李1件、21～25吋行李1件<br>
+            訂單編號：XAeRvE-202604005057<br>
+            ⚠ 司機資訊 04/18 提供　｜　24小時前可免費取消　｜　查詢：(02) 8195-3512
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</main>
+</div>
+
+<!-- ══ TAB 2: CARDS ══ -->
+<div id="cards" class="tab-panel">
+<div id="card-section">
+  <h2 style="margin-top:2rem;">✂ 隨身小卡 — 每天一張，列印後剪開攜帶</h2>
+  <div class="card-grid">
+
+    <!-- ── D1 ── -->
+    <div class="mini-card">
+      <div class="mini-card-header">
+        <div class="day-big">D1</div>
+        <div class="day-info">
+          <div>4/16 (四)　新宿</div>
+          <div style="opacity:0.6;font-size:0.65rem;">抵達日</div>
+        </div>
+      </div>
+      <div class="mini-card-body">
+        <div class="mini-card-period">早上・出發</div>
+        <div class="item"><div class="item-dot" style="background:#aaa"></div><div class="item-text">🚗 機場專車 04:55 出發
+          <span class="badge badge-booked">已訂</span>
+          <div class="item-sub">興隆路三段55號 → 桃園第一航廈　$900<br>單號：zrNBwi-202603025420　車號：RED-7022　司機：邱裕煌　電話：0908-766-323</div>
+        </div></div>
+        <div class="item"><div class="item-dot" style="background:#aaa"></div><div class="item-text">✈ JX800　08:30 TPE → 12:55 NRT
+          <div class="item-sub">星宇航空 A350-1000　第1航廈出發 → 成田第2航廈</div>
+        </div></div>
+
+        <div class="mini-card-period">下午</div>
+        <div class="item"><div class="item-dot" style="background:#aaa"></div><div class="item-text">N'EX 機場 → 品川 → 高輪<div class="item-sub">飯店 ≈ 16:15</div></div></div>
+        <div class="item"><div class="item-dot" style="background:#7ba7bc"></div><div class="item-text">伊勢丹本館 B1F　noix de beurre<div class="item-sub">走新宿東口</div></div></div>
+        <div class="item"><div class="item-dot" style="background:#7ba7bc"></div><div class="item-text">HANDS 新宿店（TIMES SQUARE 2～8F）<div class="item-sub">鞋墊4～5F，21:00前退稅</div></div></div>
+
+        <div class="mini-card-period">晚上</div>
+        <div class="item"><div class="item-dot" style="background:#c0392b"></div><div class="item-text">
+          🍽 牛たんの檸檬
+          <span class="badge badge-booked">已訂位</span>
+          <div class="item-sub">20:00　ID：UP5YW3</div>
+        </div></div>
+        <div class="item"><div class="item-dot" style="background:#7ba7bc"></div><div class="item-text">唐吉軻德 新宿東南口店<div class="item-sub">京喚羽、DHC(1840)、熱眠蓋(1170)、護唇、護手霜</div></div></div>
+      </div>
+    </div>
+
+    <!-- ── D2 ── -->
+    <div class="mini-card">
+      <div class="mini-card-header">
+        <div class="day-big">D2</div>
+        <div class="day-info">
+          <div>4/17 (五)　池袋 → 澀谷 → 品川</div>
+          <div style="opacity:0.6;font-size:0.65rem;">早餐 便利商店／飯店吃完再出門</div>
+        </div>
+      </div>
+      <div class="mini-card-body">
+        <div class="mini-card-period">上午</div>
+        <div class="item"><div class="item-dot" style="background:#6b7c5e"></div><div class="item-text">🌸 南大塚三丁目櫻並木通<div class="item-sub">西巢鴨中學前</div></div></div>
+        <div class="item"><div class="item-dot" style="background:#7ba7bc"></div><div class="item-text">逛池袋（IT tower TOKYO、唐吉軻德 池袋西口店）</div></div>
+        <div class="item"><div class="item-dot" style="background:#c0392b"></div><div class="item-text">🍽 Little Pool Coffee　蛋包飯
+          <span class="badge badge-must">必</span>
+          <div class="item-sub">午餐 11:00～</div>
+        </div></div>
+
+        <div class="mini-card-period">下午</div>
+        <div class="item"><div class="item-dot" style="background:#7ba7bc"></div><div class="item-text">HAY TOKYO（GYRE商場B1F）/ and ST TOKYO<div class="item-sub">11點～21點</div></div></div>
+        <div class="item"><div class="item-dot" style="background:#7ba7bc"></div><div class="item-text">3COINS 原宿旗艦店</div></div>
+        <div class="item"><div class="item-dot" style="background:#c0392b"></div><div class="item-text">🍽 neel 神宮前<div class="item-sub">1順位（備選：dotcom space）</div></div></div>
+        <div class="item"><div class="item-dot" style="background:#6b7c5e"></div><div class="item-text">代代木公園 / 奧澀谷商圈</div></div>
+        <div class="item"><div class="item-dot" style="background:#7ba7bc"></div><div class="item-text">HANDS 澀谷<div class="item-sub">20:30前專門櫃台退稅</div></div></div>
+        <div class="item"><div class="item-dot" style="background:#7ba7bc"></div><div class="item-text">3 COINS @Shibuya 109<div class="item-sub">買口蓋＋收納袋</div></div></div>
+        <div class="item"><div class="item-dot" style="background:#7ba7bc"></div><div class="item-text">SEAM GINZA<div class="item-sub">11:00～19:00，買京喚羽</div></div></div>
+
+        <div class="mini-card-period">晚上</div>
+        <div class="item"><div class="item-dot" style="background:#c0392b"></div><div class="item-text">🍜 拉麵 Hayashida 品川港南口店
+          <span class="badge badge-must">必</span>
+        </div></div>
+        <div class="item"><div class="item-dot" style="background:#6b7c5e"></div><div class="item-text">品川 SEASON TERRACE<div class="item-sub">2F 戶外賞東京鐵塔剪影</div></div></div>
+      </div>
+    </div>
+
+    <!-- ── D3 ── -->
+    <div class="mini-card">
+      <div class="mini-card-header">
+        <div class="day-big">D3</div>
+        <div class="day-info">
+          <div>4/18 (六)　天王洲 → 大井町 → 高輪</div>
+          <div style="opacity:0.6;font-size:0.65rem;"></div>
+        </div>
+      </div>
+      <div class="mini-card-body">
+        <div class="mini-card-period">上午</div>
+        <div class="item"><div class="item-dot" style="background:#6b7c5e"></div><div class="item-text">天王洲島</div></div>
+        <div class="item"><div class="item-dot" style="background:#c0392b"></div><div class="item-text">🍵 Etomo 大井町店（茶泡飯）<div class="item-sub">8:00～</div></div></div>
+
+        <div class="mini-card-period">下午</div>
+        <div class="item"><div class="item-dot" style="background:#7ba7bc"></div><div class="item-text">Wing 高輪<div class="item-sub">～20:00</div></div></div>
+        <div class="item"><div class="item-dot" style="background:#7ba7bc"></div><div class="item-text">武藏小山 Palms 商店街<div class="item-sub">甜點・雜貨・熟食・超市</div></div></div>
+        <div class="item"><div class="item-dot" style="background:#7ba7bc"></div><div class="item-text">戶越銀座商店街<div class="item-sub">肉と米 ハジメ（晚餐選項）</div></div></div>
+
+        <div class="mini-card-period">晚上</div>
+        <div class="item"><div class="item-dot" style="background:#c0392b"></div><div class="item-text" style="color:#c0392b">🧋 MILK TEA SERVICE（NEWoMan 北館 4F）
+          <span class="badge badge-swap">可互換</span>
+        </div></div>
+        <div class="item"><div class="item-dot" style="background:#6b7c5e"></div><div class="item-text">NEWoMan 南館 28F　LUFTBAUM 空中庭園
+          <span class="badge badge-late">至 24:00</span>
+        </div></div>
+      </div>
+    </div>
+
+    <!-- ── D4 ── -->
+    <div class="mini-card">
+      <div class="mini-card-header">
+        <div class="day-big">D4</div>
+        <div class="day-info">
+          <div>4/19 (日)　高輪 → 成田</div>
+          <div style="opacity:0.6;font-size:0.65rem;">返程日</div>
+        </div>
+      </div>
+      <div class="mini-card-body">
+        <div class="mini-card-period">早上</div>
+        <div class="item"><div class="item-dot" style="background:#c0392b"></div><div class="item-text">🐟 鰻之成瀨 泉嶽寺店<div class="item-sub">並重梅、上重梅</div></div></div>
+        <div class="item"><div class="item-dot" style="background:#c0392b"></div><div class="item-text" style="color:#c0392b">☕ 星巴克（NEWoMan 高輪北館 5F）
+          <span class="badge badge-swap">可互換或外帶</span>
+        </div></div>
+
+        <div class="mini-card-period">出發</div>
+        <div class="item"><div class="item-dot" style="background:#aaa"></div><div class="item-text" style="font-weight:700">✈ 12:50 → 13:53　前往成田機場<div class="item-sub">N'EX　13號月台，10車廂10號C、D</div></div></div>
+
+        <div class="mini-card-period">下午・返程</div>
+        <div class="item"><div class="item-dot" style="background:#aaa"></div><div class="item-text">✈ JX803　16:20 NRT → 19:00 TPE
+          <div class="item-sub">星宇航空 A350-1000　成田第2航廈出發 → 桃園第1航廈</div>
+        </div></div>
+        <div class="item"><div class="item-dot" style="background:#aaa"></div><div class="item-text">🚗 接機專車 19:00
+          <span class="badge badge-booked">已訂</span>
+          <div class="item-sub">桃園第一航廈 → 文山區興德路22號　$700<br>單號：XAeRvE-202604005057　司機資訊04/18提供</div>
+        </div></div>
+      </div>
+    </div>
+
+  </div>
+  <p style="font-size:0.75rem;color:#aaa;margin-top:1.5rem;text-align:center;">共 4 張 · 列印後剪開，每天帶當天那張即可</p>
+</div>
+</div>
+
+<!-- ══ TAB 3: 交通 ══ -->
+<div id="transport" class="tab-panel">
+<div style="max-width:960px;margin:0 auto;padding:2.5rem 1.5rem 4rem;">
+  <h2 style="font-size:1.1rem;font-weight:700;border-bottom:2px solid var(--ink);padding-bottom:0.5rem;margin-bottom:0.75rem;letter-spacing:0.1em;">🚆 交通資訊</h2>
+  <p style="font-size:0.78rem;color:var(--muted);margin-bottom:1.5rem;">🍉 欄位數字為西瓜卡扣款金額（日元／人）</p>
+
+  <!-- 航班資訊 -->
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-bottom:1.5rem;">
+    <div style="background:var(--ink);color:var(--paper);border-radius:8px;padding:1.1rem 1.3rem;">
+      <div style="font-family:'DM Mono',monospace;font-size:0.6rem;letter-spacing:0.15em;text-transform:uppercase;color:#f0c040;margin-bottom:0.5rem;">去程 · OUTBOUND</div>
+      <div style="font-size:1.3rem;font-weight:900;letter-spacing:0.05em;margin-bottom:0.3rem;">JX800</div>
+      <div style="display:flex;align-items:center;gap:0.5rem;margin-bottom:0.5rem;">
+        <span style="font-size:1rem;font-family:'DM Mono',monospace;font-weight:700;">08:30</span>
+        <span style="color:#aaa;font-size:0.8rem;">TPE</span>
+        <span style="color:#555;font-size:0.7rem;">━━✈━━</span>
+        <span style="font-size:1rem;font-family:'DM Mono',monospace;font-weight:700;">12:55</span>
+        <span style="color:#aaa;font-size:0.8rem;">NRT</span>
+      </div>
+      <div style="font-size:0.72rem;color:rgba(255,255,255,0.5);line-height:1.7;">
+        2026/04/16　星宇航空<br>
+        A350-1000　經濟艙　3h 25m<br>
+        桃園第1航廈 → 成田第2航廈
+      </div>
+    </div>
+    <div style="background:var(--ink);color:var(--paper);border-radius:8px;padding:1.1rem 1.3rem;">
+      <div style="font-family:'DM Mono',monospace;font-size:0.6rem;letter-spacing:0.15em;text-transform:uppercase;color:#f0c040;margin-bottom:0.5rem;">回程 · RETURN</div>
+      <div style="font-size:1.3rem;font-weight:900;letter-spacing:0.05em;margin-bottom:0.3rem;">JX803</div>
+      <div style="display:flex;align-items:center;gap:0.5rem;margin-bottom:0.5rem;">
+        <span style="font-size:1rem;font-family:'DM Mono',monospace;font-weight:700;">16:20</span>
+        <span style="color:#aaa;font-size:0.8rem;">NRT</span>
+        <span style="color:#555;font-size:0.7rem;">━━✈━━</span>
+        <span style="font-size:1rem;font-family:'DM Mono',monospace;font-weight:700;">19:00</span>
+        <span style="color:#aaa;font-size:0.8rem;">TPE</span>
+      </div>
+      <div style="font-size:0.72rem;color:rgba(255,255,255,0.5);line-height:1.7;">
+        2026/04/19　星宇航空<br>
+        A350-1000　經濟艙　3h 40m<br>
+        成田第2航廈 → 桃園第1航廈
+      </div>
+    </div>
+  </div>
+
+  <!-- 接送車資訊 -->
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-bottom:2rem;">
+    <div style="background:#fff8e8;border:1.5px solid var(--gold);border-radius:6px;padding:1rem 1.1rem;font-size:0.8rem;line-height:1.8;">
+      <div style="font-family:'DM Mono',monospace;font-size:0.6rem;letter-spacing:0.12em;color:#b8860b;margin-bottom:0.3rem;">🚗 去程接送</div>
+      <strong>04:55</strong> 出發　$900<br>
+      興隆路三段55號 → 桃園第一航廈<br>
+      <span style="font-size:0.7rem;color:var(--muted);">單號：zrNBwi-202603025420<br>車號：RED-7022　｜　司機：邱裕煌　｜　電話：0908-766-323<br>司機資訊 04/15 提供</span>
+    </div>
+    <div style="background:#fff8e8;border:1.5px solid var(--gold);border-radius:6px;padding:1rem 1.1rem;font-size:0.8rem;line-height:1.8;">
+      <div style="font-family:'DM Mono',monospace;font-size:0.6rem;letter-spacing:0.12em;color:#b8860b;margin-bottom:0.3rem;">🚗 回程接送</div>
+      <strong>19:00</strong> 抵達接機　$700<br>
+      桃園第一航廈 → 文山區興德路22號<br>
+      <span style="font-size:0.7rem;color:var(--muted);">單號：XAeRvE-202604005057<br>司機資訊 04/18 提供</span>
+    </div>
+  </div>
+  <div style="background:#fff8e8;border:1.5px solid var(--gold);border-radius:6px;padding:1rem 1.25rem;margin-bottom:2rem;font-size:0.82rem;line-height:1.8;">
+    🚗 <strong>04:55 機場專車出發</strong>　臺北市文山區興隆路三段55號 → 桃園國際機場第一航廈　｜　$900<br>
+    🪪 車號：RED-7022　｜　司機：邱裕煌　｜　電話：0908-766-323<br>
+    ✈️ <strong>桃園機場 第一航廈</strong>　AM 4:55 出門，約 6:00 以前抵達桃園機場
+  </div>
+
+  <!-- DAY 1 -->
+  <div class="transport-day">
+    <div class="transport-day-header">
+      <span class="transport-day-label">Day 1</span>
+      <span class="transport-day-sub">4/16 (四)　成田 → 飯店 → 新宿</span>
+    </div>
+    <div class="transport-table-wrap">
+      <table class="transport-table">
+        <thead><tr><th>目的地</th><th>路線名稱</th><th>起訖點</th><th>發車／時間</th><th>備註</th><th>🍉</th></tr></thead>
+        <tbody>
+          <tr>
+            <td><strong>飯店</strong></td>
+            <td>成田特快28號（新宿行）<span class="line-name">N'EX</span></td>
+            <td class="route">成田機場 → 品川</td>
+            <td class="time">14:23–15:25</td>
+            <td>1號月台發車</td>
+            <td>—</td>
+          </tr>
+          <tr class="backup-row">
+            <td></td>
+            <td>成田特快30號（新宿行）<span class="line-name">N'EX</span><span class="backup-tag">備案</span></td>
+            <td class="route">成田機場 → 品川</td>
+            <td class="time">14:49–15:53</td>
+            <td>（備案）</td>
+            <td>—</td>
+          </tr>
+          <tr>
+            <td></td>
+            <td>山手線 內回り（東京方面行）</td>
+            <td class="route">品川 → 高輪Gateway</td>
+            <td class="time">—</td>
+            <td>1號月台發車</td>
+            <td class="suica">155</td>
+          </tr>
+          <tr>
+            <td><strong>新宿</strong></td>
+            <td>山手線 外回り（品川方面行）</td>
+            <td class="route">高輪Gateway → 新宿</td>
+            <td class="time">17:35–17:58</td>
+            <td>2號月台發車</td>
+            <td class="suica">253</td>
+          </tr>
+          <tr>
+            <td><strong>飯店</strong></td>
+            <td>山手線 內回り（澀谷方面行）</td>
+            <td class="route">新宿 → 高輪Gateway</td>
+            <td class="time">21:32–21:54</td>
+            <td>14號月台發車</td>
+            <td class="suica">253</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- DAY 2 -->
+  <div class="transport-day">
+    <div class="transport-day-header">
+      <span class="transport-day-label">Day 2</span>
+      <span class="transport-day-sub">4/17 (五)　南大塚 → 池袋 → 表參道 → 銀座 → 品川</span>
+    </div>
+    <div class="transport-table-wrap">
+      <table class="transport-table">
+        <thead><tr><th>目的地</th><th>路線名稱</th><th>起訖點</th><th>發車／時間</th><th>備註</th><th>🍉</th></tr></thead>
+        <tbody>
+          <tr>
+            <td><strong>南大塚三丁目</strong></td>
+            <td>山手線 內回り（東京方面行）</td>
+            <td class="route">高輪Gateway → 大塚（東京）</td>
+            <td class="time">08:45–09:18</td>
+            <td>1號月台發車，抵達後從南口走7分鐘</td>
+            <td class="suica">341</td>
+          </tr>
+          <tr>
+            <td><strong>池袋</strong></td>
+            <td>山手線 內回り（池袋方面行）</td>
+            <td class="route">大塚（東京）→ 池袋</td>
+            <td class="time">10:13–10:17</td>
+            <td>1號月台發車</td>
+            <td class="suica">155</td>
+          </tr>
+          <tr>
+            <td><strong>表參道</strong></td>
+            <td>副都心線 F 快線（元町、中華街）</td>
+            <td class="route">池袋 → 明治神宮前</td>
+            <td class="time">11:56–12:06</td>
+            <td>5號月台發車</td>
+            <td class="suica">209</td>
+          </tr>
+          <tr>
+            <td></td>
+            <td>千代田線（綾瀨行）</td>
+            <td class="route">明治神宮前 → 表參道車站</td>
+            <td class="time">12:14–12:15</td>
+            <td>2號月台發車，抵達後從A4出口走5分鐘</td>
+            <td class="suica">178</td>
+          </tr>
+          <tr>
+            <td><strong>奧澀谷商圈</strong></td>
+            <td colspan="2" style="color:var(--muted);font-size:0.78rem;">步行</td>
+            <td class="time">—</td>
+            <td>—</td>
+            <td>—</td>
+          </tr>
+          <tr>
+            <td><strong>銀座</strong></td>
+            <td>銀座線（淺草行）</td>
+            <td class="route">澀谷 → 京橋（東京）</td>
+            <td class="time">18:00–18:23</td>
+            <td>（備案）1號出口，ONE GINZA 3F</td>
+            <td class="suica">178</td>
+          </tr>
+          <tr>
+            <td><strong>品川</strong></td>
+            <td>山手線 內回り（品川方面行）</td>
+            <td class="route">澀谷 → 品川</td>
+            <td class="time">18:33–18:46</td>
+            <td>2號月台發車，抵達後從港南口走3分鐘</td>
+            <td class="suica">209</td>
+          </tr>
+          <tr class="backup-row">
+            <td></td>
+            <td>淺草線 + 京急本線（羽田機場行）<span class="backup-tag">備案</span></td>
+            <td class="route">貝町（東京）→ 品川</td>
+            <td class="time">20:10–20:23</td>
+            <td>（備案）港南口／東口</td>
+            <td class="suica">370</td>
+          </tr>
+          <tr class="backup-row">
+            <td></td>
+            <td>京濱東北線（大船）<span class="backup-tag">備案</span></td>
+            <td class="route">有楽町 → 品川</td>
+            <td class="time">20:10–20:23</td>
+            <td>（備案）港南口／東口</td>
+            <td class="suica">200</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- DAY 3 -->
+  <div class="transport-day">
+    <div class="transport-day-header">
+      <span class="transport-day-label">Day 3</span>
+      <span class="transport-day-sub">4/18 (六)　天王洲島 → 大井町 → 品川 → 武藏小山 → 戶越銀座 → 高輪</span>
+    </div>
+    <div class="transport-table-wrap">
+      <table class="transport-table">
+        <thead><tr><th>目的地</th><th>路線名稱</th><th>起訖點</th><th>發車／時間</th><th>備註</th><th>🍉</th></tr></thead>
+        <tbody>
+          <tr>
+            <td><strong>天王洲島</strong></td>
+            <td colspan="2" style="color:var(--muted);font-size:0.78rem;">步行</td>
+            <td class="time">約25分鐘</td>
+            <td>—</td>
+            <td>—</td>
+          </tr>
+          <tr>
+            <td><strong>大井町</strong></td>
+            <td>りんかい線（大崎行）</td>
+            <td class="route">天王洲島車站 → 大井町</td>
+            <td class="time">5分鐘</td>
+            <td>—</td>
+            <td class="suica">210</td>
+          </tr>
+          <tr>
+            <td><strong>品川 Wing高輪</strong></td>
+            <td>京濱東北線（南浦和）</td>
+            <td class="route">大井町 → 品川</td>
+            <td class="time">3分鐘</td>
+            <td>—</td>
+            <td class="suica">160</td>
+          </tr>
+          <tr>
+            <td><strong>武藏小山商店街</strong></td>
+            <td>山手線 外回り（澀谷方面行）</td>
+            <td class="route">品川 → 目黒</td>
+            <td class="time">9分鐘</td>
+            <td>3號月台發車</td>
+            <td class="suica">199</td>
+          </tr>
+          <tr>
+            <td></td>
+            <td>東急目黒線（日吉行）</td>
+            <td class="route">目黒 → 武藏小山</td>
+            <td class="time">4分鐘</td>
+            <td>1號月台發車</td>
+            <td class="suica">140</td>
+          </tr>
+          <tr>
+            <td><strong>戶越銀座商店街</strong></td>
+            <td colspan="2" style="color:var(--muted);font-size:0.78rem;">步行</td>
+            <td class="time">—</td>
+            <td>—</td>
+            <td>—</td>
+          </tr>
+          <tr>
+            <td><strong>高輪Gateway</strong></td>
+            <td>都營淺草線（泉岳寺行）</td>
+            <td class="route">戶越銀座 → 泉岳寺車站</td>
+            <td class="time">6分鐘</td>
+            <td>2號月台發車</td>
+            <td class="suica">178</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- DAY 4 -->
+  <div class="transport-day">
+    <div class="transport-day-header">
+      <span class="transport-day-label">Day 4</span>
+      <span class="transport-day-sub">4/19 (日)　品川 → 成田機場</span>
+    </div>
+    <div class="transport-table-wrap">
+      <table class="transport-table">
+        <thead><tr><th>目的地</th><th>路線名稱</th><th>起訖點</th><th>發車／時間</th><th>備註</th><th>🍉</th></tr></thead>
+        <tbody>
+          <tr>
+            <td><strong>機場</strong></td>
+            <td>成田特快27號（成田空港行）<span class="line-name">N'EX</span></td>
+            <td class="route">品川 → 成田機場第2航廈</td>
+            <td class="time">12:50–13:53</td>
+            <td>13號月台發車，10車廂10號C、D</td>
+            <td>—</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- 費用小計 -->
+  <div style="text-align:right;margin-top:1.5rem;padding:0.75rem 1rem;background:var(--cream);border-radius:6px;border:1px solid #e0d8cc;">
+    <span style="font-size:0.78rem;color:var(--muted);font-family:'DM Mono',monospace;letter-spacing:0.05em;">電車費小計　</span>
+    <span style="font-size:1.1rem;font-weight:900;font-family:'DM Mono',monospace;color:var(--ink);">¥ 3,388</span>
+    <span style="font-size:0.72rem;color:var(--muted);margin-left:0.75rem;">折合台幣約 NT$ 691</span>
+  </div>
+
+</div>
+</div>
+<div id="food" class="tab-panel">
+<div style="max-width:960px;margin:0 auto;padding:2.5rem 1.5rem 4rem;">
+  <h2 style="font-size:1.1rem;font-weight:700;border-bottom:2px solid var(--ink);padding-bottom:0.5rem;margin-bottom:0.75rem;letter-spacing:0.1em;">🍽 美食清單</h2>
+  <p style="font-size:0.78rem;color:var(--muted);margin-bottom:2rem;">餐價單位：日元　｜　✅ = 已訂位　｜　🔴 = 只收現金</p>
+
+  <div class="food-table-wrap">
+    <table class="food-table">
+      <thead>
+        <tr>
+          <th>店名</th>
+          <th>營業時間</th>
+          <th>支付方式</th>
+          <th>訂位</th>
+          <th>餐點 A</th>
+          <th class="col-price">餐價A</th>
+          <th>餐點 B</th>
+          <th class="col-price">餐價B</th>
+          <th>餐點 C</th>
+          <th class="col-price">餐價C</th>
+          <th class="col-price">含稅（円）</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr class="booked-row">
+          <td class="food-name"><a href="https://maps.google.com/?q=牛たんの檸檬+新宿" target="_blank">牛たんの檸檬（新宿總本店）</a></td>
+          <td class="food-hours">17:00–22:00</td>
+          <td><span class="pay-tag pay-card">信用卡</span></td>
+          <td class="food-booked">✅</td>
+          <td>極品 厚切牛舌燒烤&鹽麴熟成舌燒定食</td>
+          <td class="col-price">3,580</td>
+          <td>厚切牛舌燒&A5黑毛和牛肋條燒</td>
+          <td class="col-price">3,580</td>
+          <td>—</td>
+          <td class="col-price">—</td>
+          <td class="col-price total-price">7,160</td>
+        </tr>
+        <tr>
+          <td class="food-name"><a href="https://maps.google.com/?q=Little+pool+coffee+Tokyo" target="_blank">Little Pool Coffee</a></td>
+          <td class="food-hours">11:00–16:30</td>
+          <td><span class="pay-tag pay-mobile">行動支付</span></td>
+          <td class="food-unbooked">□</td>
+          <td>蛋包飯</td>
+          <td class="col-price">1,200</td>
+          <td>蛋包飯</td>
+          <td class="col-price">1,200</td>
+          <td>—</td>
+          <td class="col-price">—</td>
+          <td class="col-price total-price">2,400</td>
+        </tr>
+        <tr>
+          <td class="food-name"><a href="https://maps.google.com/?q=neel神宮前+Tokyo" target="_blank">neel 神宮前</a></td>
+          <td class="food-hours">10:00–20:30</td>
+          <td><span class="pay-tag pay-mobile">行動支付</span></td>
+          <td class="food-unbooked">□</td>
+          <td>可麗餅</td>
+          <td class="col-price">610</td>
+          <td>美式</td>
+          <td class="col-price">550</td>
+          <td>拿鐵</td>
+          <td class="col-price">630</td>
+          <td class="col-price total-price">1,790</td>
+        </tr>
+        <tr>
+          <td class="food-name"><a href="https://maps.google.com/?q=dotcom+space+Tokyo" target="_blank">dotcom space</a></td>
+          <td class="food-hours">10:00–18:30</td>
+          <td><span class="pay-tag pay-mobile">行動支付</span></td>
+          <td class="food-unbooked">□</td>
+          <td>起司蛋糕</td>
+          <td class="col-price">800</td>
+          <td>拿鐵</td>
+          <td class="col-price">650</td>
+          <td>拿鐵</td>
+          <td class="col-price">650</td>
+          <td class="col-price total-price">2,100</td>
+        </tr>
+        <tr>
+          <td class="food-name">らぁ麵 はやし田 品川港南口店</td>
+          <td class="food-hours">10:00–23:00</td>
+          <td><span class="pay-tag pay-card">信用卡</span></td>
+          <td class="food-unbooked">□</td>
+          <td>特製雞白湯</td>
+          <td class="col-price">1,250</td>
+          <td>特製雞白湯</td>
+          <td class="col-price">1,250</td>
+          <td>—</td>
+          <td class="col-price">—</td>
+          <td class="col-price total-price">2,500</td>
+        </tr>
+        <tr>
+          <td class="food-name"><a href="https://maps.google.com/?q=Etomo大井町" target="_blank">En Etomo 大井町店</a></td>
+          <td class="food-hours">08:00–22:00</td>
+          <td><span class="pay-tag pay-cash">只收現金</span></td>
+          <td class="food-unbooked">□</td>
+          <td>サーモンといくらの親子</td>
+          <td class="col-price">1,100</td>
+          <td>うなぎのひつまぶし風</td>
+          <td class="col-price">1,630</td>
+          <td>—</td>
+          <td class="col-price">—</td>
+          <td class="col-price total-price">2,730</td>
+        </tr>
+        <tr>
+          <td class="food-name"><a href="https://maps.google.com/?q=肉と米ハジメ戸越銀座" target="_blank">肉と米 ハジメ 戶越銀座店</a></td>
+          <td class="food-hours">11:00–21:00</td>
+          <td><span class="pay-tag pay-mobile">行動支付</span></td>
+          <td class="food-unbooked">□</td>
+          <td>牛排釜飯 150g</td>
+          <td class="col-price">1,600</td>
+          <td>牛排釜飯 200g</td>
+          <td class="col-price">1,950</td>
+          <td>—</td>
+          <td class="col-price">—</td>
+          <td class="col-price total-price">3,550</td>
+        </tr>
+        <tr>
+          <td class="food-name"><a href="https://maps.google.com/?q=MILK+TEA+SERVICE+NEWoMan" target="_blank">MILK TEA SERVICE</a></td>
+          <td class="food-hours">11:00–20:00</td>
+          <td><span class="pay-tag pay-mobile">行動支付</span></td>
+          <td class="food-unbooked">□</td>
+          <td>奶茶（外帶）</td>
+          <td class="col-price">756</td>
+          <td>—</td>
+          <td class="col-price">—</td>
+          <td>—</td>
+          <td class="col-price">—</td>
+          <td class="col-price total-price">756</td>
+        </tr>
+        <tr class="booked-row">
+          <td class="food-name"><a href="https://maps.google.com/?q=鰻之成瀬泉岳寺" target="_blank">鰻之成瀨 泉嶽寺店</a></td>
+          <td class="food-hours">11:00–14:00</td>
+          <td><span class="pay-tag pay-mobile">行動支付</span></td>
+          <td class="food-booked">✅</td>
+          <td>並重 梅</td>
+          <td class="col-price">1,600</td>
+          <td>上重 梅</td>
+          <td class="col-price">1,900</td>
+          <td>—</td>
+          <td class="col-price">—</td>
+          <td class="col-price total-price">3,500</td>
+        </tr>
+        <tr>
+          <td class="food-name"><a href="https://maps.google.com/?q=星巴克+NEWoMan高輪" target="_blank">星巴克 NEWoMan</a></td>
+          <td class="food-hours">10:00–22:00</td>
+          <td><span class="pay-tag pay-mobile">行動支付</span></td>
+          <td class="food-unbooked">□</td>
+          <td>—</td>
+          <td class="col-price">—</td>
+          <td>—</td>
+          <td class="col-price">—</td>
+          <td>—</td>
+          <td class="col-price">—</td>
+          <td class="col-price">—</td>
+        </tr>
+      </tbody>
+      <tfoot>
+        <tr>
+          <td colspan="10" style="text-align:right;padding:0.75rem 1rem;font-size:0.8rem;color:var(--muted);font-family:'DM Mono',monospace;letter-spacing:0.05em;">餐食小計</td>
+          <td class="col-price" style="padding:0.75rem 1rem;font-weight:900;font-size:1rem;color:var(--red);font-family:'DM Mono',monospace;background:#fff8f8;">26,486</td>
+        </tr>
+      </tfoot>
+    </table>
+  </div>
+
+</div>
+</div>
+
+<!-- ══ TAB 5: 支付優惠 ══ -->
+<div id="payment" class="tab-panel">
+<div style="max-width:960px;margin:0 auto;padding:2.5rem 1.5rem 4rem;">
+  <h2 style="font-size:1.1rem;font-weight:700;border-bottom:2px solid var(--ink);padding-bottom:0.5rem;margin-bottom:1rem;letter-spacing:0.1em;">💳 支付優惠建議</h2>
+  <div class="pay-trip-badge">
+    ✈ 2026/04/16–04/19 東京四日遊
+    <span class="q-badge">Q2 優惠期間 ✓</span>
+  </div>
+
+  <!-- Sub tabs (4 tabs now) -->
+  <div class="pay-sub-tabs">
+    <button class="pay-sub-btn active" onclick="switchPayTab('itinerary',this)">📍 行程支付對照</button>
+    <button class="pay-sub-btn" onclick="switchPayTab('advisor',this)">🎯 場域支付建議</button>
+    <button class="pay-sub-btn" onclick="switchPayTab('overview',this)">📋 各卡優惠總覽</button>
+    <button class="pay-sub-btn" onclick="switchPayTab('tips',this)">💡 使用攻略</button>
+  </div>
+
+  <!-- ── Sub panel 0: 東京行程支付對照 ── -->
+  <div id="pay-panel-itinerary" class="pay-sub-panel active">
+    <div style="font-family:'DM Mono',monospace;font-size:0.63rem;letter-spacing:0.14em;text-transform:uppercase;color:var(--muted);margin-bottom:0.4rem;">Tokyo Itinerary · 2026/04/16–04/19 · 逐據點支付建議</div>
+
+    <!-- 色碼說明 -->
+    <div style="display:flex;flex-wrap:wrap;gap:0.5rem;margin-bottom:0.9rem;font-size:0.75rem;">
+      <span class="pb pb-kuma">🐻 熊本熊 8.5%</span>
+      <span class="pb pb-eco">🌿 星展eco 5%</span>
+      <span class="pb pb-pay">🔴 PayPay 5%</span>
+      <span class="pb pb-suica">🍉 Suica</span>
+      <span class="pb pb-rich">🐶 Richart 淨1.8%</span>
+      <span class="pb pb-cash">💴 現金</span>
+    </div>
+
+    <!-- ⚠ 海外手續費說明 -->
+    <div style="background:#fff8e7;border:1.5px solid #e0c060;border-radius:8px;padding:0.85rem 1.1rem;margin-bottom:0.9rem;font-size:0.78rem;line-height:1.85;color:var(--muted);">
+      💳 <strong style="color:var(--ink);">國外交易手續費說明</strong><br>
+      <strong>🐻 熊本熊 8.5%</strong>（加碼回饋6%，每期上限NT$500）需同時滿足三個條件：<br>
+      &nbsp;&nbsp;① <strong>完成活動登錄</strong>（每期帳單週期登錄一次，官網或App均可）<br>
+      &nbsp;&nbsp;② <strong>於指定商店消費</strong>（熊好買：唐吉軻德/松本清/BicCamera/UNIQLO/3Coins等；熊好用：Suica/PASMO/ICOCA儲值；<a href="https://event.esunbank.com.tw/credit/kumamon-card/japan-discount.html#!" target="_blank" style="color:var(--blue);">完整清單</a>）<br>
+      &nbsp;&nbsp;③ <strong>持熊本熊實體卡刷卡</strong>（不可綁定玉山Wallet電子支付消費）<br>
+      未符合條件時，一般日本消費仍享2.5%無上限基本回饋。
+      <strong>🌿 星展eco</strong>：帳單會列示國外交易手續費，但5%回饋是在此條件下計算，<strong>宣稱5%已為含手續費後的帳面值</strong>。<br>
+      <strong>🔴 PayPay</strong>：透過玉山Wallet走行動支付通道，<strong>不收海外交易手續費</strong>，5%為實際淨回饋。✅<br>
+      <strong>🐶 Richart 玩旅刷</strong>：宣稱3.3%，但仍收1.5%手續費，<strong>實際淨回饋僅約1.8%</strong>（備用卡，僅在其他卡額度用盡時使用）。⚠️
+    </div>
+
+    <!-- 啟動追蹤器 -->
+    <div style="background:linear-gradient(135deg,var(--ink),#2a1828);border-radius:8px;padding:1rem 1.3rem;margin-bottom:1.2rem;display:flex;align-items:center;justify-content:space-between;gap:1rem;flex-wrap:wrap;">
+      <div>
+        <div style="font-family:'DM Mono',monospace;font-size:0.62rem;letter-spacing:0.1em;text-transform:uppercase;color:#f0c040;margin-bottom:0.3rem;">⚡ 動態回饋追蹤器</div>
+        <div style="font-size:0.8rem;color:rgba(255,255,255,0.75);line-height:1.55;">在每個據點按「＋記帳」輸入消費金額，即時計算剩餘回饋額度，額度耗盡時自動建議次優支付方式。</div>
+      </div>
+      <button style="font-family:'DM Mono',monospace;font-size:0.72rem;letter-spacing:0.06em;text-transform:uppercase;padding:0.55rem 1.2rem;border:none;border-radius:4px;cursor:pointer;background:var(--ink);color:#f0c040;border:1px solid #444;white-space:nowrap;" onclick="trackerActivate()">開始追蹤 →</button>
+    </div>
+
+    <!-- ⚠ 現金警示 -->
+    <div class="itin-alert-box">
+      ⚠️ <strong style="color:var(--red);">D3 早餐「En Etomo 大井町」只收現金！</strong>
+      請出發前備好 ¥3,000–5,000 日幣現金（預估¥2,730）。<br>
+      武藏小山、戶越銀座商店街部分小攤亦可能只收現金，建議備 ¥10,000。
+    </div>
+
+    <!-- D1 -->
+    <div class="itin-day">
+      <div class="itin-day-head">
+        <div class="itin-day-num">D1</div>
+        <div class="itin-day-meta">
+          <div class="itin-day-title">4/16（四）抵達東京 · 新宿</div>
+          <div class="itin-day-sub">成田入境 → N'EX → 品川飯店 → 新宿伊勢丹 → HANDS → 牛たん → 唐吉軻德 新宿東南口店</div>
+        </div>
+      </div>
+      <div class="period-lbl">交通</div>
+      <div class="spot-row">
+        <div class="spot-ico">🚃</div>
+        <div class="spot-body">
+          <div class="spot-name">N'EX 成田特快（14:23）→ 品川，山手線各段往返新宿</div>
+          <div class="spot-note">全程 Suica 感應。加值時請用熊本熊卡（Apple Pay）→ 享8.5%回饋</div>
+        </div>
+        <div class="pay-col"><span class="pb pb-suica">🍉 Suica</span><span class="pb-rate gold">加值8.5%</span></div>
+      </div>
+      <div class="period-lbl">下午・逛街</div>
+      <div class="spot-row">
+        <div class="spot-ico">🛍️</div>
+        <div class="spot-body" data-spot="d1-isetan">
+          <div class="spot-name">新宿伊勢丹本館 B1F — noix de beurre</div>
+          <div class="spot-note">百貨館內，非熊本熊指定通路 → 刷星展eco 5%</div>
+          <button class="add-btn" id="btn-d1-isetan" onclick="trackerOpenModal('d1-isetan')" style="display:none">＋ 記帳</button>
+          <div class="log-list" id="logs-d1-isetan"></div>
+        </div>
+        <div class="pay-col" id="paycol-d1-isetan"><span class="pb pb-eco">🌿 星展eco</span><span class="pb-rate green">5%</span></div>
+      </div>
+      <div class="spot-row">
+        <div class="spot-ico">🛍️</div>
+        <div class="spot-body" data-spot="d1-hands-shinjuku">
+          <div class="spot-name">HANDS 新宿店（TIMES SQUARE 2–8F）</div>
+          <div class="spot-note">雜貨/生活用品，21:00前退稅。HANDS 非指定通路 → 星展eco 5%</div>
+          <button class="add-btn" id="btn-d1-hands-shinjuku" onclick="trackerOpenModal('d1-hands-shinjuku')" style="display:none">＋ 記帳</button>
+          <div class="log-list" id="logs-d1-hands-shinjuku"></div>
+        </div>
+        <div class="pay-col" id="paycol-d1-hands-shinjuku"><span class="pb pb-eco">🌿 星展eco</span><span class="pb-rate green">5%</span></div>
+      </div>
+      <div class="period-lbl">晚上・購物＋晚餐</div>
+      <div class="spot-row">
+        <div class="spot-ico">💊</div>
+        <div class="spot-body" data-spot="d1-donki">
+          <div class="spot-name">唐吉軻德 新宿東南口店 ⭐ 熊本熊指定通路！</div>
+          <div class="spot-note">京喚羽、DHC(¥1,840)、熱眠蓋(¥1,170)等。唐吉軻德屬「熊好買」指定通路 → <strong>優先刷熊本熊 8.5%</strong></div>
+          <button class="add-btn" id="btn-d1-donki" onclick="trackerOpenModal('d1-donki')" style="display:none">＋ 記帳</button>
+          <div class="log-list" id="logs-d1-donki"></div>
+        </div>
+        <div class="pay-col" id="paycol-d1-donki"><span class="pb pb-kuma">🐻 熊本熊</span><span class="pb-rate gold">8.5%</span></div>
+      </div>
+      <div class="spot-row">
+        <div class="spot-ico">🍽️</div>
+        <div class="spot-body" data-spot="d1-gyutan">
+          <div class="spot-name">牛たんの檸檬 新宿總本站 ✅已訂 20:00 (ID:UP5YW3)</div>
+          <div class="spot-note">預計 ¥7,160（兩份定食）。接受信用卡。非熊本熊指定餐廳 → 星展eco 5%</div>
+          <button class="add-btn" id="btn-d1-gyutan" onclick="trackerOpenModal('d1-gyutan')" style="display:none">＋ 記帳</button>
+          <div class="log-list" id="logs-d1-gyutan"></div>
+        </div>
+        <div class="pay-col" id="paycol-d1-gyutan"><span class="pb pb-eco">🌿 星展eco</span><span class="pb-rate green">5%</span></div>
+      </div>
+      <!-- D1 自由記帳 -->
+      <div class="free-log-strip" id="free-strip-d1" data-day="d1">
+        <div class="free-log-strip-header">
+          <span class="free-log-strip-label">D1 · 其他消費</span>
+          <button class="free-add-btn" id="free-btn-d1" onclick="freeModalOpen('d1')">＋ 新增消費</button>
+        </div>
+        <div class="free-log-list" id="free-logs-d1"></div>
+      </div>
+    </div>
+
+    <!-- D2 -->
+    <div class="itin-day">
+      <div class="itin-day-head">
+        <div class="itin-day-num">D2</div>
+        <div class="itin-day-meta">
+          <div class="itin-day-title">4/17（五）澀谷 · 代代木 · 品川</div>
+          <div class="itin-day-sub">南大塚櫻花 → 池袋 → 原宿 → 表參道 → 奧澀谷 → 品川</div>
+        </div>
+      </div>
+      <div class="period-lbl">交通</div>
+      <div class="spot-row">
+        <div class="spot-ico">🚃</div>
+        <div class="spot-body">
+          <div class="spot-name">山手線・副都心線・千代田線各段</div>
+          <div class="spot-note">全程 Suica 感應最方便</div>
+        </div>
+        <div class="pay-col"><span class="pb pb-suica">🍉 Suica</span><span class="pb-rate gray">感應</span></div>
+      </div>
+      <div class="period-lbl">上午・池袋</div>
+      <div class="spot-row">
+        <div class="spot-ico">🌸</div>
+        <div class="spot-body">
+          <div class="spot-name">南大塚三丁目 櫻花隧道（西巢鴨中學前）</div>
+          <div class="spot-note">免費景點，無消費</div>
+        </div>
+        <div class="pay-col"><span class="pb pb-cash" style="color:#aaa;">—</span></div>
+      </div>
+      <div class="spot-row">
+        <div class="spot-ico">🏙️</div>
+        <div class="spot-body" data-spot="d2-ikebukuro">
+          <div class="spot-name">逛池袋（IT tower TOKYO）</div>
+          <div class="spot-note">視消費而定，一般商場刷星展eco 5%</div>
+          <button class="add-btn" id="btn-d2-ikebukuro" onclick="trackerOpenModal('d2-ikebukuro')" style="display:none">＋ 記帳</button>
+          <div class="log-list" id="logs-d2-ikebukuro"></div>
+        </div>
+        <div class="pay-col" id="paycol-d2-ikebukuro"><span class="pb pb-eco">🌿 星展eco</span><span class="pb-rate green">5%</span></div>
+      </div>
+      <div class="spot-row">
+        <div class="spot-ico">🍳</div>
+        <div class="spot-body" data-spot="d2-littlepool">
+          <div class="spot-name">Little Pool Coffee — 蛋包飯 ⭐必吃（11:00–）</div>
+          <div class="spot-note">預計¥2,400。小咖啡館，支援行動支付 → PayPay 掃碼 5%</div>
+          <button class="add-btn" id="btn-d2-littlepool" onclick="trackerOpenModal('d2-littlepool')" style="display:none">＋ 記帳</button>
+          <div class="log-list" id="logs-d2-littlepool"></div>
+        </div>
+        <div class="pay-col" id="paycol-d2-littlepool"><span class="pb pb-pay">🔴 PayPay</span><span class="pb-rate blue">5%</span></div>
+      </div>
+      <div class="period-lbl">下午・原宿 / 澀谷</div>
+      <div class="spot-row">
+        <div class="spot-ico">🏠</div>
+        <div class="spot-body" data-spot="d2-hay">
+          <div class="spot-name">HAY TOKYO（GYRE商場 B1F）</div>
+          <div class="spot-note">北歐設計雜貨，百貨館內，信用卡可刷 → 星展eco 5%</div>
+          <button class="add-btn" id="btn-d2-hay" onclick="trackerOpenModal('d2-hay')" style="display:none">＋ 記帳</button>
+          <div class="log-list" id="logs-d2-hay"></div>
+        </div>
+        <div class="pay-col" id="paycol-d2-hay"><span class="pb pb-eco">🌿 星展eco</span><span class="pb-rate green">5%</span></div>
+      </div>
+      <div class="spot-row">
+        <div class="spot-ico">🪙</div>
+        <div class="spot-body" data-spot="d2-3coins-harajuku">
+          <div class="spot-name">3COINS 原宿旗艦店 ⭐ 熊本熊指定通路！</div>
+          <div class="spot-note">3 Coins 屬「熊好買」指定通路 → <strong>優先刷熊本熊 8.5%</strong>（若D1唐吉軻德後還有額度）</div>
+          <button class="add-btn" id="btn-d2-3coins-harajuku" onclick="trackerOpenModal('d2-3coins-harajuku')" style="display:none">＋ 記帳</button>
+          <div class="log-list" id="logs-d2-3coins-harajuku"></div>
+        </div>
+        <div class="pay-col" id="paycol-d2-3coins-harajuku"><span class="pb pb-kuma">🐻 熊本熊</span><span class="pb-rate gold">8.5%</span></div>
+      </div>
+      <div class="spot-row">
+        <div class="spot-ico">👗</div>
+        <div class="spot-body" data-spot="d2-andst">
+          <div class="spot-name">and ST TOKYO（11:00–21:00）</div>
+          <div class="spot-note">服飾選品，信用卡可刷 → 星展eco 5%</div>
+          <button class="add-btn" id="btn-d2-andst" onclick="trackerOpenModal('d2-andst')" style="display:none">＋ 記帳</button>
+          <div class="log-list" id="logs-d2-andst"></div>
+        </div>
+        <div class="pay-col" id="paycol-d2-andst"><span class="pb pb-eco">🌿 星展eco</span><span class="pb-rate green">5%</span></div>
+      </div>
+      <div class="spot-row">
+        <div class="spot-ico">🥐</div>
+        <div class="spot-body" data-spot="d2-neel">
+          <div class="spot-name">neel 神宮前（1順位）／ dotcom space（2順位）</div>
+          <div class="spot-note">可麗餅/咖啡，預計¥1,790–2,100。小型甜點咖啡館，PayPay掃碼最通</div>
+          <button class="add-btn" id="btn-d2-neel" onclick="trackerOpenModal('d2-neel')" style="display:none">＋ 記帳</button>
+          <div class="log-list" id="logs-d2-neel"></div>
+        </div>
+        <div class="pay-col" id="paycol-d2-neel"><span class="pb pb-pay">🔴 PayPay</span><span class="pb-rate blue">5%</span></div>
+      </div>
+      <div class="spot-row">
+        <div class="spot-ico">🌿</div>
+        <div class="spot-body" data-spot="d2-seam">
+          <div class="spot-name">SEAM GINZA（11:00–19:00，買京喚羽）</div>
+          <div class="spot-note">小型選品店，信用卡可刷則用星展eco 5%</div>
+          <button class="add-btn" id="btn-d2-seam" onclick="trackerOpenModal('d2-seam')" style="display:none">＋ 記帳</button>
+          <div class="log-list" id="logs-d2-seam"></div>
+        </div>
+        <div class="pay-col" id="paycol-d2-seam"><span class="pb pb-eco">🌿 星展eco</span><span class="pb-rate green">5%</span></div>
+      </div>
+      <div class="spot-row">
+        <div class="spot-ico">🛍️</div>
+        <div class="spot-body" data-spot="d2-hands-shibuya">
+          <div class="spot-name">HANDS 澀谷店（20:30前退稅）</div>
+          <div class="spot-note">同新宿HANDS，非熊本熊通路 → 星展eco 5%</div>
+          <button class="add-btn" id="btn-d2-hands-shibuya" onclick="trackerOpenModal('d2-hands-shibuya')" style="display:none">＋ 記帳</button>
+          <div class="log-list" id="logs-d2-hands-shibuya"></div>
+        </div>
+        <div class="pay-col" id="paycol-d2-hands-shibuya"><span class="pb pb-eco">🌿 星展eco</span><span class="pb-rate green">5%</span></div>
+      </div>
+      <div class="spot-row">
+        <div class="spot-ico">🪙</div>
+        <div class="spot-body" data-spot="d2-3coins-109">
+          <div class="spot-name">3 COINS @Shibuya 109（買口蓋＋收納袋）⭐ 熊本熊指定通路！</div>
+          <div class="spot-note">同為3 Coins，熊本熊8.5%。若額度用完，改星展eco 5%</div>
+          <button class="add-btn" id="btn-d2-3coins-109" onclick="trackerOpenModal('d2-3coins-109')" style="display:none">＋ 記帳</button>
+          <div class="log-list" id="logs-d2-3coins-109"></div>
+        </div>
+        <div class="pay-col" id="paycol-d2-3coins-109"><span class="pb pb-kuma">🐻 熊本熊</span><span class="pb-rate gold">8.5%</span><span style="font-size:0.58rem;color:var(--muted);text-align:right;">額度優先</span></div>
+      </div>
+      <div class="period-lbl">晚上・品川</div>
+      <div class="spot-row">
+        <div class="spot-ico">🍜</div>
+        <div class="spot-body" data-spot="d2-hayashida">
+          <div class="spot-name">らぁ麵 はやし田 品川港南口店 ⭐必吃</div>
+          <div class="spot-note">預計¥2,500（特製雞白湯×2）。接受信用卡 → 星展eco 5%</div>
+          <button class="add-btn" id="btn-d2-hayashida" onclick="trackerOpenModal('d2-hayashida')" style="display:none">＋ 記帳</button>
+          <div class="log-list" id="logs-d2-hayashida"></div>
+        </div>
+        <div class="pay-col" id="paycol-d2-hayashida"><span class="pb pb-eco">🌿 星展eco</span><span class="pb-rate green">5%</span></div>
+      </div>
+      <div class="spot-row">
+        <div class="spot-ico">🗼</div>
+        <div class="spot-body">
+          <div class="spot-name">品川 SEASON TERRACE（2F戶外賞東京鐵塔）</div>
+          <div class="spot-note">免費景點，無消費</div>
+        </div>
+        <div class="pay-col"><span class="pb pb-cash" style="color:#aaa;">—</span></div>
+      </div>
+      <!-- D2 自由記帳 -->
+      <div class="free-log-strip" id="free-strip-d2" data-day="d2">
+        <div class="free-log-strip-header">
+          <span class="free-log-strip-label">D2 · 其他消費</span>
+          <button class="free-add-btn" id="free-btn-d2" onclick="freeModalOpen('d2')">＋ 新增消費</button>
+        </div>
+        <div class="free-log-list" id="free-logs-d2"></div>
+      </div>
+    </div>
+
+    <!-- D3 -->
+    <div class="itin-day">
+      <div class="itin-day-head">
+        <div class="itin-day-num">D3</div>
+        <div class="itin-day-meta">
+          <div class="itin-day-title">4/18（六）天王洲 → 大井町 → 高輪</div>
+          <div class="itin-day-sub">天王洲島 → Etomo大井町（⚠現金）→ 武藏小山 → 戶越銀座 → NEWoMan</div>
+        </div>
+      </div>
+      <div class="period-lbl">交通</div>
+      <div class="spot-row">
+        <div class="spot-ico">🚃</div>
+        <div class="spot-body">
+          <div class="spot-name">天王洲島・大井町・武藏小山・戶越銀座・高輪各段</div>
+          <div class="spot-note">全程 Suica 感應最方便</div>
+        </div>
+        <div class="pay-col"><span class="pb pb-suica">🍉 Suica</span><span class="pb-rate gray">感應</span></div>
+      </div>
+      <div class="period-lbl">上午</div>
+      <div class="spot-row">
+        <div class="spot-ico">⛵</div>
+        <div class="spot-body" data-spot="d3-tennozu">
+          <div class="spot-name">天王洲島（散步藝文街區）</div>
+          <div class="spot-note">小攤/咖啡若不收信用卡 → PayPay 掃碼 5%</div>
+          <button class="add-btn" id="btn-d3-tennozu" onclick="trackerOpenModal('d3-tennozu')" style="display:none">＋ 記帳</button>
+          <div class="log-list" id="logs-d3-tennozu"></div>
+        </div>
+        <div class="pay-col" id="paycol-d3-tennozu"><span class="pb pb-pay">🔴 PayPay</span><span class="pb-rate blue">5%</span></div>
+      </div>
+      <div class="spot-row">
+        <div class="spot-ico">🍵</div>
+        <div class="spot-body">
+          <div class="spot-name">En Etomo 大井町（茶泡飯 8:00起）</div>
+          <div class="spot-note"><span class="spot-alert">⚠ 只收現金！預計¥2,730，請提前備好現金。</span></div>
+        </div>
+        <div class="pay-col"><span class="pb pb-cash">💴 現金</span><span class="pb-rate gray">必備</span></div>
+      </div>
+      <div class="period-lbl">下午・高輪 / 武藏小山 / 戶越銀座</div>
+      <div class="spot-row">
+        <div class="spot-ico">🏬</div>
+        <div class="spot-body" data-spot="d3-wing">
+          <div class="spot-name">Wing 高輪（～20:00）</div>
+          <div class="spot-note">購物中心，信用卡可刷 → 星展eco 5%</div>
+          <button class="add-btn" id="btn-d3-wing" onclick="trackerOpenModal('d3-wing')" style="display:none">＋ 記帳</button>
+          <div class="log-list" id="logs-d3-wing"></div>
+        </div>
+        <div class="pay-col" id="paycol-d3-wing"><span class="pb pb-eco">🌿 星展eco</span><span class="pb-rate green">5%</span></div>
+      </div>
+      <div class="spot-row">
+        <div class="spot-ico">🛒</div>
+        <div class="spot-body" data-spot="d3-musashi">
+          <div class="spot-name">武藏小山 Palms 商店街（甜點・雜貨・熟食・超市）</div>
+          <div class="spot-note">商店街小店多支援 PayPay；大型店可刷星展eco</div>
+          <button class="add-btn" id="btn-d3-musashi" onclick="trackerOpenModal('d3-musashi')" style="display:none">＋ 記帳</button>
+          <div class="log-list" id="logs-d3-musashi"></div>
+        </div>
+        <div class="pay-col" id="paycol-d3-musashi"><span class="pb pb-pay">🔴 PayPay</span><span class="pb-rate blue">5%</span></div>
+      </div>
+      <div class="spot-row">
+        <div class="spot-ico">🥩</div>
+        <div class="spot-body" data-spot="d3-togoshi">
+          <div class="spot-name">戶越銀座商店街 — 肉と米 ハジメ ✅已訂位</div>
+          <div class="spot-note">預計¥3,550（牛排釜飯）。支援行動支付 → PayPay 5%</div>
+          <button class="add-btn" id="btn-d3-togoshi" onclick="trackerOpenModal('d3-togoshi')" style="display:none">＋ 記帳</button>
+          <div class="log-list" id="logs-d3-togoshi"></div>
+        </div>
+        <div class="pay-col" id="paycol-d3-togoshi"><span class="pb pb-pay">🔴 PayPay</span><span class="pb-rate blue">5%</span></div>
+      </div>
+      <div class="period-lbl">晚上・NEWoMan 高輪</div>
+      <div class="spot-row">
+        <div class="spot-ico">🧋</div>
+        <div class="spot-body" data-spot="d3-milktea">
+          <div class="spot-name">MILK TEA SERVICE（NEWoMan 北館 4F）</div>
+          <div class="spot-note">預計¥756，行動支付可 → PayPay 或 星展eco</div>
+          <button class="add-btn" id="btn-d3-milktea" onclick="trackerOpenModal('d3-milktea')" style="display:none">＋ 記帳</button>
+          <div class="log-list" id="logs-d3-milktea"></div>
+        </div>
+        <div class="pay-col" id="paycol-d3-milktea"><span class="pb pb-pay">🔴 PayPay</span><span class="pb-rate blue">5%</span></div>
+      </div>
+      <div class="spot-row">
+        <div class="spot-ico">🌃</div>
+        <div class="spot-body" data-spot="d3-luftbaum">
+          <div class="spot-name">NEWoMan 南館 28F LUFTBAUM 空中庭園（至24:00）</div>
+          <div class="spot-note">館內大型商場，有消費則刷星展eco 5%</div>
+          <button class="add-btn" id="btn-d3-luftbaum" onclick="trackerOpenModal('d3-luftbaum')" style="display:none">＋ 記帳</button>
+          <div class="log-list" id="logs-d3-luftbaum"></div>
+        </div>
+        <div class="pay-col" id="paycol-d3-luftbaum"><span class="pb pb-eco">🌿 星展eco</span><span class="pb-rate green">5%</span></div>
+      </div>
+      <!-- D3 自由記帳 -->
+      <div class="free-log-strip" id="free-strip-d3" data-day="d3">
+        <div class="free-log-strip-header">
+          <span class="free-log-strip-label">D3 · 其他消費</span>
+          <button class="free-add-btn" id="free-btn-d3" onclick="freeModalOpen('d3')">＋ 新增消費</button>
+        </div>
+        <div class="free-log-list" id="free-logs-d3"></div>
+      </div>
+    </div>
+
+    <!-- D4 -->
+    <div class="itin-day">
+      <div class="itin-day-head">
+        <div class="itin-day-num">D4</div>
+        <div class="itin-day-meta">
+          <div class="itin-day-title">4/19（日）返程日</div>
+          <div class="itin-day-sub">鰻魚飯早餐 → 星巴克 → 前往成田 12:50</div>
+        </div>
+      </div>
+      <div class="period-lbl">早上</div>
+      <div class="spot-row">
+        <div class="spot-ico">🐟</div>
+        <div class="spot-body" data-spot="d4-unagi">
+          <div class="spot-name">鰻之成瀨 泉嶽寺店 ✅已訂位</div>
+          <div class="spot-note">預計¥3,500（並重梅＋上重梅）。支援行動支付 → PayPay 掃碼 5%</div>
+          <button class="add-btn" id="btn-d4-unagi" onclick="trackerOpenModal('d4-unagi')" style="display:none">＋ 記帳</button>
+          <div class="log-list" id="logs-d4-unagi"></div>
+        </div>
+        <div class="pay-col" id="paycol-d4-unagi"><span class="pb pb-pay">🔴 PayPay</span><span class="pb-rate blue">5%</span></div>
+      </div>
+      <div class="spot-row">
+        <div class="spot-ico">☕</div>
+        <div class="spot-body" data-spot="d4-starbucks">
+          <div class="spot-name">星巴克 NEWoMan 高輪北館 5F（可互換或外帶）</div>
+          <div class="spot-note">信用卡可刷 → 星展eco 5%</div>
+          <button class="add-btn" id="btn-d4-starbucks" onclick="trackerOpenModal('d4-starbucks')" style="display:none">＋ 記帳</button>
+          <div class="log-list" id="logs-d4-starbucks"></div>
+        </div>
+        <div class="pay-col" id="paycol-d4-starbucks"><span class="pb pb-eco">🌿 星展eco</span><span class="pb-rate green">5%</span></div>
+      </div>
+      <div class="spot-row">
+        <div class="spot-ico">🚃</div>
+        <div class="spot-body">
+          <div class="spot-name">前往成田機場（12:50–13:53）</div>
+          <div class="spot-note">泉嶽寺→品川→成田。Suica 感應或 N'EX 票券</div>
+        </div>
+        <div class="pay-col"><span class="pb pb-suica">🍉 Suica</span><span class="pb-rate gray">感應</span></div>
+      </div>
+      <div class="spot-row">
+        <div class="spot-ico">🛫</div>
+        <div class="spot-body" data-spot="d4-airport-tax">
+          <div class="spot-name">成田機場免稅店（若有餘裕購物）</div>
+          <div class="spot-note">星展eco仍有額度先刷5%；超出後改台新Richart玩旅刷（3.3%宣稱，淨回饋約1.8%）</div>
+          <button class="add-btn" id="btn-d4-airport-tax" onclick="trackerOpenModal('d4-airport-tax')" style="display:none">＋ 記帳</button>
+          <div class="log-list" id="logs-d4-airport-tax"></div>
+        </div>
+        <div class="pay-col" id="paycol-d4-airport-tax"><span class="pb pb-eco">🌿 星展eco</span><span class="pb-rate green">5%</span><span class="pb pb-rich" style="margin-top:0.2rem;">🐶 Richart</span><span class="pb-rate blue" style="font-size:0.62rem;">淨1.8%補位</span></div>
+      </div>
+      <!-- D4 自由記帳 -->
+      <div class="free-log-strip" id="free-strip-d4" data-day="d4">
+        <div class="free-log-strip-header">
+          <span class="free-log-strip-label">D4 · 其他消費</span>
+          <button class="free-add-btn" id="free-btn-d4" onclick="freeModalOpen('d4')">＋ 新增消費</button>
+        </div>
+        <div class="free-log-list" id="free-logs-d4"></div>
+      </div>
+    </div>
+
+    <!-- 行程支付彙總表 -->
+    <hr style="border:none;border-top:2px solid #e0d8cc;margin:1.5rem 0;">
+    <div style="font-family:'DM Mono',monospace;font-size:0.63rem;letter-spacing:0.14em;text-transform:uppercase;color:var(--muted);margin-bottom:0.5rem;">行程支付彙總 · 依支付工具分組</div>
+    <div style="background:white;border:1.5px solid #ddd5c8;border-radius:8px;overflow:hidden;margin-bottom:1rem;">
+      <table class="itin-summary-table">
+        <thead><tr><th>據點</th><th>日次</th><th>最佳支付</th><th>回饋</th><th>理由</th></tr></thead>
+        <tbody>
+          <tr class="cat-row"><td colspan="5">🐻 玉山熊本熊 8.5% — 指定通路優先</td></tr>
+          <tr><td><strong>唐吉軻德 新宿</strong></td><td style="font-family:'DM Mono',monospace;font-size:0.72rem;">D1</td><td><span class="pb pb-kuma">🐻 熊本熊</span></td><td style="font-weight:900;color:#b8680b;font-family:'DM Mono',monospace;">8.5%</td><td style="font-size:0.75rem;color:var(--muted);">「熊好買」指定通路</td></tr>
+          <tr><td><strong>3COINS 原宿 旗艦店</strong></td><td style="font-family:'DM Mono',monospace;font-size:0.72rem;">D2</td><td><span class="pb pb-kuma">🐻 熊本熊</span></td><td style="font-weight:900;color:#b8680b;font-family:'DM Mono',monospace;">8.5%</td><td style="font-size:0.75rem;color:var(--muted);">「熊好買」指定通路</td></tr>
+          <tr><td><strong>3 COINS @Shibuya 109</strong></td><td style="font-family:'DM Mono',monospace;font-size:0.72rem;">D2</td><td><span class="pb pb-kuma">🐻 熊本熊</span></td><td style="font-weight:900;color:#b8680b;font-family:'DM Mono',monospace;">8.5%</td><td style="font-size:0.75rem;color:var(--muted);">同3 Coins，額度用完改星展eco</td></tr>
+          <tr><td><strong>Suica 加值（全程）</strong></td><td style="font-family:'DM Mono',monospace;font-size:0.72rem;">全程</td><td><span class="pb pb-kuma">🐻 熊本熊</span></td><td style="font-weight:900;color:#b8680b;font-family:'DM Mono',monospace;">8.5%</td><td style="font-size:0.75rem;color:var(--muted);">「熊好用」交通卡加值，iPhone Apple Pay</td></tr>
+          <tr class="cat-row"><td colspan="5">🌿 星展eco 5% — 一般商場、餐廳、百貨</td></tr>
+          <tr><td><strong>新宿伊勢丹 B1F</strong></td><td style="font-family:'DM Mono',monospace;font-size:0.72rem;">D1</td><td><span class="pb pb-eco">🌿 星展eco</span></td><td style="font-weight:900;color:#2e7d52;font-family:'DM Mono',monospace;">5%</td><td style="font-size:0.75rem;color:var(--muted);">百貨，非指定通路</td></tr>
+          <tr><td><strong>HANDS 新宿 ／ 澀谷</strong></td><td style="font-family:'DM Mono',monospace;font-size:0.72rem;">D1/D2</td><td><span class="pb pb-eco">🌿 星展eco</span></td><td style="font-weight:900;color:#2e7d52;font-family:'DM Mono',monospace;">5%</td><td style="font-size:0.75rem;color:var(--muted);">雜貨，非指定通路</td></tr>
+          <tr><td><strong>牛たんの檸檬</strong></td><td style="font-family:'DM Mono',monospace;font-size:0.72rem;">D1</td><td><span class="pb pb-eco">🌿 星展eco</span></td><td style="font-weight:900;color:#2e7d52;font-family:'DM Mono',monospace;">5%</td><td style="font-size:0.75rem;color:var(--muted);">¥7,160，信用卡可刷</td></tr>
+          <tr><td><strong>HAY TOKYO / and ST / SEAM GINZA</strong></td><td style="font-family:'DM Mono',monospace;font-size:0.72rem;">D2</td><td><span class="pb pb-eco">🌿 星展eco</span></td><td style="font-weight:900;color:#2e7d52;font-family:'DM Mono',monospace;">5%</td><td style="font-size:0.75rem;color:var(--muted);">選品店，信用卡可刷</td></tr>
+          <tr><td><strong>らぁ麵 はやし田（品川）</strong></td><td style="font-family:'DM Mono',monospace;font-size:0.72rem;">D2</td><td><span class="pb pb-eco">🌿 星展eco</span></td><td style="font-weight:900;color:#2e7d52;font-family:'DM Mono',monospace;">5%</td><td style="font-size:0.75rem;color:var(--muted);">¥2,500，信用卡可刷</td></tr>
+          <tr><td><strong>Wing高輪 / NEWoMan / 星巴克</strong></td><td style="font-family:'DM Mono',monospace;font-size:0.72rem;">D3/D4</td><td><span class="pb pb-eco">🌿 星展eco</span></td><td style="font-weight:900;color:#2e7d52;font-family:'DM Mono',monospace;">5%</td><td style="font-size:0.75rem;color:var(--muted);">館內大型商場</td></tr>
+          <tr><td><strong>成田機場免稅（星展額度內）</strong></td><td style="font-family:'DM Mono',monospace;font-size:0.72rem;">D4</td><td><span class="pb pb-eco">🌿 星展eco</span></td><td style="font-weight:900;color:#2e7d52;font-family:'DM Mono',monospace;">5%</td><td style="font-size:0.75rem;color:var(--muted);">每期¥30,000封頂，超出改Richart</td></tr>
+          <tr class="cat-row"><td colspan="5">🔴 PayPay 5% — 小店、商店街、行動支付店</td></tr>
+          <tr><td><strong>Little Pool Coffee（蛋包飯）</strong></td><td style="font-family:'DM Mono',monospace;font-size:0.72rem;">D2</td><td><span class="pb pb-pay">🔴 PayPay</span></td><td style="font-weight:900;color:#cc0033;font-family:'DM Mono',monospace;">5%</td><td style="font-size:0.75rem;color:var(--muted);">小咖啡館，行動支付掃碼</td></tr>
+          <tr><td><strong>neel 神宮前 / dotcom space</strong></td><td style="font-family:'DM Mono',monospace;font-size:0.72rem;">D2</td><td><span class="pb pb-pay">🔴 PayPay</span></td><td style="font-weight:900;color:#cc0033;font-family:'DM Mono',monospace;">5%</td><td style="font-size:0.75rem;color:var(--muted);">甜點咖啡小店</td></tr>
+          <tr><td><strong>武藏小山 / 天王洲 小攤</strong></td><td style="font-family:'DM Mono',monospace;font-size:0.72rem;">D3</td><td><span class="pb pb-pay">🔴 PayPay</span></td><td style="font-weight:900;color:#cc0033;font-family:'DM Mono',monospace;">5%</td><td style="font-size:0.75rem;color:var(--muted);">商店街普遍支援PayPay</td></tr>
+          <tr><td><strong>肉と米 ハジメ / MILK TEA SERVICE</strong></td><td style="font-family:'DM Mono',monospace;font-size:0.72rem;">D3</td><td><span class="pb pb-pay">🔴 PayPay</span></td><td style="font-weight:900;color:#cc0033;font-family:'DM Mono',monospace;">5%</td><td style="font-size:0.75rem;color:var(--muted);">行動支付友善</td></tr>
+          <tr><td><strong>鰻之成瀨 泉嶽寺</strong></td><td style="font-family:'DM Mono',monospace;font-size:0.72rem;">D4</td><td><span class="pb pb-pay">🔴 PayPay</span></td><td style="font-weight:900;color:#cc0033;font-family:'DM Mono',monospace;">5%</td><td style="font-size:0.75rem;color:var(--muted);">行動支付可</td></tr>
+          <tr class="cat-row"><td colspan="5">🍉 Suica — 全程交通</td></tr>
+          <tr><td><strong>N'EX / 山手線 / 所有電車</strong></td><td style="font-family:'DM Mono',monospace;font-size:0.72rem;">全程</td><td><span class="pb pb-suica">🍉 Suica</span></td><td style="font-weight:900;color:#3a8a4a;font-family:'DM Mono',monospace;">加值8.5%</td><td style="font-size:0.75rem;color:var(--muted);">加值用熊本熊卡，搭車刷Suica</td></tr>
+          <tr class="cat-row"><td colspan="5">💴 現金 — 只收現金店家</td></tr>
+          <tr><td><strong style="color:var(--red);">⚠ En Etomo 大井町（茶泡飯）</strong></td><td style="font-family:'DM Mono',monospace;font-size:0.72rem;">D3</td><td><span class="pb pb-cash">💴 現金</span></td><td style="font-family:'DM Mono',monospace;color:#999;">—</td><td style="font-size:0.75rem;color:var(--red);font-weight:700;">只收現金！備¥3,000以上</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="itin-note-box">
+      <strong>💡 四天額度分配建議</strong><br>
+      🐻 熊本熊 8.5% 每期上限 NT$500（≒¥25,000）→ D1 唐吉軻德＋D2 3Coins 兩處＋Suica加值<br>
+      🌿 星展eco 5% 每期上限 NT$600（≒¥30,000）→ HANDS×2、牛たん(¥7,160)、拉麵、百貨消費<br>
+      🔴 PayPay 每季上限 NT$100（≒¥5,000）→ Little Pool、neel、鰻魚飯、商店街小店<br>
+      🐶 Richart 玩旅刷 3.3%（含1.5%手續費，淨回饋約1.8%） → 超出以上所有額度的補底卡，機場免稅店大額消費
+    </div>
+  </div>
+
+  <!-- ── Sub panel 1: 場域建議 ── -->
+  <div id="pay-panel-advisor" class="pay-sub-panel">
+    <div style="background:white;border:1.5px solid #ddd5c8;border-radius:8px;padding:1.2rem 1.4rem;margin-bottom:1.2rem;">
+      <div class="pay-section-label" style="margin-bottom:0.75rem;">選擇消費場域</div>
+      <div class="pay-venue-grid" id="pay-venue-selector">
+        <div class="pay-venue-btn active" data-venue="drugstore" onclick="paySelectVenue(this)"><span class="icon">💊</span>藥妝電器</div>
+        <div class="pay-venue-btn" data-venue="convenience" onclick="paySelectVenue(this)"><span class="icon">🏪</span>便利商店</div>
+        <div class="pay-venue-btn" data-venue="restaurant" onclick="paySelectVenue(this)"><span class="icon">🍜</span>餐廳美食</div>
+        <div class="pay-venue-btn" data-venue="transport" onclick="paySelectVenue(this)"><span class="icon">🚃</span>交通</div>
+        <div class="pay-venue-btn" data-venue="hotel" onclick="paySelectVenue(this)"><span class="icon">🏨</span>住宿</div>
+        <div class="pay-venue-btn" data-venue="entertainment" onclick="paySelectVenue(this)"><span class="icon">⛩️</span>樂園觀光</div>
+        <div class="pay-venue-btn" data-venue="smallshop" onclick="paySelectVenue(this)"><span class="icon">🏮</span>小店現金</div>
+        <div class="pay-venue-btn" data-venue="fashion" onclick="paySelectVenue(this)"><span class="icon">👗</span>服飾購物</div>
+      </div>
+      <button class="pay-analyze-btn" onclick="payGetAdvice()">✦ 取得最佳支付建議</button>
+    </div>
+    <div id="pay-loading" style="display:none;">
+      <div class="pay-shimmer"></div>
+      <div class="pay-shimmer-text" id="pay-status">分析中...</div>
+    </div>
+    <div id="pay-result"></div>
+  </div>
+
+  <!-- ── Sub panel 2: 各卡總覽 ── -->
+  <div id="pay-panel-overview" class="pay-sub-panel">
+    <div class="pay-card-grid">
+
+      <div class="pay-card-promo">
+        <div class="pay-card-issuer">玉山銀行 · JCB</div>
+        <div class="pay-card-name">🐻 玉山熊本熊卡</div>
+        <ul class="pay-promo-list">
+          <li><span class="pay-promo-desc">日本指定通路（藥妝/電器/交通卡/餐廳）</span><span class="pay-promo-rate">8.5%</span></li>
+          <li><span class="pay-promo-desc">日本一般消費（無上限）</span><span class="pay-promo-rate">2.5%</span></li>
+          <li><span class="pay-promo-desc">玉山Wallet → PayPay 支付</span><span class="pay-promo-rate">5%</span></li>
+        </ul>
+        <div class="pay-promo-cap">⚠ 8.5%需活動期間登錄一次（不限量）<br>⚠ 加碼6%每期回饋上限NT$500（≒刷8,333元）<br>⚠ PayPay 3.5%每季上限NT$100<br>📌 指定通路：松本清、唐吉軻德、BicCamera、Yodobashi、UNIQLO、GU、壽司郎、一蘭拉麵、東京迪士尼、環球影城等<br>✅ 有效期：2026/1/1–6/30</div>
+      </div>
+
+      <div class="pay-card-promo">
+        <div class="pay-card-issuer">台新銀行 · VISA/MC/JCB</div>
+        <div class="pay-card-name">🐶 台新Richart卡</div>
+        <ul class="pay-promo-list">
+          <li><span class="pay-promo-desc">切換「玩旅刷」海外實體消費（無上限）</span><span class="pay-promo-rate">3.3%</span></li>
+          <li><span class="pay-promo-desc">日本福岡機場免稅店</span><span class="pay-promo-rate">4.3%</span></li>
+          <li><span class="pay-promo-desc">JCB卡日本消費最高</span><span class="pay-promo-rate">50%</span></li>
+        </ul>
+        <div class="pay-promo-cap">⚠ 3.3%需設定台新帳戶自動扣繳(Level 2)，每日切換一次<br>⚠ JCB 50%限量限時活動（2026/2/3–6/30）請見官網<br>✅ 玩旅刷支援Suica/ICOCA交通卡儲值<br>✅ 有效期：2026/1/1–6/30</div>
+      </div>
+
+      <div class="pay-card-promo">
+        <div class="pay-card-issuer">星展銀行（原花旗）· VISA</div>
+        <div class="pay-card-name">🌿 星展永續極簡卡</div>
+        <ul class="pay-promo-list">
+          <li><span class="pay-promo-desc">日本實體刷卡 / Apple Pay / Samsung Pay</span><span class="pay-promo-rate">5%</span></li>
+          <li><span class="pay-promo-desc">一般消費無上限（基本）</span><span class="pay-promo-rate">1%</span></li>
+          <li><span class="pay-promo-desc">完成星禧任務行動支付加碼</span><span class="pay-promo-rate">+2.5%</span></li>
+        </ul>
+        <div class="pay-promo-cap">⚠ 5%加碼每期上限NT$600（≒刷15,000元）<br>⚠ 超過15,000元仍享1%無上限<br>⚠ 注意：Suica/PASMO儲值不計入5%加碼<br>✅ 有效期：5%回饋 2026/1/1–12/31</div>
+      </div>
+
+      <div class="pay-card-promo">
+        <div class="pay-card-issuer">聯邦銀行 · VISA</div>
+        <div class="pay-card-name">📱 聯邦賴點卡</div>
+        <ul class="pay-promo-list">
+          <li><span class="pay-promo-desc">日本海外一般消費（LINE POINTS 無上限）</span><span class="pay-promo-rate">3%</span></li>
+          <li><span class="pay-promo-desc">國內LINE Pay 偶數日指定通路</span><span class="pay-promo-rate">7%</span></li>
+        </ul>
+        <div class="pay-promo-cap">⚠ 回饋為LINE POINTS（非現金）<br>⚠ 日本海外3%：無需登錄、不設門檻<br>✅ 有效期：2026/1/1–6/30</div>
+      </div>
+
+      <div class="pay-card-promo">
+        <div class="pay-card-issuer">聯邦銀行 × LINE Bank · VISA</div>
+        <div class="pay-card-name">🐻 聯邦LINE Bank熊大卡</div>
+        <ul class="pay-promo-list">
+          <li><span class="pay-promo-desc">日本海外一般消費（無上限，折抵帳單）</span><span class="pay-promo-rate">2.5%</span></li>
+          <li><span class="pay-promo-desc">指定網購（MOMO/蝦皮/Netflix等）</span><span class="pay-promo-rate">+3%</span></li>
+        </ul>
+        <div class="pay-promo-cap">⚠ 日本海外2.5%無上限、條件寬鬆<br>⚠ 指定網購+3%，每月上限NT$300<br>✅ 有效期：2025/8/1–2026/7/31</div>
+      </div>
+
+      <div class="pay-card-promo">
+        <div class="pay-card-issuer">PayPay株式会社 · 日本行動支付</div>
+        <div class="pay-card-name">🔴 PayPay（玉山Wallet）</div>
+        <ul class="pay-promo-list">
+          <li><span class="pay-promo-desc">綁玉山熊本熊卡，全場PayPay消費</span><span class="pay-promo-rate">5%</span></li>
+          <li><span class="pay-promo-desc">特定店家PayPay祭活動</span><span class="pay-promo-rate">最高20%+</span></li>
+        </ul>
+        <div class="pay-promo-cap">📌 玉山Wallet → 電子支付 → PayPay → 出示條碼<br>⚠ 每季上限NT$100（≒2,857元）<br>✅ 全家、麥當勞、居酒屋、小商家皆可用</div>
+      </div>
+
+      <div class="pay-card-promo">
+        <div class="pay-card-issuer">JR East / Apple Wallet · 電子票證</div>
+        <div class="pay-card-name">🍉 西瓜卡 Suica</div>
+        <ul class="pay-promo-list">
+          <li><span class="pay-promo-desc">加值：用玉山熊本熊卡（Apple Pay）</span><span class="pay-promo-rate">8.5%回饋</span></li>
+          <li><span class="pay-promo-desc">使用：JR/地鐵/巴士/便利商店</span><span class="pay-promo-rate">全日本通用</span></li>
+        </ul>
+        <div class="pay-promo-cap">📌 iPhone：Apple錢包新增Suica，用熊本熊卡加值最划算<br>⚠ Suica加值屬「熊好用」指定通路<br>✅ 不需現金、不需買票、閘門直接感應</div>
+      </div>
+
+      <div class="pay-card-promo" style="border-color:#e8b84b;background:linear-gradient(135deg,#fffdf5,white);">
+        <div class="pay-card-issuer" style="color:#b8860b;">國泰世華銀行 · VISA ✦ 限時日本賞</div>
+        <div class="pay-card-name">🟡 國泰CUBE卡
+          <span style="background:#e8b84b;color:#fff;font-size:0.58rem;font-family:'DM Mono',monospace;padding:0.15em 0.5em;border-radius:3px;vertical-align:middle;margin-left:0.3em;">日本賞 3/1–4/30 ✓</span>
+        </div>
+        <ul class="pay-promo-list">
+          <li><span class="pay-promo-desc">【日本賞】日本實體消費（無上限）</span><span class="pay-promo-rate" style="color:#b8860b;">3.5%</span></li>
+          <li><span class="pay-promo-desc">【日本賞】Apple Pay Suica/PASMO/ICOCA 加值（領券）</span><span class="pay-promo-rate" style="color:#b8860b;">5%</span></li>
+          <li><span class="pay-promo-desc">【日本賞】吉伊卡哇、三麗鷗指定名店</span><span class="pay-promo-rate" style="color:#b8860b;">5%</span></li>
+          <li><span class="pay-promo-desc">【日本賞】三井Outlet、三越、伊勢丹等百貨滿額</span><span class="pay-promo-rate" style="color:#b8860b;">最高10%</span></li>
+          <li><span class="pay-promo-desc">【日本賞】IG投票勝出通路（藍瓶咖啡/HARBS等吃喝通）</span><span class="pay-promo-rate" style="color:#b8860b;">5%</span></li>
+          <li><span class="pay-promo-desc">一般消費（非指定通路）</span><span class="pay-promo-rate">0.3%</span></li>
+        </ul>
+        <div class="pay-promo-cap">
+          ⭐ <strong style="color:#b8860b;">你的旅行 4/16–4/19 完全落在日本賞期間！</strong><br>
+          📌 使用前需在 CUBE App 切換「日本賞」權益（每日限切換1次）<br>
+          📌 Level 2 條件：持有國泰帳戶 + 設定自動扣繳 or CUBE App 手動繳卡費<br>
+          📌 Suica 加值 5% 需先至 CUBE App 領券<br>
+          ⚠ 回饋為「小樹點」（1點=1元），可直接折抵帳單<br>
+          ⚠ 指定通路限實體刷卡或 Apple Pay/Samsung Pay/Google Pay，不含 LINE Pay、街口等第三方支付<br>
+          ⚠ 非指定通路僅 0.3%，務必先確認通路再刷<br>
+          ✅ 有效期：日本賞 2026/3/1–4/30
+        </div>
+      </div>
+
+    </div>
+
+    <div class="pay-section-label" style="margin-bottom:0.5rem;">優先使用順序口訣</div>
+    <div class="pay-tip-box">
+      <strong>📌 2026 Q2 日本消費策略（含 CUBE 日本賞）</strong><br><br>
+      1️⃣ <strong>日本實體消費（無上限）→ 國泰CUBE卡【日本賞】</strong>（3.5%無上限，切換後免登錄）<br>
+      2️⃣ <strong>指定通路（藥妝/電器/Suica加值 8.5%）→ 玉山熊本熊</strong>（每期NT$8,333封頂，超出換CUBE）<br>
+      3️⃣ <strong>Suica加值 → CUBE App領券後用CUBE卡</strong>（5%）或玉山熊本熊（8.5%但有上限）<br>
+      4️⃣ <strong>超出熊本熊額度 / 大額消費 → 星展eco極簡卡</strong>（5%，每期NT$15,000封頂）<br>
+      5️⃣ <strong>不收信用卡的小店 → PayPay（玉山Wallet）</strong>（5%，每季NT$2,857封頂）<br>
+      6️⃣ <strong>超出以上額度 → 聯邦LINE Bank熊大卡</strong>（2.5%無上限）<br>
+      7️⃣ <strong>台新Richart 玩旅刷</strong>（3.3%無上限）大額補位最安心<br>
+      8️⃣ <strong>聯邦賴點卡</strong>（3% LINE Points）喜歡Points的人適用
+    </div>
+  </div>
+
+  <!-- ── Sub panel 3: 攻略速查 ── -->
+  <div id="pay-panel-tips" class="pay-sub-panel">
+
+    <div style="background:var(--ink);color:var(--paper);border-radius:8px;padding:1.3rem 1.6rem;margin-bottom:1rem;">
+      <div style="font-family:'DM Mono',monospace;font-size:0.68rem;letter-spacing:0.1em;text-transform:uppercase;color:#f0c040;margin-bottom:0.75rem;">⚡ 最高效率場景速查</div>
+      <table class="pay-rank-table" style="color:var(--paper);">
+        <thead><tr>
+          <th style="color:rgba(255,255,255,0.4);">消費場景</th>
+          <th style="color:rgba(255,255,255,0.4);">最佳支付</th>
+          <th style="color:rgba(255,255,255,0.4);">回饋</th>
+          <th style="color:rgba(255,255,255,0.4);">備註</th>
+        </tr></thead>
+        <tbody>
+          <tr><td>日本實體消費（無上限保底）</td><td>國泰CUBE卡【日本賞】</td><td style="color:#e8b84b;font-family:'DM Mono',monospace;font-weight:700;">3.5%</td><td style="font-size:0.72rem;color:rgba(255,255,255,0.5)">無上限，切換日本賞即可</td></tr>
+          <tr><td>Suica加值</td><td>玉山熊本熊 + Apple Pay</td><td style="color:#f0c040;font-family:'DM Mono',monospace;font-weight:700;">8.5%</td><td style="font-size:0.72rem;color:rgba(255,255,255,0.5)">每期NT$500封頂；或CUBE領券5%無上限</td></tr>
+          <tr><td>唐吉軻德 / 松本清</td><td>玉山熊本熊（實體或Apple Pay）</td><td style="color:#f0c040;font-family:'DM Mono',monospace;font-weight:700;">8.5%</td><td style="font-size:0.72rem;color:rgba(255,255,255,0.5)">指定通路</td></tr>
+          <tr><td>BicCamera / Yodobashi</td><td>玉山熊本熊（實體或Apple Pay）</td><td style="color:#f0c040;font-family:'DM Mono',monospace;font-weight:700;">8.5%</td><td style="font-size:0.72rem;color:rgba(255,255,255,0.5)">可疊加電器折扣</td></tr>
+          <tr><td>壽司郎 / 一蘭 / 鳥貴族</td><td>玉山熊本熊（實體）</td><td style="color:#f0c040;font-family:'DM Mono',monospace;font-weight:700;">8.5%</td><td style="font-size:0.72rem;color:rgba(255,255,255,0.5)">熊好吃通路</td></tr>
+          <tr><td>一般大額消費</td><td>星展eco極簡（實體）</td><td style="color:#7ec8e3;font-family:'DM Mono',monospace;font-weight:700;">5%</td><td style="font-size:0.72rem;color:rgba(255,255,255,0.5)">每期NT$15,000封頂</td></tr>
+          <tr><td>不收信用卡小店</td><td>PayPay（玉山Wallet）</td><td style="color:#7ec8e3;font-family:'DM Mono',monospace;font-weight:700;">5%</td><td style="font-size:0.72rem;color:rgba(255,255,255,0.5)">季上限NT$2,857</td></tr>
+          <tr><td>超出Richart額度</td><td>聯邦LINE Bank熊大卡</td><td style="color:#a0d4a0;font-family:'DM Mono',monospace;font-weight:700;">2.5%</td><td style="font-size:0.72rem;color:rgba(255,255,255,0.5)">無上限備用卡</td></tr>
+          <tr><td>搭電車地鐵</td><td>Suica感應（已加值）</td><td style="color:rgba(255,255,255,0.4);font-family:'DM Mono',monospace;">—</td><td style="font-size:0.72rem;color:rgba(255,255,255,0.5)">回饋在加值時已賺</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div style="background:linear-gradient(135deg,#fffdf5,white);border:1.5px solid #e8b84b;border-radius:8px;padding:1.2rem 1.4rem;margin-bottom:1rem;">
+      <div style="font-weight:900;margin-bottom:0.75rem;font-size:0.95rem;">🟡 國泰CUBE卡【日本賞】— 出發前必做 <span style="font-size:0.72rem;color:#b8860b;font-family:'DM Mono',monospace;">4/16–4/19 適用 ✓</span></div>
+      <div style="font-size:0.82rem;line-height:2;color:var(--muted);">
+        ✅ CUBE App 切換「<strong style="color:#b8860b;">日本賞</strong>」權益（每日限切換1次，出發當天切好即可）<br>
+        ✅ Level 2 資格：持有國泰台幣帳戶 + 設定自動扣繳，或每月用 CUBE App 手動繳1元卡費<br>
+        ✅ Suica 加值 5%：CUBE App → 領取優惠 → 領取「Apple Pay交通卡加值」券後再加值<br>
+        ✅ 日本實體消費 3.5% 無上限，比玉山熊本熊更無腦（不怕額度爆掉）<br>
+        ✅ 回饋為小樹點（1點=1元），可直接折抵帳單<br>
+        ⚠ 僅限實體刷卡或 Apple Pay/Google Pay/Samsung Pay，不含 LINE Pay、街口等第三方支付<br>
+        ⚠ 非指定通路只有 0.3%，務必確認已切換「日本賞」再消費<br>
+        ⚠ 日本賞至 4/30 結束，5/1 系統自動切回「集精選」
+      </div>
+    </div>
+
+    <div style="background:white;border:1.5px solid #ddd5c8;border-radius:8px;padding:1.2rem 1.4rem;margin-bottom:1rem;">
+      <div style="font-weight:900;margin-bottom:0.75rem;font-size:0.95rem;">🐻 玉山熊本熊卡 — 出發前必做</div>
+      <div style="font-size:0.82rem;line-height:2;color:var(--muted);">
+        ✅ 登錄「指定日本商店加碼6%」活動（官網登錄一次即可，整期有效）<br>
+        ✅ 下載「玉山Wallet」App，開通電子支付 → 日本可用PayPay<br>
+        ✅ iPhone：Apple錢包加入Suica，綁定熊本熊卡加值享8.5%<br>
+        ⚠ 加碼6%每期上限NT$500（約可刷8,333元，滿了換其他卡）
+      </div>
+    </div>
+
+    <div style="background:white;border:1.5px solid #ddd5c8;border-radius:8px;padding:1.2rem 1.4rem;margin-bottom:1rem;">
+      <div style="font-weight:900;margin-bottom:0.75rem;font-size:0.95rem;">🐶 台新Richart卡 — 出發前必做</div>
+      <div style="font-size:0.82rem;line-height:2;color:var(--muted);">
+        ✅ 設定台新帳戶自動扣繳升級Level 2，才能享3.3%<br>
+        ✅ 出國前在Richart Life App切換到「玩旅刷」方案<br>
+        ⚠ 玩旅刷宣稱3.3%，但仍收1.5%手續費，實際淨回饋約1.8%（補底備用）<br>
+        ✅ 支援Apple Pay / Google Pay / Samsung Pay
+      </div>
+    </div>
+
+    <div style="background:white;border:1.5px solid #ddd5c8;border-radius:8px;padding:1.2rem 1.4rem;margin-bottom:1rem;">
+      <div style="font-weight:900;margin-bottom:0.75rem;font-size:0.95rem;">🔴 PayPay — 使用教學</div>
+      <div style="font-size:0.82rem;line-height:2;color:var(--muted);">
+        ✅ 玉山Wallet → 電子支付 → 綁定熊本熊卡<br>
+        ✅ 消費時：支付 → 條碼付 → 玉山電子支付 → PayPay → 出示條碼<br>
+        ✅ 適用：居酒屋、拉麵店、計程車、藥妝小店等不接受信用卡感應的地方<br>
+        ⚠ 每季回饋上限NT$100（≒NT$2,857消費）
+      </div>
+    </div>
+
+    <div style="background:white;border:1.5px solid #ddd5c8;border-radius:8px;padding:1.2rem 1.4rem;">
+      <div style="font-weight:900;margin-bottom:0.75rem;font-size:0.95rem;">🍉 Suica西瓜卡加值攻略</div>
+      <div style="font-size:0.82rem;line-height:2;color:var(--muted);">
+        ✅ iPhone：Apple錢包 → ＋ → 交通卡 → Suica → 用熊本熊卡加值 → 享8.5%<br>
+        ✅ 可提前在台灣完成Suica開卡和加值<br>
+        ✅ 適用：JR、地鐵、私鐵、巴士、全家/7-11/Lawson、自販機<br>
+        ⚠ Suica餘額建議維持3,000–5,000日圓，用完再補值繼續賺8.5%
+      </div>
+    </div>
+
+  </div>
+</div>
+</div>
+
+
+<footer>
+  Travel / 2026_tokyo.html &nbsp;·&nbsp; 東京四日遊 &nbsp;·&nbsp; 2026
+</footer>
+
+<!-- ════════════════════════════════════════════════
+     本頁行程專屬設定 TRIP_CONFIG
+     ── 修改此區塊即可客製化 tracker / ledger / export
+     ════════════════════════════════════════════════ -->
+<script>
+// ── 支付顧問資料（本旅程專屬） ──────────────────────────────
+const PAY_VENUES = {
+  drugstore:    '藥妝 / 電器',
+  convenience:  '便利商店',
+  restaurant:   '餐廳美食',
+  transport:    '交通',
+  hotel:        '住宿',
+  entertainment:'樂園觀光',
+  smallshop:    '小店（現金限定）',
+  fashion:      '服飾購物（UNIQLO等）'
+};
+
+const PAY_ADVICE = {
+  drugstore: {
+    best: '玉山熊本熊卡（實體 or Apple Pay）', rate: '8.5%',
+    reason: '松本清、唐吉軻德、大國藥妝、BicCamera、Yodobashi 皆在指定通路，享 2.5% + 加碼6% = 8.5%，每期回饋上限 NT$500，約8,333元消費封頂。',
+    tips: '⚠ 超出額度後改刷星展eco極簡卡（5%），或聯邦LINE Bank熊大卡（2.5%無上限）補位。',
+    ranking: [
+      { pay: '玉山熊本熊卡', rate: '8.5%', note: '指定通路（松本清/唐吉軻德/BicCamera）', cap: '每期NT$500' },
+      { pay: '星展eco極簡卡', rate: '5%', note: '實體刷卡 or Apple Pay/Samsung Pay', cap: '每期NT$600' },
+      { pay: 'PayPay（玉山Wallet）', rate: '5%', note: '現金店/掃碼店適用', cap: '每季NT$100' },
+      { pay: '台新Richart（玩旅刷）', rate: '3.3%（淨1.8%）', note: '無上限保底', cap: '無上限' },
+    ]
+  },
+  convenience: {
+    best: 'Suica（西瓜卡）or 玉山熊本熊卡', rate: '8.5% / 免帶現金',
+    reason: '便利商店（7-11、全家、Lawson）全面支援Suica感應付款。加值時用玉山熊本熊卡（Suica屬熊好用指定通路）可享8.5%回饋，之後持Suica消費零接觸最便利。',
+    tips: '✅ 備用：PayPay掃碼付款也通（5%，但額度有限）。',
+    ranking: [
+      { pay: 'Suica西瓜卡（加值用熊本熊）', rate: '加值8.5%', note: '搭車+超商通用，最便利', cap: '加值NT$8,333封頂' },
+      { pay: 'PayPay（玉山Wallet）', rate: '5%', note: '掃碼付款備用', cap: '每季NT$100' },
+      { pay: '玉山熊本熊卡（實體）', rate: '2.5%', note: '一般日本消費無上限', cap: '無上限' },
+    ]
+  },
+  restaurant: {
+    best: '玉山熊本熊卡（指定餐廳）', rate: '8.5%（指定通路）',
+    reason: '壽司郎、藏壽司、松屋、牛角、SUKIYA、一蘭拉麵、鳥貴族、敘敘苑、Shake Shack 皆在熊好吃指定通路，享8.5%。未在指定通路的餐廳可改用PayPay（5%）或星展eco（5%）。',
+    tips: '✅ 進店前先確認該餐廳是否接受PayPay，許多居酒屋、拉麵店都支援。',
+    ranking: [
+      { pay: '國泰CUBE卡【日本賞】', rate: '3.5%', note: '日本實體消費無上限，切換日本賞即可', cap: '無上限' },
+      { pay: '玉山熊本熊卡（指定餐廳）', rate: '8.5%', note: '壽司郎/一蘭/鳥貴族/牛角等（有上限）', cap: '每期NT$500' },
+      { pay: 'PayPay（玉山Wallet）', rate: '5%', note: '不收信用卡的小餐廳適用', cap: '每季NT$100' },
+      { pay: '星展eco極簡卡', rate: '5%', note: '一般餐廳實體刷卡', cap: '每期NT$600' },
+      { pay: '台新Richart（玩旅刷）', rate: '3.3%（淨1.8%）', note: '補位無上限', cap: '無上限' },
+    ]
+  },
+  transport: {
+    best: 'Suica（玉山熊本熊加值）', rate: '加值8.5% + 搭車零接觸',
+    reason: 'Suica覆蓋JR、地鐵、私鐵、巴士全線。加值時以Apple Pay綁定玉山熊本熊卡，享8.5%回饋（Suica屬指定通路「熊好用」）。搭車直接感應最快速，無需買票。',
+    tips: '✅ 建議每次加值3,000–5,000日圓，餘額不足時再用熊本熊卡補值，持續賺8.5%。',
+    ranking: [
+      { pay: 'Suica（熊本熊加值）', rate: '加值8.5%', note: 'JR/地鐵/巴士全通，最便利', cap: '加值NT$8,333封頂' },
+      { pay: '玉山熊本熊卡（JR/航空）', rate: '8.5%', note: '熊好遊：JAL/JR鐵路/樂天旅遊', cap: '同上' },
+      { pay: '台新Richart（玩旅刷）', rate: '3.3%（淨1.8%）', note: '含Suica/ICOCA交通卡儲值', cap: '無上限' },
+    ]
+  },
+  hotel: {
+    best: '玉山熊本熊卡（指定住宿）', rate: '8.5%',
+    reason: '樂天旅遊、東橫INN、APA飯店、星野集團皆在指定通路（熊好遊）。台新Richart玩旅刷亦支援訂房，3.3%無上限作為補位。',
+    tips: '✅ 建議預訂時即以熊本熊卡付款，而非到現場刷卡。',
+    ranking: [
+      { pay: '玉山熊本熊卡', rate: '8.5%', note: '樂天旅遊/東橫INN/APA/星野集團', cap: '每期NT$500' },
+      { pay: '星展eco極簡卡', rate: '5%', note: '實體刷卡付帳', cap: '每期NT$600' },
+      { pay: '台新Richart（玩旅刷）', rate: '3.3%（淨1.8%）', note: '補位大額住宿費用', cap: '無上限' },
+    ]
+  },
+  entertainment: {
+    best: '玉山熊本熊卡', rate: '8.5%',
+    reason: '東京迪士尼樂園、日本環球影城（USJ）、豪斯登堡、富士急樂園、東京華納兄弟哈利波特影城均在熊好玩指定通路，享8.5%回饋。',
+    tips: '✅ 建議提前線上購票時即用熊本熊卡付款。',
+    ranking: [
+      { pay: '玉山熊本熊卡', rate: '8.5%', note: '迪士尼/USJ/富士急等指定通路', cap: '每期NT$500' },
+      { pay: '星展eco極簡卡', rate: '5%', note: '現場門票或其他景點', cap: '每期NT$600' },
+      { pay: '聯邦LINE Bank熊大卡', rate: '2.5%', note: '補位無上限', cap: '無上限' },
+    ]
+  },
+  smallshop: {
+    best: 'PayPay（玉山Wallet）', rate: '5%',
+    reason: '許多日本小商店、居酒屋、計程車、市場攤位不接受信用卡刷卡，但大多支援PayPay掃碼。使用玉山Wallet透過電子支付方式使用PayPay，綁定熊本熊卡可享5%回饋。',
+    tips: '✅ 台灣不需另外申請PayPay，玉山Wallet出示條碼給店家掃即可。\n⚠ 每季回饋上限NT$100，超額後改用Suica（電子錢包功能）。',
+    ranking: [
+      { pay: 'PayPay（玉山Wallet）', rate: '5%', note: '小店掃碼付款神器', cap: '每季NT$100' },
+      { pay: 'Suica（電子錢包）', rate: '—', note: '便利/自販機無回饋但最便利', cap: '—' },
+    ]
+  },
+  fashion: {
+    best: '玉山熊本熊卡（UNIQLO/GU）', rate: '8.5%',
+    reason: 'UNIQLO、GU 已納入指定通路（熊好買），享8.5%。niko and…、3 Coins 也在名單內。本次行程 Hands 澀谷、3 COINS @Shibuya 109 亦適用。',
+    tips: '✅ 建議在熊本熊卡8,333元額度用在購買金額較大的服飾，超額後改星展eco（5%）。',
+    ranking: [
+      { pay: '國泰CUBE卡【日本賞】', rate: '3.5%', note: '日本實體消費無上限保底', cap: '無上限' },
+      { pay: '玉山熊本熊卡', rate: '8.5%', note: 'UNIQLO/GU/niko and…/3 Coins/Hands', cap: '每期NT$500' },
+      { pay: '星展eco極簡卡', rate: '5%', note: '補位大額購物', cap: '每期NT$600' },
+      { pay: '台新Richart（玩旅刷）', rate: '3.3%（淨1.8%）', note: '無上限後盾', cap: '無上限' },
+    ]
+  }
+};
+
+let currentPayVenue = 'drugstore';
+
+function paySelectVenue(el) {
+  document.querySelectorAll('.pay-venue-btn').forEach(b => b.classList.remove('active'));
+  el.classList.add('active');
+  currentPayVenue = el.dataset.venue;
+  document.getElementById('pay-result').innerHTML = '';
+}
+
+async function payGetAdvice() {
+  const loading = document.getElementById('pay-loading');
+  const status  = document.getElementById('pay-status');
+  const result  = document.getElementById('pay-result');
+  loading.style.display = 'block';
+  result.innerHTML = '';
+  const msgs = ['比對指定通路清單...', '計算2026 Q2回饋額度...', '確認各卡封頂限制...', '排序最佳支付方案...'];
+  let i = 0;
+  const interval = setInterval(() => { if (i < msgs.length) status.textContent = msgs[i++]; }, 400);
+  await new Promise(r => setTimeout(r, 1700));
+  clearInterval(interval);
+  loading.style.display = 'none';
+  const d = PAY_ADVICE[currentPayVenue];
+  if (!d) return;
+  const venueName = PAY_VENUES[currentPayVenue];
+  const rankColors = ['#b8860b', '#aaa', '#cd7f32', '#7a8a9a'];
+  result.innerHTML = `
+    <div class="pay-ai-box">
+      <div class="pay-ai-title">✦ 2026 Q2 最佳建議 — ${venueName}</div>
+      <div class="pay-ai-best">最佳選擇：${d.best} <span style="font-family:'DM Mono',monospace;color:#f0c040;font-size:0.9rem;">${d.rate}</span></div>
+      <div class="pay-ai-reason">${d.reason}<br><br>${d.tips}</div>
+    </div>
+    <div style="background:white;border:1.5px solid #ddd5c8;border-radius:8px;padding:1.2rem 1.4rem;">
+      <div class="pay-section-label" style="margin-bottom:0.75rem;">支付方式排名</div>
+      <table class="pay-rank-table">
+        <thead><tr><th>#</th><th>支付工具</th><th>回饋率</th><th>適用說明</th><th>回饋上限</th></tr></thead>
+        <tbody>
+          ${d.ranking.map((r, i) => `
+          <tr class="pay-rank-${i+1}">
+            <td style="font-weight:700;color:${rankColors[i]||'var(--muted)'}">${['🥇','🥈','🥉','4️⃣'][i]||i+1}</td>
+            <td style="font-weight:700">${r.pay}</td>
+            <td style="color:var(--red);font-weight:700;font-family:'DM Mono',monospace;white-space:nowrap">${r.rate}</td>
+            <td style="font-size:0.78rem;color:var(--muted)">${r.note}</td>
+            <td><span class="pay-badge ${r.cap==='無上限'?'pay-badge-green':'pay-badge-gray'}">${r.cap}</span></td>
+          </tr>`).join('')}
+        </tbody>
+      </table>
+    </div>`;
+}
+
+// ── 本旅程 TRIP_CONFIG（tracker.js 引擎讀取此設定） ──────────
+const TRIP_CONFIG = {
+  storageKey:  'tokyo26',
+  exportName:  '東京四日遊記帳',
+  dayLabels: {
+    d1: 'D1 · 4/16（四）新宿',
+    d2: 'D2 · 4/17（五）澀谷・池袋',
+    d3: 'D3 · 4/18（六）品川・戶越',
+    d4: 'D4 · 4/19（日）返程日',
+  },
+  dayOrder: [
+    'D1 · 4/16（四）新宿',
+    'D2 · 4/17（五）澀谷・池袋',
+    'D3 · 4/18（六）品川・戶越',
+    'D4 · 4/19（日）返程日',
+    '其他'
+  ],
+  freeDays: ['d1','d2','d3','d4'],
+  TRACKER_CAPS: {
+    kuma:  { label: '🐻 熊本熊', cap: 500,   rate: 0.085, color: '#b8680b', unlimited: false, condNote: '須：① 指定通路 ② 活動登錄1次 ③ 加碼6%每期上限NT$500', feeNote: '含1.5%手續費（已含於回饋結構中）' },
+    eco:   { label: '🌿 星展eco', cap: 600,  rate: 0.05,  color: '#2e7d52', unlimited: false, feeNote: '含1.5%手續費（已含於回饋結構中）' },
+    pay:   { label: '🔴 PayPay',  cap: 100,  rate: 0.05,  color: '#cc0033', unlimited: false, feeNote: '免收海外手續費；每季上限NT$100' },
+    rich:  { label: '🐶 Richart', cap: 99999,rate: 0.018, color: '#2c5f8a', unlimited: true,  feeNote: '玩旅刷3.3%－手續費1.5%＝淨回饋1.8%' },
+    suica: { label: '🍉 Suica',   cap: 0,    rate: 0,     color: '#3a8a4a', unlimited: true,  noRebate: true, feeNote: '交通卡消費，無回饋，僅作支出記帳' },
+    cash:  { label: '💴 日幣現金', cap: 0,   rate: 0,     color: '#888',    unlimited: true,  noRebate: true, feeNote: '現金消費，無回饋，僅作支出記帳' },
+  },
+  TRACKER_SPOTS: {
+    'd1-isetan':          { name: '新宿伊勢丹',         primary: 'eco',  fallback: 'rich' },
+    'd1-hands-shinjuku':  { name: 'HANDS 新宿',         primary: 'eco',  fallback: 'rich' },
+    'd1-donki':           { name: '唐吉軻德 新宿',      primary: 'kuma', fallback: 'eco'  },
+    'd1-gyutan':          { name: '牛たんの檸檬',       primary: 'eco',  fallback: 'rich' },
+    'd2-ikebukuro':       { name: '逛池袋',             primary: 'eco',  fallback: 'rich' },
+    'd2-littlepool':      { name: 'Little Pool Coffee', primary: 'pay',  fallback: 'eco'  },
+    'd2-hay':             { name: 'HAY TOKYO',          primary: 'eco',  fallback: 'rich' },
+    'd2-3coins-harajuku': { name: '3COINS 原宿',        primary: 'kuma', fallback: 'eco'  },
+    'd2-andst':           { name: 'and ST TOKYO',       primary: 'eco',  fallback: 'rich' },
+    'd2-neel':            { name: 'neel 神宮前',        primary: 'pay',  fallback: 'eco'  },
+    'd2-seam':            { name: 'SEAM GINZA',         primary: 'eco',  fallback: 'rich' },
+    'd2-hands-shibuya':   { name: 'HANDS 澀谷',         primary: 'eco',  fallback: 'rich' },
+    'd2-3coins-109':      { name: '3 COINS @109',       primary: 'kuma', fallback: 'eco'  },
+    'd2-hayashida':       { name: 'らぁ麵 はやし田',   primary: 'eco',  fallback: 'rich' },
+    'd3-tennozu':         { name: '天王洲島',            primary: 'pay',  fallback: 'eco'  },
+    'd3-wing':            { name: 'Wing 高輪',           primary: 'eco',  fallback: 'rich' },
+    'd3-musashi':         { name: '武藏小山商店街',      primary: 'pay',  fallback: 'eco'  },
+    'd3-togoshi':         { name: '肉と米ハジメ',        primary: 'pay',  fallback: 'eco'  },
+    'd3-milktea':         { name: 'MILK TEA SERVICE',   primary: 'pay',  fallback: 'eco'  },
+    'd3-luftbaum':        { name: 'NEWoMan 高輪',        primary: 'eco',  fallback: 'rich' },
+    'd4-unagi':           { name: '鰻之成瀨',            primary: 'pay',  fallback: 'eco'  },
+    'd4-starbucks':       { name: '星巴克',              primary: 'eco',  fallback: 'rich' },
+    'd4-airport-tax':     { name: '成田機場免稅',        primary: 'eco',  fallback: 'rich' },
+  },
+  CARD_CHIP_STYLE: {
+    kuma:  'background:#fff0d4;color:#b8680b;border:1px solid #e8c080;',
+    eco:   'background:#d4f0e0;color:#2e7d52;border:1px solid #80c8a0;',
+    pay:   'background:#ffe0e0;color:#cc0033;border:1px solid #f0a0a0;',
+    rich:  'background:#d4e4f5;color:#2c5f8a;border:1px solid #80a8d8;',
+    suica: 'background:#d8f0dc;color:#3a8a4a;border:1px solid #88cc90;',
+    cash:  'background:#f0ebe5;color:#777;border:1px solid #ccc;',
+  },
+};
+</script>
+
+<!-- ── 共用 JS（順序重要：先 TRIP_CONFIG，再 tracker, export, tabs） ── -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/exceljs/4.4.0/exceljs.min.js"></script>
+<script src="js/tracker.js"></script>
+<script src="js/export.js"></script>
+<script src="js/tabs.js"></script>
+</body>
+</html>

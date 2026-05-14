@@ -1,0 +1,64 @@
+/* ══════════════════════════════════════════════════════
+   base.css — CSS 變數 / Reset / 全域排版
+   所有頁面（index + 行程頁）共用
+   ══════════════════════════════════════════════════════ */
+
+:root {
+  --ink:        #1a1209;
+  --paper:      #faf7f2;
+  --cream:      #f0ead8;
+  --red:        #c0392b;
+  --gold:       #b8860b;
+  --gold-light: #e8d5a0;
+  --sage:       #6b7c5e;
+  --muted:      #8a7f72;
+  --blue:       #2c4a7c;
+  --pink:       #e8c4c0;
+}
+
+/* index.html 使用稍深的 paper，行程頁用 faf7f2，以此變數覆蓋 */
+:root {
+  --page-bg: var(--paper);
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: 'Noto Serif TC', serif;
+  background: var(--page-bg);
+  color: var(--ink);
+  min-height: 100vh;
+}
+
+/* ── 通用 fadeUp 動畫 ── */
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: none; }
+}
+
+/* ── 金色分隔線 ── */
+.divider {
+  height: 4px;
+  background: linear-gradient(90deg, var(--gold) 0%, var(--gold-light) 50%, var(--gold) 100%);
+}
+
+/* ── 通用 footer ── */
+footer {
+  text-align: center;
+  padding: 2rem;
+  font-size: 0.75rem;
+  color: var(--muted);
+  font-family: 'DM Mono', monospace;
+  border-top: 1px solid var(--cream);
+  letter-spacing: 0.1em;
+}
+
+/* ── Print 基礎 ── */
+@media print {
+  body { background: white; }
+  .no-print { display: none !important; }
+}
