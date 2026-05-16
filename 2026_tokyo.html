@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>東京旅遊行程 2026/04/16–04/19</title>
 <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@400;600;900&family=Shippori+Mincho:wght@400;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
-<script src="https://cdnjs.cloudflare.com/ajax/libs/exceljs/4.4.0/exceljs.min.js" defer></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/exceljs/4.4.0/exceljs.min.js"></script>
 <style>
   :root {
     --ink: #1a1209;
@@ -599,8 +599,10 @@
   .pay-badge-gray { background: #e0d8cc; color: var(--muted); }
   .food-table-wrap {
     overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
     border-radius: 6px;
     border: 1px solid #e0d8cc;
+    width: 100%;
   }
   .food-table {
     width: 100%;
@@ -1131,6 +1133,49 @@
     .pay-col { display:none; }
     .tracker-cards { grid-template-columns: repeat(2, 1fr); }
     .ledger-summary-bar { grid-template-columns: 1fr 1fr; }
+  }
+
+  /* ══════════════════════════════════════════
+     RWD — 手機版面修正（max-width: 600px）
+     ══════════════════════════════════════════ */
+  @media (max-width: 600px) {
+
+    /* 所有 tab panel 內層容器：縮小左右 padding */
+    .tab-inner {
+      padding-left: 1rem !important;
+      padding-right: 1rem !important;
+    }
+
+    /* main 容器（行程總覽）*/
+    main {
+      padding-left: 1rem;
+      padding-right: 1rem;
+    }
+
+    /* tab-nav 手機版靠齊全寬 */
+    .tab-nav {
+      padding: 0 0.5rem;
+      max-width: 100%;
+    }
+
+    /* 美食／交通表格捲動提示 */
+    .food-table-wrap::after,
+    .transport-table-wrap::after {
+      content: '← 左右滑動查看完整內容 →';
+      display: block;
+      text-align: center;
+      font-family: 'DM Mono', monospace;
+      font-size: 0.6rem;
+      color: var(--muted);
+      padding: 0.3rem 0;
+      opacity: 0.6;
+    }
+
+    /* 其他橫向捲動容器 iOS 慣性 */
+    .transport-table-wrap,
+    [style*="overflow-x:auto"] {
+      -webkit-overflow-scrolling: touch;
+    }
   }
 </style>
 </head>
@@ -1714,7 +1759,7 @@
 
 <!-- ══ TAB 3: 交通 ══ -->
 <div id="transport" class="tab-panel">
-<div style="max-width:960px;margin:0 auto;padding:2.5rem 1.5rem 4rem;">
+<div class="tab-inner" style="max-width:960px;margin:0 auto;padding:2.5rem 1.5rem 4rem;">
   <h2 style="font-size:1.1rem;font-weight:700;border-bottom:2px solid var(--ink);padding-bottom:0.5rem;margin-bottom:0.75rem;letter-spacing:0.1em;">🚆 交通資訊</h2>
   <p style="font-size:0.78rem;color:var(--muted);margin-bottom:1.5rem;">🍉 欄位數字為西瓜卡扣款金額（日元／人）</p>
 
@@ -2018,7 +2063,7 @@
 </div>
 </div>
 <div id="food" class="tab-panel">
-<div style="max-width:960px;margin:0 auto;padding:2.5rem 1.5rem 4rem;">
+<div class="tab-inner" style="max-width:960px;margin:0 auto;padding:2.5rem 1.5rem 4rem;">
   <h2 style="font-size:1.1rem;font-weight:700;border-bottom:2px solid var(--ink);padding-bottom:0.5rem;margin-bottom:0.75rem;letter-spacing:0.1em;">🍽 美食清單</h2>
   <p style="font-size:0.78rem;color:var(--muted);margin-bottom:2rem;">餐價單位：日元　｜　✅ = 已訂位　｜　🔴 = 只收現金</p>
 
@@ -2185,7 +2230,7 @@
 
 <!-- ══ TAB 5: 支付優惠 ══ -->
 <div id="payment" class="tab-panel">
-<div style="max-width:960px;margin:0 auto;padding:2.5rem 1.5rem 4rem;">
+<div class="tab-inner" style="max-width:960px;margin:0 auto;padding:2.5rem 1.5rem 4rem;">
   <h2 style="font-size:1.1rem;font-weight:700;border-bottom:2px solid var(--ink);padding-bottom:0.5rem;margin-bottom:1rem;letter-spacing:0.1em;">💳 支付優惠建議</h2>
   <div class="pay-trip-badge">
     ✈ 2026/04/16–04/19 東京四日遊
@@ -3508,10 +3553,6 @@ function trackerDeleteLog(spotId, idx) {
 
 // ── 匯出 CSV ──────────────────────────────────────────
 function exportXLSX() {
-  if (typeof ExcelJS === 'undefined') {
-    alert('Excel 匯出中，請稍候再試（程式庫載入中）…');
-    return;
-  }
   if (typeof ExcelJS === 'undefined') {
     alert('Excel 匯出程式庫尚未載入，請確認網路連線後重試。');
     return;

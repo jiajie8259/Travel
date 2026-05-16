@@ -580,18 +580,18 @@
   .pay-badge-gray { background: #e0d8cc; color: var(--muted); }
   .food-table-wrap {
     overflow-x: auto;
-    -webkit-overflow-scrolling: touch; /* iOS 慣性捲動 */
+    -webkit-overflow-scrolling: touch;
     border-radius: 6px;
     border: 1px solid #e0d8cc;
     width: 100%;
   }
   .food-table {
     width: 100%;
-    min-width: 780px;          /* 手機時觸發橫向捲動，電腦版自動撐滿 */
+    min-width: 760px;
     border-collapse: collapse;
     font-size: 0.8rem;
     background: white;
-    table-layout: auto;        /* 讓欄寬依內容自動分配，不強制壓縮 */
+    table-layout: auto;
   }
   .food-table thead tr {
     background: var(--ink);
@@ -1122,8 +1122,30 @@
     .ledger-summary-bar { grid-template-columns: 1fr 1fr; }
   }
 
-  /* ── RWD：手機版橫向捲動提示 ── */
+  /* ══════════════════════════════════════════
+     RWD — 手機版面修正（max-width: 600px）
+     ══════════════════════════════════════════ */
   @media (max-width: 600px) {
+
+    /* 所有 tab panel 內層容器：縮小左右 padding */
+    .tab-inner {
+      padding-left: 1rem !important;
+      padding-right: 1rem !important;
+    }
+
+    /* main 容器（行程總覽）*/
+    main {
+      padding-left: 1rem;
+      padding-right: 1rem;
+    }
+
+    /* tab-nav 左右 padding 縮小 */
+    .tab-nav {
+      padding: 0 0.5rem;
+      max-width: 100%;
+    }
+
+    /* 美食表格捲動提示 */
     .food-table-wrap::after {
       content: '← 左右滑動查看完整內容 →';
       display: block;
@@ -1133,6 +1155,12 @@
       color: var(--muted);
       padding: 0.3rem 0;
       opacity: 0.6;
+    }
+
+    /* 類似表格也套用（交通、景點等）*/
+    .transport-table-wrap,
+    [style*="overflow-x:auto"] {
+      -webkit-overflow-scrolling: touch;
     }
   }
 </style>
@@ -1409,7 +1437,7 @@
 <!-- ══ TAB 2: CARDS ══ -->
 <!-- ══ TAB: 飯店 ══ -->
 <div id="hotel" class="tab-panel">
-<div style="max-width:1400px;margin:0 auto;padding:2.5rem 2.5rem 4rem;">
+<div class="tab-inner" style="max-width:1400px;margin:0 auto;padding:2.5rem 2.5rem 4rem;">
 
   <div style="display:flex;align-items:center;justify-content:space-between;border-bottom:2px solid var(--ink);padding-bottom:0.5rem;margin-bottom:0.75rem;">
     <h2 style="font-size:1.1rem;font-weight:700;letter-spacing:0.1em;">🏨 飯店詢價紀錄</h2>
@@ -1490,7 +1518,7 @@
 
 <!-- ══ TAB: 小筆記 ══ -->
 <div id="notes" class="tab-panel">
-<div style="max-width:1100px;margin:0 auto;padding:2.5rem 2.5rem 4rem;">
+<div class="tab-inner" style="max-width:1100px;margin:0 auto;padding:2.5rem 2.5rem 4rem;">
 
   <div style="display:flex;align-items:center;justify-content:space-between;border-bottom:2px solid var(--ink);padding-bottom:0.5rem;margin-bottom:1.5rem;">
     <h2 style="font-size:1.1rem;font-weight:700;letter-spacing:0.1em;">📝 小筆記</h2>
@@ -1672,7 +1700,7 @@
 
 <!-- ══ TAB 3: 交通 ══ -->
 <div id="transport" class="tab-panel">
-<div style="max-width:1400px;margin:0 auto;padding:2.5rem 2.5rem 4rem;">
+<div class="tab-inner" style="max-width:1400px;margin:0 auto;padding:2.5rem 2.5rem 4rem;">
 
   <div style="display:flex;align-items:center;justify-content:space-between;border-bottom:2px solid var(--ink);padding-bottom:0.5rem;margin-bottom:0.75rem;">
     <h2 style="font-size:1.1rem;font-weight:700;letter-spacing:0.1em;">🚆 交通資訊</h2>
@@ -1774,7 +1802,7 @@
 
 
 <div id="food" class="tab-panel">
-<div style="max-width:1400px;margin:0 auto;padding:2.5rem 2.5rem 4rem;">
+<div class="tab-inner" style="max-width:1400px;margin:0 auto;padding:2.5rem 2.5rem 4rem;">
 
   <div style="display:flex;align-items:center;justify-content:space-between;border-bottom:2px solid var(--ink);padding-bottom:0.5rem;margin-bottom:0.75rem;">
     <h2 style="font-size:1.1rem;font-weight:700;letter-spacing:0.1em;">🍽 美食清單</h2>
@@ -2847,7 +2875,7 @@ document.addEventListener('DOMContentLoaded', notesLoad);
 
 <!-- ══ TAB 5: 支付優惠 ══ -->
 <div id="spots" class="tab-panel">
-<div style="max-width:1400px;margin:0 auto;padding:2.5rem 2.5rem 4rem;">
+<div class="tab-inner" style="max-width:1400px;margin:0 auto;padding:2.5rem 2.5rem 4rem;">
 
   <div style="display:flex;align-items:center;justify-content:space-between;border-bottom:2px solid var(--ink);padding-bottom:0.5rem;margin-bottom:0.75rem;">
     <h2 style="font-size:1.1rem;font-weight:700;letter-spacing:0.1em;">📍 景點清單</h2>
@@ -3116,7 +3144,7 @@ document.addEventListener('DOMContentLoaded', spotsLoad);
 </script>
 
 <div id="payment" class="tab-panel">
-<div style="max-width:960px;margin:0 auto;padding:2.5rem 1.5rem 4rem;">
+<div class="tab-inner" style="max-width:960px;margin:0 auto;padding:2.5rem 1.5rem 4rem;">
   <h2 style="font-size:1.1rem;font-weight:700;border-bottom:2px solid var(--ink);padding-bottom:0.5rem;margin-bottom:1rem;letter-spacing:0.1em;">💳 支付優惠建議</h2>
   <div class="pay-trip-badge">
     ✈ 2026/10/22–10/26 神戶大阪五日遊
