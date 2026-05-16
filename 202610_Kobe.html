@@ -322,28 +322,22 @@
     gap: 0;
     background: var(--cream);
     border-bottom: 2px solid var(--ink);
-    max-width: 100%;
+    max-width: 960px;
     margin: 0 auto;
-    padding: 0;
-    overflow-x: auto;
-    -webkit-overflow-scrolling: touch;
-    scrollbar-width: none;        /* Firefox：隱藏捲動條 */
+    padding: 0 1.5rem;
   }
-  .tab-nav::-webkit-scrollbar { display: none; } /* Chrome/Safari：隱藏捲動條 */
   .tab-btn {
     background: none;
     border: none;
     font-family: 'Noto Serif TC', serif;
     font-size: 0.85rem;
     letter-spacing: 0.05em;
-    padding: 0.9rem 1.2rem;
+    padding: 0.9rem 1.5rem;
     cursor: pointer;
     color: var(--muted);
     border-bottom: 3px solid transparent;
     margin-bottom: -2px;
     transition: all 0.2s;
-    white-space: nowrap;
-    flex-shrink: 0;
   }
   .tab-btn.active {
     color: var(--ink);
@@ -1464,8 +1458,8 @@
     <button onclick="hotelSave()" style="margin-left:auto;font-family:'DM Mono',monospace;font-size:0.72rem;padding:0.4rem 0.9rem;background:#27ae60;color:white;border:none;border-radius:4px;cursor:pointer;">💾 儲存</button>
   </div>
 
-  <div style="overflow-x:auto;border-radius:6px;border:1px solid #e0d8cc;width:100%;">
-    <table id="hotel-main-table" style="width:100%;border-collapse:collapse;font-size:0.8rem;background:white;table-layout:fixed;">
+  <div style="overflow-x:auto;-webkit-overflow-scrolling:touch;border-radius:6px;border:1px solid #e0d8cc;width:100%;">
+    <table id="hotel-main-table" style="width:100%;min-width:1000px;border-collapse:collapse;font-size:0.8rem;background:white;table-layout:auto;">
       <colgroup>
         <col style="width:2.8rem">  <!-- 選定 -->
         <col style="width:3rem">    <!-- 區域 -->
@@ -1764,8 +1758,8 @@
   </div>
 
   <!-- 交通表格 -->
-  <div style="overflow-x:auto;border-radius:6px;border:1px solid #e0d8cc;width:100%;">
-    <table id="trans-main-table" style="width:100%;border-collapse:collapse;font-size:0.8rem;background:white;table-layout:fixed;">
+  <div style="overflow-x:auto;-webkit-overflow-scrolling:touch;border-radius:6px;border:1px solid #e0d8cc;width:100%;">
+    <table id="trans-main-table" style="width:100%;min-width:630px;border-collapse:collapse;font-size:0.8rem;background:white;table-layout:auto;">
       <colgroup>
         <col style="width:3rem">    <!-- D -->
         <col style="width:9%">      <!-- 目的地 -->
@@ -2899,8 +2893,8 @@ document.addEventListener('DOMContentLoaded', notesLoad);
     <button onclick="spotsSave()" style="margin-left:auto;font-family:'DM Mono',monospace;font-size:0.72rem;padding:0.4rem 0.9rem;background:#27ae60;color:white;border:none;border-radius:4px;cursor:pointer;">💾 儲存</button>
   </div>
 
-  <div style="overflow-x:auto;border-radius:6px;border:1px solid #e0d8cc;width:100%;">
-    <table id="spots-main-table" style="width:100%;border-collapse:collapse;font-size:0.8rem;background:white;table-layout:fixed;">
+  <div style="overflow-x:auto;-webkit-overflow-scrolling:touch;border-radius:6px;border:1px solid #e0d8cc;width:100%;">
+    <table id="spots-main-table" style="width:100%;min-width:880px;border-collapse:collapse;font-size:0.8rem;background:white;table-layout:auto;">
       <colgroup>
         <col style="width:2.5rem">  <!-- D -->
         <col style="width:13%">     <!-- 景點名稱 -->
