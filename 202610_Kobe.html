@@ -324,20 +324,26 @@
     border-bottom: 2px solid var(--ink);
     max-width: 100%;
     margin: 0 auto;
-    padding: 0 1rem;
+    padding: 0;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;        /* Firefox：隱藏捲動條 */
   }
+  .tab-nav::-webkit-scrollbar { display: none; } /* Chrome/Safari：隱藏捲動條 */
   .tab-btn {
     background: none;
     border: none;
     font-family: 'Noto Serif TC', serif;
     font-size: 0.85rem;
     letter-spacing: 0.05em;
-    padding: 0.9rem 1.5rem;
+    padding: 0.9rem 1.2rem;
     cursor: pointer;
     color: var(--muted);
     border-bottom: 3px solid transparent;
     margin-bottom: -2px;
     transition: all 0.2s;
+    white-space: nowrap;
+    flex-shrink: 0;
   }
   .tab-btn.active {
     color: var(--ink);
@@ -1437,7 +1443,7 @@
 <!-- ══ TAB 2: CARDS ══ -->
 <!-- ══ TAB: 飯店 ══ -->
 <div id="hotel" class="tab-panel">
-<div class="tab-inner" style="max-width:1400px;margin:0 auto;padding:2.5rem 1.25rem 4rem;">
+<div class="tab-inner" style="max-width:1400px;margin:0 auto;padding:2.5rem 2.5rem 4rem;">
 
   <div style="display:flex;align-items:center;justify-content:space-between;border-bottom:2px solid var(--ink);padding-bottom:0.5rem;margin-bottom:0.75rem;">
     <h2 style="font-size:1.1rem;font-weight:700;letter-spacing:0.1em;">🏨 飯店詢價紀錄</h2>
@@ -1518,7 +1524,7 @@
 
 <!-- ══ TAB: 小筆記 ══ -->
 <div id="notes" class="tab-panel">
-<div class="tab-inner" style="max-width:1100px;margin:0 auto;padding:2.5rem 1.25rem 4rem;">
+<div class="tab-inner" style="max-width:1100px;margin:0 auto;padding:2.5rem 2.5rem 4rem;">
 
   <div style="display:flex;align-items:center;justify-content:space-between;border-bottom:2px solid var(--ink);padding-bottom:0.5rem;margin-bottom:1.5rem;">
     <h2 style="font-size:1.1rem;font-weight:700;letter-spacing:0.1em;">📝 小筆記</h2>
@@ -1700,7 +1706,7 @@
 
 <!-- ══ TAB 3: 交通 ══ -->
 <div id="transport" class="tab-panel">
-<div class="tab-inner" style="max-width:1400px;margin:0 auto;padding:2.5rem 1.25rem 4rem;">
+<div class="tab-inner" style="max-width:1400px;margin:0 auto;padding:2.5rem 2.5rem 4rem;">
 
   <div style="display:flex;align-items:center;justify-content:space-between;border-bottom:2px solid var(--ink);padding-bottom:0.5rem;margin-bottom:0.75rem;">
     <h2 style="font-size:1.1rem;font-weight:700;letter-spacing:0.1em;">🚆 交通資訊</h2>
@@ -1802,7 +1808,7 @@
 
 
 <div id="food" class="tab-panel">
-<div class="tab-inner" style="max-width:1400px;margin:0 auto;padding:2.5rem 1.25rem 4rem;">
+<div class="tab-inner" style="max-width:1400px;margin:0 auto;padding:2.5rem 2.5rem 4rem;">
 
   <div style="display:flex;align-items:center;justify-content:space-between;border-bottom:2px solid var(--ink);padding-bottom:0.5rem;margin-bottom:0.75rem;">
     <h2 style="font-size:1.1rem;font-weight:700;letter-spacing:0.1em;">🍽 美食清單</h2>
@@ -2875,7 +2881,7 @@ document.addEventListener('DOMContentLoaded', notesLoad);
 
 <!-- ══ TAB 5: 支付優惠 ══ -->
 <div id="spots" class="tab-panel">
-<div class="tab-inner" style="max-width:1400px;margin:0 auto;padding:2.5rem 1.25rem 4rem;">
+<div class="tab-inner" style="max-width:1400px;margin:0 auto;padding:2.5rem 2.5rem 4rem;">
 
   <div style="display:flex;align-items:center;justify-content:space-between;border-bottom:2px solid var(--ink);padding-bottom:0.5rem;margin-bottom:0.75rem;">
     <h2 style="font-size:1.1rem;font-weight:700;letter-spacing:0.1em;">📍 景點清單</h2>
