@@ -3,28 +3,1126 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>神戶大阪五日遊 · 2026</title>
-<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@400;600;900&family=DM+Mono:wght@400;500&family=Cormorant+Garamond:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="css/base.css">
-<link rel="stylesheet" href="css/trip-page.css">
-<link rel="stylesheet" href="css/tracker.css">
+<title>神戶大阪5日遊 2026/10/22–10/26</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@400;600;900&family=Shippori+Mincho:wght@400;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/exceljs/4.4.0/exceljs.min.js" defer></script>
 <style>
-  /* ── 神戶頁專屬：Header 背景裝飾文字 ── */
+  :root {
+    --ink: #1a1209;
+    --paper: #faf7f2;
+    --cream: #f0ead8;
+    --red: #c0392b;
+    --gold: #b8860b;
+    --sage: #6b7c5e;
+    --muted: #8a7f72;
+    --blue: #2c4a7c;
+    --pink: #e8c4c0;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'Noto Serif TC', serif;
+    background: var(--paper);
+    color: var(--ink);
+    min-height: 100vh;
+  }
+
+  /* ── HEADER ── */
+  header {
+    background: var(--ink);
+    color: var(--paper);
+    padding: 1.4rem 2rem 1.2rem;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+  }
   header::before {
     content: '神戶';
     position: absolute;
-    font-size: 16rem;
+    font-size: 10rem;
     font-weight: 900;
-    opacity: 0.04;
+    opacity: 0.05;
     top: 50%; left: 50%;
-    transform: translate(-50%, -50%);
+    transform: translate(-50%,-50%);
     white-space: nowrap;
     pointer-events: none;
+  }
+  header .date-tag {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.7rem;
+    letter-spacing: 0.18em;
+    color: var(--gold);
+    text-transform: uppercase;
+    margin-bottom: 0.5rem;
+    border: 1px solid rgba(184,134,11,0.4);
+    display: inline-block;
+    padding: 0.2em 0.9em;
+    border-radius: 2px;
+  }
+  header h1 {
+    font-family: 'Microsoft JhengHei', 'PingFang TC', 'Noto Sans TC', sans-serif;
+    font-size: clamp(1.6rem, 4vw, 2.6rem);
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    line-height: 1.15;
+    margin-bottom: 0.3rem;
+  }
+  header p {
+    color: #999;
+    font-size: 0.8rem;
+    letter-spacing: 0.15em;
+    font-family: 'Microsoft JhengHei', 'PingFang TC', 'Noto Sans TC', sans-serif;
+    font-weight: 300;
+  }
+
+  /* ── MAIN LAYOUT ── */
+  main {
+    max-width: 960px;
+    margin: 0 auto;
+    padding: 2.5rem 1.5rem 4rem;
+  }
+
+  /* ── DAY BLOCK ── */
+  .day-block {
+    margin-bottom: 3.5rem;
+  }
+
+  .day-header {
+    display: flex;
+    align-items: baseline;
+    gap: 1rem;
+    border-bottom: 3px solid var(--ink);
+    padding-bottom: 0.5rem;
+    margin-bottom: 1.5rem;
+  }
+  .day-label {
+    font-size: 2.5rem;
+    font-weight: 900;
+    line-height: 1;
+    color: var(--ink);
+  }
+  .day-sub {
+    font-size: 0.85rem;
+    color: var(--muted);
+    font-family: 'DM Mono', monospace;
+    letter-spacing: 0.05em;
+  }
+
+  /* ── PERIOD ── */
+  .period {
+    margin-bottom: 1.5rem;
+  }
+  .period-title {
+    font-size: 0.7rem;
+    font-family: 'DM Mono', monospace;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 0.75rem;
+    padding-left: 0.5rem;
+    border-left: 2px solid #ccc;
+  }
+
+  /* ── EVENT CARD ── */
+  .event {
+    display: grid;
+    grid-template-columns: 90px 1fr;
+    gap: 0 1rem;
+    margin-bottom: 0.6rem;
+    animation: fadeUp 0.4s ease both;
+  }
+  @keyframes fadeUp {
+    from { opacity:0; transform: translateY(8px); }
+    to   { opacity:1; transform: none; }
+  }
+
+  .event-type {
+    display: flex;
+    align-items: flex-start;
+    padding-top: 0.1rem;
+    justify-content: flex-end;
+  }
+  .tag {
+    font-size: 0.68rem;
+    font-family: 'DM Mono', monospace;
+    letter-spacing: 0.05em;
+    padding: 0.2em 0.6em;
+    border-radius: 2px;
+    white-space: nowrap;
+    font-weight: 500;
+  }
+  .tag-transport { background: #e0e0e0; color: #555; }
+  .tag-walk      { background: #d4e9f0; color: #2c5d70; }
+  .tag-spot      { background: #dde8d8; color: #3d5c33; }
+  .tag-meal      { background: #f5ddd8; color: #8b2c22; }
+
+  .event-body {
+    background: white;
+    border: 1px solid #e8e0d4;
+    border-radius: 4px;
+    padding: 0.7rem 1rem;
+    position: relative;
+  }
+  .event-body.must::after {
+    content: '必';
+    position: absolute;
+    top: 0.4rem; right: 0.6rem;
+    font-size: 0.65rem;
+    color: var(--red);
+    font-weight: 700;
+  }
+  .event-body.booked::after {
+    content: '已訂位';
+    position: absolute;
+    top: 0.4rem; right: 0.6rem;
+    font-size: 0.65rem;
+    color: var(--blue);
+    font-weight: 600;
+  }
+  .event-name {
+    font-size: 0.95rem;
+    font-weight: 600;
+    line-height: 1.4;
+  }
+  .event-name.alt {
+    color: var(--red);
+  }
+  .event-note {
+    font-size: 0.78rem;
+    color: var(--muted);
+    margin-top: 0.25rem;
+    line-height: 1.5;
+  }
+  .event-note .replaceable {
+    color: var(--sage);
+    font-weight: 600;
+  }
+  .event-note .minus24 {
+    color: var(--red);
+    font-weight: 600;
+  }
+
+  /* ── CONNECTOR ── */
+  .connector {
+    width: 1px;
+    height: 12px;
+    background: #d0c8bc;
+    margin: 0 0 0 calc(90px + 0.5rem + 45px);
+    margin-bottom: 0;
+  }
+
+  /* ── PRINT CARDS ── */
+  @media print {
+    body { background: white; }
+    header::before { display:none; }
+    .no-print { display: none !important; }
+    .day-block { page-break-inside: avoid; }
+  }
+
+  /* ── CARD PRINT PAGE ── */
+  #card-section {
+    max-width: 960px;
+    margin: 0 auto;
+    padding: 0 1.5rem 4rem;
+  }
+  #card-section h2 {
+    font-size: 1.1rem;
+    font-weight: 700;
+    border-bottom: 2px solid var(--ink);
+    padding-bottom: 0.5rem;
+    margin-bottom: 1.5rem;
+    letter-spacing: 0.1em;
+  }
+
+  .card-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(420px, 1fr));
+    gap: 1.5rem;
+  }
+
+  .mini-card {
+    border: 2px solid var(--ink);
+    border-radius: 8px;
+    overflow: hidden;
+    background: white;
+    font-size: 0.82rem;
+    break-inside: avoid;
+  }
+  .mini-card-header {
+    background: var(--ink);
+    color: var(--paper);
+    padding: 0.65rem 1rem;
+    font-family: 'DM Mono', monospace;
+    font-size: 0.72rem;
+    letter-spacing: 0.1em;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  .mini-card-header .day-big {
+    font-size: 1.4rem;
     font-family: 'Noto Serif TC', serif;
+    font-weight: 900;
+    line-height: 1;
+  }
+  .mini-card-header .day-info {
+    text-align: right;
+    line-height: 1.5;
+  }
+  .mini-card-body {
+    padding: 0.75rem 1rem;
+  }
+  .mini-card-period {
+    font-size: 0.65rem;
+    font-family: 'DM Mono', monospace;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--muted);
+    border-left: 2px solid #ccc;
+    padding-left: 0.4rem;
+    margin: 0.6rem 0 0.4rem;
+  }
+  .mini-card-period:first-child { margin-top: 0; }
+  .mini-card-body .item {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.4rem;
+    margin-bottom: 0.35rem;
+    line-height: 1.45;
+  }
+  .mini-card-body .item-dot {
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    flex-shrink: 0;
+    margin-top: 0.45rem;
+  }
+  .mini-card-body .item-text { flex: 1; }
+  .mini-card-body .item-sub {
+    font-size: 0.68rem;
+    color: var(--muted);
+    line-height: 1.3;
+  }
+  .mini-card-body .badge {
+    font-size: 0.6rem;
+    padding: 0.1em 0.4em;
+    border-radius: 2px;
+    font-family: 'DM Mono', monospace;
+    vertical-align: middle;
+    margin-left: 0.3em;
+  }
+  .badge-booked { background: #d4e0f5; color: #2c4a7c; }
+  .badge-must   { background: #f5ddd8; color: #8b2c22; }
+  .badge-swap   { background: #dde8d8; color: #3d5c33; }
+  .badge-late   { background: #fde8e8; color: #c0392b; }
+
+  /* tab nav */
+  .tab-nav {
+    display: flex;
+    gap: 0;
+    background: var(--cream);
+    border-bottom: 2px solid var(--ink);
+    max-width: 960px;
+    margin: 0 auto;
+    padding: 0 1.5rem;
+  }
+  .tab-btn {
+    background: none;
+    border: none;
+    font-family: 'Noto Serif TC', serif;
+    font-size: 0.85rem;
+    letter-spacing: 0.05em;
+    padding: 0.9rem 1.5rem;
+    cursor: pointer;
+    color: var(--muted);
+    border-bottom: 3px solid transparent;
+    margin-bottom: -2px;
+    transition: all 0.2s;
+  }
+  .tab-btn.active {
+    color: var(--ink);
+    border-bottom-color: var(--ink);
+    font-weight: 700;
+  }
+
+  .tab-panel { display: none; }
+  .tab-panel.active { display: block; }
+
+  .empty-notice {
+    background: var(--cream);
+    border: 1.5px dashed #ccc;
+    border-radius: 6px;
+    padding: 1.25rem 1.5rem;
+    font-size: 0.85rem;
+    color: var(--muted);
+    font-family: 'DM Mono', monospace;
+    letter-spacing: 0.03em;
+  }
+
+  /* ── TRANSPORT TAB ── */
+  .transport-day {
+    margin-bottom: 2.5rem;
+  }
+  .transport-day-header {
+    display: flex;
+    align-items: baseline;
+    gap: 0.75rem;
+    margin-bottom: 0.75rem;
+  }
+  .transport-day-label {
+    background: var(--ink);
+    color: var(--paper);
+    font-family: 'DM Mono', monospace;
+    font-size: 0.72rem;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    padding: 0.25em 0.7em;
+    border-radius: 3px;
+    white-space: nowrap;
+  }
+  .transport-day-sub {
+    font-size: 0.82rem;
+    color: var(--muted);
+    letter-spacing: 0.03em;
+  }
+  .transport-table-wrap {
+    overflow-x: auto;
+    border-radius: 6px;
+    border: 1px solid #e0d8cc;
+  }
+  .transport-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.8rem;
+    background: white;
+  }
+  .transport-table thead tr {
+    background: var(--ink);
+    color: var(--paper);
+  }
+  .transport-table th {
+    padding: 0.6rem 0.75rem;
+    font-family: 'DM Mono', monospace;
+    font-size: 0.65rem;
+    letter-spacing: 0.08em;
+    font-weight: 500;
+    text-align: left;
+    white-space: nowrap;
+  }
+  .transport-table tbody tr {
+    border-bottom: 1px solid #f0e8dc;
+    transition: background 0.15s;
+  }
+  .transport-table tbody tr:hover {
+    background: #fdf8f2;
+  }
+  .transport-table tbody tr:last-child {
+    border-bottom: none;
+  }
+  .transport-table td {
+    padding: 0.6rem 0.75rem;
+    vertical-align: middle;
+    line-height: 1.5;
+  }
+  .transport-table td.route {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.72rem;
+    color: var(--blue);
+    white-space: nowrap;
+  }
+  .transport-table td.time {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.75rem;
+    white-space: nowrap;
+    color: var(--ink);
+    font-weight: 600;
+  }
+  .transport-table td.suica {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.72rem;
+    text-align: center;
+    color: var(--sage);
+    font-weight: 600;
+  }
+  .transport-table tr.backup-row td {
+    background: #f8f6f2;
+    color: #aaa;
+  }
+  .transport-table tr.backup-row td.route {
+    color: #bbb;
+  }
+  .transport-table tr.backup-row td.time {
+    color: #bbb;
+  }
+  .transport-table tr.backup-row td.suica {
+    color: #bbb;
+  }
+  .backup-tag {
+    display: inline-block;
+    font-size: 0.58rem;
+    font-family: 'DM Mono', monospace;
+    background: #e8e0d4;
+    color: #999;
+    padding: 0.1em 0.45em;
+    border-radius: 2px;
+    margin-left: 0.3em;
+    vertical-align: middle;
+    letter-spacing: 0.03em;
+  }
+  .line-name {
+    display: inline-block;
+    background: #e8f0fa;
+    color: var(--blue);
+    font-size: 0.65rem;
+    font-family: 'DM Mono', monospace;
+    padding: 0.1em 0.5em;
+    border-radius: 2px;
+    margin-left: 0.3em;
+    vertical-align: middle;
+    font-weight: 600;
+  }
+
+  /* ── PAYMENT TAB ── */
+  .pay-section-label {
+    font-family: 'DM Mono', monospace; font-size: 0.63rem; letter-spacing: 0.14em;
+    text-transform: uppercase; color: var(--muted); margin-bottom: 0.4rem;
+  }
+  .pay-trip-badge {
+    display: inline-flex; align-items: center; gap: 0.5rem;
+    background: var(--ink); color: var(--paper);
+    font-family: 'DM Mono', monospace; font-size: 0.68rem; letter-spacing: 0.06em;
+    padding: 0.4rem 0.9rem; border-radius: 4px; margin-bottom: 1.5rem;
+  }
+  .pay-trip-badge .q-badge {
+    background: #b8860b; color: #fff; font-size: 0.6rem;
+    padding: 0.1em 0.5em; border-radius: 3px; font-weight: 700;
+  }
+  .pay-sub-tabs {
+    display: flex; gap: 0; border-bottom: 2px solid #e0d8cc; margin-bottom: 1.5rem; overflow-x: auto;
+  }
+  .pay-sub-btn {
+    background: none; border: none; font-family: 'Noto Serif TC', serif;
+    font-size: 0.82rem; padding: 0.65rem 1.2rem; cursor: pointer;
+    color: var(--muted); border-bottom: 3px solid transparent; margin-bottom: -2px;
+    transition: all 0.2s; white-space: nowrap;
+  }
+  .pay-sub-btn.active { color: var(--ink); border-bottom-color: var(--ink); font-weight: 700; }
+  .pay-sub-panel { display: none; }
+  .pay-sub-panel.active { display: block; }
+
+  /* Venue grid */
+  .pay-venue-grid {
+    display: grid; grid-template-columns: repeat(auto-fill, minmax(100px, 1fr)); gap: 0.6rem; margin-bottom: 1.2rem;
+  }
+  .pay-venue-btn {
+    background: white; border: 1.5px solid #ddd5c8; border-radius: 6px;
+    padding: 0.7rem 0.3rem; text-align: center; cursor: pointer; transition: all 0.18s;
+    font-size: 0.78rem;
+  }
+  .pay-venue-btn .icon { font-size: 1.3rem; display: block; margin-bottom: 0.2rem; }
+  .pay-venue-btn:hover { border-color: var(--blue); }
+  .pay-venue-btn.active { border-color: var(--ink); background: var(--ink); color: #f0c040; }
+  .pay-analyze-btn {
+    background: var(--ink); color: #f0c040;
+    font-family: 'DM Mono', monospace; font-size: 0.75rem; letter-spacing: 0.07em;
+    text-transform: uppercase; padding: 0.65rem 1.4rem; border: none; cursor: pointer;
+    border-radius: 4px; transition: all 0.18s;
+  }
+  .pay-analyze-btn:hover { background: #2a1e22; transform: translateY(-1px); }
+
+  /* AI result box */
+  .pay-ai-box {
+    background: var(--ink); color: var(--paper); border-radius: 8px;
+    padding: 1.3rem 1.6rem; margin: 1rem 0; position: relative; overflow: hidden;
+  }
+  .pay-ai-box::before { content: '✦'; font-size: 5rem; color: rgba(255,255,255,0.04); position: absolute; right: 1rem; top: -0.5rem; pointer-events: none; }
+  .pay-ai-title { font-family: 'DM Mono', monospace; font-size: 0.68rem; letter-spacing: 0.1em; text-transform: uppercase; color: #f0c040; margin-bottom: 0.6rem; }
+  .pay-ai-best { font-size: 1.05rem; font-weight: 900; margin-bottom: 0.4rem; }
+  .pay-ai-reason { font-size: 0.8rem; color: rgba(255,255,255,0.72); line-height: 1.7; }
+  .pay-shimmer {
+    height: 3px; background: linear-gradient(90deg, #f0c040, #c0392b, #f0c040);
+    background-size: 200%; animation: payShimmer 1.5s infinite; border-radius: 2px; margin: 0.8rem 0;
+  }
+  @keyframes payShimmer { 0%{background-position:200%} 100%{background-position:-200%} }
+  .pay-shimmer-text { font-family: 'DM Mono', monospace; font-size: 0.7rem; color: var(--muted); text-align: center; }
+
+  /* Ranking table */
+  .pay-rank-table { width: 100%; border-collapse: collapse; font-size: 0.82rem; }
+  .pay-rank-table th {
+    font-family: 'DM Mono', monospace; font-size: 0.62rem; letter-spacing: 0.1em;
+    text-transform: uppercase; color: var(--muted); text-align: left;
+    padding: 0.5rem 0.75rem; border-bottom: 2px solid #e0d8cc; white-space: nowrap;
+  }
+  .pay-rank-table td { padding: 0.65rem 0.75rem; border-bottom: 1px solid #f0e8dc; vertical-align: middle; }
+  .pay-rank-table tr:last-child td { border-bottom: none; }
+  .pay-rank-table tr:hover td { background: #fdf8f2; }
+  .pay-rank-1 td:first-child { border-left: 3px solid #b8860b; }
+  .pay-rank-2 td:first-child { border-left: 3px solid #aaa; }
+  .pay-rank-3 td:first-child { border-left: 3px solid #cd7f32; }
+
+  /* Card overview */
+  .pay-card-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 1rem; margin-bottom: 1.5rem; }
+  .pay-card-promo { background: white; border: 1.5px solid #ddd5c8; border-radius: 8px; padding: 1.1rem 1.3rem; transition: border-color 0.18s; }
+  .pay-card-promo:hover { border-color: var(--blue); }
+  .pay-card-issuer { font-family: 'DM Mono', monospace; font-size: 0.6rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 0.3rem; }
+  .pay-card-name { font-weight: 900; font-size: 0.95rem; margin-bottom: 0.6rem; }
+  .pay-promo-list { list-style: none; }
+  .pay-promo-list li { display: flex; justify-content: space-between; align-items: baseline; padding: 0.3rem 0; border-bottom: 1px dashed #e0d8cc; font-size: 0.8rem; gap: 0.5rem; }
+  .pay-promo-list li:last-child { border-bottom: none; }
+  .pay-promo-desc { color: var(--muted); flex: 1; line-height: 1.4; }
+  .pay-promo-rate { font-family: 'DM Mono', monospace; font-weight: 700; color: var(--red); white-space: nowrap; }
+  .pay-promo-cap { font-family: 'DM Mono', monospace; font-size: 0.62rem; color: var(--muted); margin-top: 0.6rem; line-height: 1.7; }
+  .pay-tip-box { background: linear-gradient(135deg, #fff8e7, #faf7f0); border: 1.5px solid #e0d8cc; border-radius: 8px; padding: 1.1rem 1.3rem; font-size: 0.82rem; line-height: 2; color: var(--muted); }
+  .pay-tip-box strong { color: var(--ink); }
+  .pay-badge { font-family: 'DM Mono', monospace; font-size: 0.6rem; padding: 0.15rem 0.5rem; border-radius: 20px; }
+  .pay-badge-gold { background: #f0c040; color: var(--ink); }
+  .pay-badge-green { background: #27ae60; color: #fff; }
+  .pay-badge-gray { background: #e0d8cc; color: var(--muted); }
+  .food-table-wrap {
+    overflow-x: auto;
+    border-radius: 6px;
+    border: 1px solid #e0d8cc;
+    width: 100%;
+  }
+  .food-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.8rem;
+    background: white;
+    table-layout: fixed;
+  }
+  .food-table thead tr {
+    background: var(--ink);
+    color: var(--paper);
+  }
+  .food-table th {
+    padding: 0.6rem 0.4rem;
+    font-family: 'DM Mono', monospace;
+    font-size: 0.65rem;
+    letter-spacing: 0.08em;
+    font-weight: 500;
+    text-align: left;
+    white-space: nowrap;
+  }
+  .food-table th.col-price { text-align: right; }
+  .food-table tbody tr {
+    border-bottom: 1px solid #f0e8dc;
+    transition: background 0.15s;
+  }
+  .food-table tbody tr:hover { background: #fdf8f2; }
+  .food-table tbody tr:last-child { border-bottom: none; }
+  .food-table tbody tr.booked-row { background: #fef9f0; }
+  .food-table tbody tr.booked-row:hover { background: #fdf3e3; }
+  .food-table td {
+    padding: 0.6rem 0.4rem;
+    vertical-align: middle;
+    line-height: 1.5;
+  }
+  .food-table td.col-price {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.78rem;
+    text-align: right;
+    white-space: nowrap;
+  }
+  .food-table td.total-price {
+    font-weight: 700;
+    color: var(--red);
+  }
+  .food-table tfoot tr {
+    border-top: 2px solid var(--ink);
+    background: var(--cream);
+  }
+  /* 編輯模式列緊縮 padding */
+  #food-tbody tr[data-idx] td {
+    padding: 0.35rem 0.4rem;
+  }
+  .food-name { white-space: normal; overflow: hidden; text-overflow: ellipsis; }
+  .food-name a {
+    color: var(--blue);
+    text-decoration: none;
+  }
+  .food-name a:hover { text-decoration: underline; }
+  .food-hours {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.72rem;
+    white-space: nowrap;
+    color: var(--muted);
+  }
+  .food-booked { color: var(--sage); font-weight: 700; text-align: center; }
+  .food-unbooked { color: #ccc; text-align: center; }
+  .pay-tag {
+    font-size: 0.65rem;
+    font-family: 'DM Mono', monospace;
+    padding: 0.2em 0.55em;
+    border-radius: 3px;
+    white-space: nowrap;
+    font-weight: 500;
+  }
+  .pay-card   { background: #e8f0fa; color: #2c4a7c; }
+  .pay-mobile { background: #e8f4ee; color: #2e6644; }
+  .pay-cash   { background: #fde8e8; color: #8b2c22; font-weight: 700; }
+
+  /* ── ITINERARY PAYMENT TAB ── */
+  .itin-day { margin-bottom: 2.6rem; }
+  .itin-day-head {
+    display: flex; align-items: center; gap: 1rem;
+    border-bottom: 2.5px solid var(--ink); padding-bottom: 0.45rem; margin-bottom: 1.1rem;
+  }
+  .itin-day-num { font-size: 2rem; font-weight: 900; line-height: 1; }
+  .itin-day-meta { flex: 1; }
+  .itin-day-title { font-size: 0.9rem; font-weight: 700; }
+  .itin-day-sub { font-family: 'DM Mono', monospace; font-size: 0.63rem; color: var(--muted); margin-top: 0.12rem; }
+  .period-lbl {
+    font-family: 'DM Mono', monospace; font-size: 0.6rem; letter-spacing: 0.18em;
+    text-transform: uppercase; color: var(--muted);
+    border-left: 2px solid #ccc; padding-left: 0.4rem; margin: 0.85rem 0 0.5rem;
+  }
+  .spot-row {
+    display: grid; grid-template-columns: 22px 1fr 100px;
+    gap: 0 0.75rem; margin-bottom: 0.5rem; align-items: start; position: relative;
+  }
+  .spot-ico { font-size: 0.95rem; padding-top: 0.1rem; }
+  .spot-body {
+    background: #fff; border: 1.5px solid #e0d8cc; border-radius: 5px;
+    padding: 0.5rem 0.85rem; position: relative; transition: opacity 0.2s, border-color 0.2s;
+  }
+
+  /* ── 略過狀態 ── */
+  .spot-row.skipped .spot-body {
+    opacity: 0.38;
+    border-color: #ccc;
+    background: #f8f6f3;
+  }
+  .spot-row.skipped .spot-ico { opacity: 0.3; }
+  .spot-row.skipped .pay-col  { opacity: 0.3; pointer-events: none; }
+  /* 斜線塗鴉效果 */
+  .spot-row.skipped .spot-body::after {
+    content: '';
+    position: absolute; inset: 0;
+    border-radius: 4px;
+    background: repeating-linear-gradient(
+      -52deg,
+      transparent,
+      transparent 7px,
+      rgba(0,0,0,0.055) 7px,
+      rgba(0,0,0,0.055) 8.5px
+    );
+    pointer-events: none;
+  }
+  /* 略過標籤 */
+  .skip-badge {
+    position: absolute; top: 0.3rem; right: 0.5rem;
+    font-family: 'DM Mono', monospace; font-size: 0.58rem; font-weight: 700;
+    letter-spacing: 0.06em; color: #aaa; background: #f0ece6;
+    border: 1px solid #ccc; border-radius: 3px;
+    padding: 0.1em 0.45em; pointer-events: none;
+  }
+  /* 略過切換按鈕（hover 才顯示，或追蹤器啟動後常駐） */
+  .skip-btn {
+    display: none;
+    font-family: 'DM Mono', monospace; font-size: 0.55rem; letter-spacing: 0.04em;
+    background: none; border: 1px dashed #ccc; color: #bbb;
+    padding: 0.15rem 0.45rem; border-radius: 3px; cursor: pointer;
+    transition: all 0.15s; white-space: nowrap; margin-top: 0.3rem;
+    line-height: 1.5;
+  }
+  .skip-btn:hover { border-color: #999; color: #777; background: #f8f5f0; }
+  .skip-btn.active { border-color: #27ae60; color: #27ae60; background: rgba(39,174,96,0.07); }
+  .tracker-on .skip-btn { display: inline-block; }
+  .spot-row.skipped .skip-btn { display: inline-block; color: #27ae60; border-color: #27ae60; background: rgba(39,174,96,0.07); }
+  .spot-name { font-size: 0.86rem; font-weight: 700; line-height: 1.4; }
+  .spot-note { font-size: 0.72rem; color: var(--muted); margin-top: 0.12rem; line-height: 1.45; }
+  .spot-alert { color: var(--red); font-weight: 700; }
+  .pay-col { display: flex; flex-direction: column; gap: 0.28rem; align-items: flex-end; padding-top: 0.4rem; position: relative; }
+  .pb {
+    font-family: 'DM Mono', monospace; font-size: 0.6rem; font-weight: 700;
+    padding: 0.18em 0.55em; border-radius: 3px; white-space: nowrap; letter-spacing: 0.02em;
+  }
+  .pb-kuma  { background: #fff0d4; color: #b8680b; border: 1px solid #e8c080; }
+  .pb-eco   { background: #d4f0e0; color: #2e7d52; border: 1px solid #80c8a0; }
+  .pb-rich  { background: #d4e4f5; color: #2c5f8a; border: 1px solid #80a8d8; }
+  .pb-pay   { background: #ffe0e0; color: #cc0033; border: 1px solid #f0a0a0; }
+  .pb-suica { background: #d8f0dc; color: #3a8a4a; border: 1px solid #88cc90; }
+  .pb-cash  { background: #f0ebe5; color: #999;    border: 1px solid #ccc; }
+  .pb-rate  { font-family: 'DM Mono', monospace; font-size: 0.7rem; font-weight: 900; }
+  .pb-rate.gold   { color: #b8680b; }
+  .pb-rate.green  { color: #2e7d52; }
+  .pb-rate.blue   { color: #cc0033; }
+  .pb-rate.gray   { color: #999; }
+  .itin-note-box {
+    background: linear-gradient(135deg,#fff8e7,white);
+    border: 1.5px solid #e0d8cc; border-radius: 8px;
+    padding: 1rem 1.2rem; font-size: 0.8rem; line-height: 1.9; color: var(--muted);
+    margin-bottom: 1rem;
+  }
+  .itin-note-box strong { color: var(--ink); }
+  .itin-alert-box {
+    background: #fff0f0; border: 1.5px solid #e88; border-radius: 8px;
+    padding: 1rem 1.2rem; font-size: 0.8rem; line-height: 1.85; margin-bottom: 1rem;
+  }
+  .itin-summary-table { width:100%; border-collapse:collapse; font-size:0.81rem; margin-top:0.5rem; }
+  .itin-summary-table th { font-family:'DM Mono',monospace; font-size:0.6rem; letter-spacing:0.1em; text-transform:uppercase; color:var(--muted); padding:0.5rem 0.7rem; border-bottom:2px solid #e0d8cc; text-align:left; white-space:nowrap; }
+  .itin-summary-table td { padding:0.62rem 0.7rem; border-bottom:1px solid #f0e8dc; vertical-align:middle; }
+  .itin-summary-table tr:last-child td { border-bottom:none; }
+  .itin-summary-table tr:hover td { background:rgba(0,0,0,0.015); }
+  .cat-row td { background:var(--cream); font-weight:700; font-size:0.75rem; color:var(--muted); letter-spacing:0.04em; padding:0.4rem 0.7rem; }
+
+  /* ── TRACKER DASHBOARD (sticky) ── */
+  .tracker-bar {
+    position: sticky; top: 0; z-index: 50;
+    background: var(--ink); color: var(--paper);
+    padding: 0.85rem 2rem 0.75rem;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.25);
+    display: none;
+  }
+  .tracker-bar.visible { display: block; }
+  .tracker-bar-inner { max-width: 960px; margin: 0 auto; }
+  .tracker-title {
+    font-family: 'DM Mono', monospace; font-size: 0.6rem; letter-spacing: 0.14em;
+    text-transform: uppercase; color: #f0c040; margin-bottom: 0.6rem;
+    display: flex; justify-content: space-between; align-items: center;
+  }
+  .tracker-reset {
+    font-family: 'DM Mono', monospace; font-size: 0.58rem; color: #666;
+    background: none; border: 1px solid #444; padding: 0.15rem 0.6rem;
+    border-radius: 3px; cursor: pointer; transition: all 0.15s;
+  }
+  .tracker-reset:hover { color: #fff; border-color: #888; }
+  .tracker-cards {
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+    gap: 0.6rem;
+  }
+  .tracker-card {
+    background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 6px; padding: 0.55rem 0.75rem; transition: all 0.3s;
+  }
+  .tracker-card.exhausted { background: rgba(192,57,43,0.15); border-color: rgba(192,57,43,0.4); }
+  .tracker-card.warning { background: rgba(184,134,11,0.15); border-color: rgba(184,134,11,0.4); }
+  .tc-head { display:flex; justify-content:space-between; align-items:baseline; margin-bottom:0.35rem; }
+  .tc-name { font-size: 0.72rem; font-weight: 700; }
+  .tc-pct { font-family: 'DM Mono', monospace; font-size: 0.65rem; }
+  .tc-pct.full { color: var(--red); }
+  .tc-pct.warn { color: #f0c040; }
+  .tc-pct.ok   { color: #6ec88a; }
+  .tc-bar-track { height: 5px; background: rgba(255,255,255,0.1); border-radius: 3px; overflow: hidden; }
+  .tc-bar-fill { height: 100%; border-radius: 3px; transition: width 0.5s cubic-bezier(.4,0,.2,1); }
+  .tc-bar-fill.full { background: var(--red); }
+  .tc-bar-fill.warn { background: #f0c040; }
+  .tc-bar-fill.ok   { background: #6ec88a; }
+  .tc-amounts { display:flex; justify-content:space-between; margin-top:0.3rem; }
+  .tc-used { font-family: 'DM Mono', monospace; font-size: 0.58rem; color: #888; }
+  .tc-cap  { font-family: 'DM Mono', monospace; font-size: 0.58rem; color: #555; }
+
+  /* ── ADD BTN / LOGS ── */
+  .add-btn {
+    display: inline-flex; align-items: center; gap: 0.25rem;
+    font-family: 'DM Mono', monospace; font-size: 0.6rem; letter-spacing: 0.04em;
+    background: none; border: 1px solid #ddd5c8; color: var(--muted);
+    padding: 0.18rem 0.55rem; border-radius: 3px; cursor: pointer;
+    transition: all 0.15s; margin-top: 0.35rem; white-space: nowrap;
+  }
+  .add-btn:hover { border-color: var(--blue); color: var(--blue); background: rgba(44,74,124,0.06); }
+  .add-btn.logged { border-color: #27ae60; color: #27ae60; background: rgba(39,174,96,0.06); }
+  .log-list { margin-top: 0.3rem; }
+  .log-entry {
+    display: flex; align-items: center; gap: 0.4rem;
+    font-family: 'DM Mono', monospace; font-size: 0.62rem; color: var(--muted);
+    padding: 0.15rem 0; animation: fadeUp 0.25s ease;
+  }
+  .log-entry .log-amt { font-weight: 700; color: var(--ink); }
+  .log-entry .log-del { background:none; border:none; color:#ccc; cursor:pointer; font-size:0.75rem; padding:0 0.2rem; line-height:1; }
+  .log-entry .log-del:hover { color: var(--red); }
+  .log-entry .log-rebate { color: #27ae60; }
+  .pay-status-chip {
+    font-family: 'DM Mono', monospace; font-size: 0.55rem; font-weight: 700;
+    padding: 0.3em 0.55em; border-radius: 4px; white-space: nowrap; margin-top: 0.22rem;
+    text-align: center; display: inline-block; line-height: 1.3;
+  }
+  .chip-ok     { background: rgba(39,174,96,0.12); color: #27ae60; border: 1px solid rgba(39,174,96,0.3); }
+  .chip-warn   { background: rgba(184,134,11,0.12); color: #b8860b; border: 1px solid rgba(184,134,11,0.3); }
+  .chip-exhausted { background: rgba(192,57,43,0.12); color: var(--red); border: 1px solid rgba(192,57,43,0.3); }
+  .fallback-pay {
+    margin-top: 0.3rem; padding: 0.3rem 0.5rem;
+    background: #fff8e7; border: 1px dashed #e8c080; border-radius: 4px;
+    font-size: 0.68rem; color: #7a5a0a; font-weight: 600;
+    display: none; animation: fadeUp 0.3s;
+  }
+  .fallback-pay.show { display: block; }
+
+  /* ── MODAL ── */
+  .modal-overlay {
+    display: none; position: fixed; inset: 0;
+    background: rgba(0,0,0,0.5); z-index: 200;
+    align-items: center; justify-content: center;
+  }
+  .modal-overlay.open { display: flex; }
+  .modal-box {
+    background: var(--paper); border-radius: 10px; padding: 1.8rem;
+    max-width: 360px; width: 90%; box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+  }
+  .modal-title-tx { font-size: 1rem; font-weight: 900; margin-bottom: 0.3rem; }
+  .modal-sub-tx { font-size: 0.78rem; color: var(--muted); margin-bottom: 1.2rem; line-height: 1.5; }
+  .modal-input-wrap { display: flex; align-items: center; gap: 0.5rem; margin-bottom: 1.2rem; }
+  .modal-currency { font-family: 'DM Mono', monospace; font-size: 1rem; color: var(--muted); }
+  .modal-input-tx {
+    flex: 1; font-family: 'DM Mono', monospace; font-size: 1.4rem; font-weight: 700;
+    border: none; border-bottom: 2.5px solid var(--ink); background: transparent;
+    padding: 0.25rem 0; outline: none; color: var(--ink); text-align: right; width: 100%;
+  }
+  .modal-preview-tx {
+    background: var(--ink); color: var(--paper); border-radius: 6px;
+    padding: 0.8rem 1rem; margin-bottom: 1.2rem; font-size: 0.8rem; line-height: 1.75;
+  }
+  .modal-preview-tx .prev-rate { color: #f0c040; font-weight: 900; font-family: 'DM Mono', monospace; }
+  .modal-preview-tx .prev-rebate { color: #6ec88a; font-weight: 900; font-family: 'DM Mono', monospace; }
+  .modal-preview-tx .prev-warn { color: #f0c040; font-size: 0.72rem; }
+  .modal-btns-tx { display: flex; gap: 0.7rem; }
+  .modal-btn-tx {
+    flex: 1; font-family: 'DM Mono', monospace; font-size: 0.72rem; letter-spacing: 0.06em;
+    text-transform: uppercase; padding: 0.65rem; border: none; border-radius: 5px;
+    cursor: pointer; transition: all 0.15s; font-weight: 700;
+  }
+  .modal-btn-confirm-tx { background: var(--ink); color: #f0c040; }
+  .modal-btn-confirm-tx:hover { background: #2a1e22; }
+  .modal-btn-cancel-tx  { background: #e0d8cc; color: var(--muted); }
+  .modal-btn-cancel-tx:hover { background: #ccc5b8; }
+
+  /* 支付方式選擇按鈕 */
+  .pay-sel-btn {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.68rem;
+    font-weight: 600;
+    padding: 0.32em 0.75em;
+    border-radius: 20px;
+    border: 1.5px solid #ddd5c8;
+    background: white;
+    color: var(--muted);
+    cursor: pointer;
+    transition: all 0.15s;
+    white-space: nowrap;
+    line-height: 1.6;
+  }
+  .pay-sel-btn:hover { border-color: var(--ink); color: var(--ink); }
+  .pay-sel-btn.active-kuma  { background: #fff0d4; color: #b8680b; border-color: #e8c080; }
+  .pay-sel-btn.active-eco   { background: #d4f0e0; color: #2e7d52; border-color: #80c8a0; }
+  .pay-sel-btn.active-pay   { background: #ffe0e0; color: #cc0033; border-color: #f0a0a0; }
+  .pay-sel-btn.active-rich  { background: #d4e4f5; color: #2c5f8a; border-color: #80a8d8; }
+  .pay-sel-btn.active-suica { background: #d8f0dc; color: #3a8a4a; border-color: #88cc90; }
+  .pay-sel-btn.active-cash  { background: #f0ebe5; color: #777;    border-color: #ccc; }
+  .pay-sel-btn.recommended::after {
+    content: ' ★';
+    font-size: 0.6rem;
+    opacity: 0.7;
+  }
+
+  /* ── 自由記帳帶 ── */
+  .free-log-strip {
+    display: none;
+    margin: 0.6rem 0 0.2rem;
+    padding: 0.5rem 0.65rem;
+    background: repeating-linear-gradient(
+      -45deg, transparent, transparent 4px,
+      rgba(0,0,0,0.018) 4px, rgba(0,0,0,0.018) 8px
+    );
+    border: 1.5px dashed #d0c8bc;
+    border-radius: 6px;
+  }
+  .free-log-strip.tracker-on { display: block; }
+  .free-log-strip-header {
+    display: flex; align-items: center; justify-content: space-between;
+    margin-bottom: 0.3rem;
+  }
+  .free-log-strip-label {
+    font-family: 'DM Mono', monospace; font-size: 0.58rem;
+    letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted);
+  }
+  .free-add-btn {
+    display: inline-flex; align-items: center; gap: 0.3rem;
+    font-family: 'DM Mono', monospace; font-size: 0.6rem; letter-spacing: 0.04em;
+    background: white; border: 1.5px solid #b8a898; color: #7a6a5a;
+    padding: 0.22rem 0.65rem; border-radius: 4px; cursor: pointer;
+    transition: all 0.15s; white-space: nowrap;
+  }
+  .free-add-btn:hover { border-color: var(--ink); color: var(--ink); background: #faf7f2; }
+  .free-add-btn.has-logs { border-color: #27ae60; color: #27ae60; background: rgba(39,174,96,0.05); }
+  .free-log-list { margin-top: 0.25rem; }
+  .free-log-entry {
+    display: flex; align-items: center; gap: 0.4rem; flex-wrap: wrap;
+    font-family: 'DM Mono', monospace; font-size: 0.62rem; color: var(--muted);
+    padding: 0.15rem 0; border-bottom: 1px dashed #ece4da; animation: fadeUp 0.2s ease;
+  }
+  .free-log-entry:last-child { border-bottom: none; }
+  .free-log-entry .fle-name { font-weight: 700; color: var(--ink); flex: 1; min-width: 80px; }
+  .free-log-entry .fle-jpy  { font-weight: 700; color: var(--ink); white-space: nowrap; }
+  .free-log-entry .fle-rebate { color: #27ae60; font-weight: 700; white-space: nowrap; }
+  .free-log-entry .fle-norebate { color: #bbb; font-size: 0.6rem; }
+  .free-log-entry .log-del { background:none; border:none; color:#ccc; cursor:pointer; font-size:0.75rem; padding:0 0.15rem; }
+  .free-log-entry .log-del:hover { color: var(--red); }
+
+  /* ── 自由記帳 modal ── */
+  .free-modal-overlay {
+    display: none; position: fixed; inset: 0; z-index: 200;
+    background: rgba(0,0,0,0.5); align-items: center; justify-content: center;
+  }
+  .free-modal-overlay.open { display: flex; }
+  .free-modal-box {
+    background: white; border-radius: 12px; padding: 1.5rem 1.6rem;
+    max-width: 360px; width: 92%; box-shadow: 0 20px 60px rgba(0,0,0,0.25);
+  }
+  .free-modal-title {
+    font-size: 0.95rem; font-weight: 800; color: var(--ink);
+    margin-bottom: 1rem; letter-spacing: 0.02em;
+  }
+  .free-modal-field { margin-bottom: 0.85rem; }
+  .free-modal-label {
+    font-family: 'DM Mono', monospace; font-size: 0.6rem;
+    letter-spacing: 0.1em; text-transform: uppercase;
+    color: var(--muted); display: block; margin-bottom: 0.35rem;
+  }
+  .free-modal-input {
+    width: 100%; border: 1.5px solid #ddd5c8; border-radius: 6px;
+    padding: 0.55rem 0.75rem; font-family: 'Noto Serif TC', serif;
+    font-size: 0.88rem; color: var(--ink); outline: none;
+    transition: border-color 0.15s;
+  }
+  .free-modal-input:focus { border-color: var(--ink); }
+  .free-modal-amount-wrap {
+    display: flex; align-items: center;
+    border: 1.5px solid #ddd5c8; border-radius: 6px; overflow: hidden;
+  }
+  .free-modal-amount-wrap:focus-within { border-color: var(--ink); }
+  .free-modal-currency {
+    padding: 0.55rem 0.65rem; font-family: 'DM Mono', monospace;
+    font-size: 0.9rem; color: var(--muted); background: #f8f4ef;
+    border-right: 1px solid #ddd5c8;
+  }
+  .free-modal-amount {
+    flex: 1; border: none; outline: none; padding: 0.55rem 0.75rem;
+    font-family: 'DM Mono', monospace; font-size: 1rem; font-weight: 700;
+    color: var(--ink);
+  }
+  .free-modal-preview {
+    font-size: 0.78rem; color: var(--muted); line-height: 1.6;
+    min-height: 1.4rem; margin-bottom: 0.75rem;
+  }
+  .free-modal-btns { display: flex; gap: 0.6rem; }
+  .free-modal-btns button {
+    flex: 1; padding: 0.65rem; border-radius: 6px; border: none;
+    font-family: 'Noto Serif TC', serif; font-size: 0.82rem; font-weight: 700;
+    cursor: pointer; transition: all 0.15s;
+  }
+  .free-btn-cancel { background: #f0ead8; color: var(--muted); }
+  .free-btn-cancel:hover { background: #e0d8cc; }
+  .free-btn-confirm { background: var(--ink); color: #f0c040; }
+  .free-btn-confirm:hover { background: #2a1e0e; }
+  .reset-confirm-overlay {
+    display: none; position: fixed; inset: 0; z-index: 200;
+    background: rgba(0,0,0,0.55); align-items: center; justify-content: center;
+  }
+  .reset-confirm-overlay.open { display: flex; }
+  .reset-confirm-box {
+    background: white; border-radius: 10px; padding: 1.6rem 1.8rem;
+    max-width: 320px; width: 90%; box-shadow: 0 20px 60px rgba(0,0,0,0.25);
+    text-align: center;
+  }
+  .reset-confirm-icon { font-size: 2rem; margin-bottom: 0.6rem; }
+  .reset-confirm-title { font-size: 1rem; font-weight: 800; color: var(--ink); margin-bottom: 0.4rem; }
+  .reset-confirm-body { font-size: 0.8rem; color: var(--muted); line-height: 1.6; margin-bottom: 1.2rem; }
+  .reset-confirm-btns { display: flex; gap: 0.6rem; }
+  .reset-confirm-btns button { flex: 1; padding: 0.65rem; border-radius: 6px; border: none; font-family: 'Noto Serif TC',serif; font-size: 0.82rem; font-weight: 700; cursor: pointer; transition: all 0.15s; }
+  .reset-btn-cancel { background: #f0ead8; color: var(--muted); }
+  .reset-btn-cancel:hover { background: #e0d8cc; }
+  .reset-btn-confirm { background: #c0392b; color: white; }
+  .reset-btn-confirm:hover { background: #a93226; }
+
+  /* ── 消費明細 modal ── */
+  .ledger-overlay {
+    display: none; position: fixed; inset: 0; z-index: 200;
+    background: rgba(0,0,0,0.55); align-items: flex-start; justify-content: center;
+    padding: 2rem 1rem; overflow-y: auto;
+  }
+  .ledger-overlay.open { display: flex; }
+  .ledger-box {
+    background: var(--paper); border-radius: 12px; width: 100%; max-width: 560px;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.3); overflow: hidden;
+    margin: auto;
+  }
+  .ledger-header {
+    background: var(--ink); color: var(--paper);
+    padding: 1.1rem 1.4rem; display: flex; justify-content: space-between; align-items: center;
+  }
+  .ledger-header-title { font-size: 0.95rem; font-weight: 800; letter-spacing: 0.05em; }
+  .ledger-header-close {
+    background: none; border: 1px solid rgba(255,255,255,0.25); color: rgba(255,255,255,0.7);
+    border-radius: 4px; padding: 0.2rem 0.6rem; cursor: pointer; font-size: 0.75rem;
+    font-family: 'DM Mono',monospace; transition: all 0.15s;
+  }
+  .ledger-header-close:hover { background: rgba(255,255,255,0.1); color: white; }
+  .ledger-body { padding: 1.2rem 1.4rem; max-height: 70vh; overflow-y: auto; }
+  .ledger-summary-bar {
+    display: grid; grid-template-columns: repeat(2, 1fr); gap: 0.6rem;
+    margin-bottom: 1.2rem;
+  }
+  .ledger-sum-card {
+    background: white; border: 1.5px solid #e0d8cc; border-radius: 8px;
+    padding: 0.7rem 0.9rem;
+  }
+  .ledger-sum-label { font-family: 'DM Mono',monospace; font-size: 0.58rem; color: var(--muted); letter-spacing: 0.08em; text-transform: uppercase; margin-bottom: 0.2rem; }
+  .ledger-sum-val { font-family: 'DM Mono',monospace; font-size: 1.05rem; font-weight: 900; color: var(--ink); }
+  .ledger-sum-sub { font-family: 'DM Mono',monospace; font-size: 0.6rem; color: var(--muted); margin-top: 0.1rem; }
+  .ledger-day-block { margin-bottom: 1.1rem; }
+  .ledger-day-label {
+    font-family: 'DM Mono',monospace; font-size: 0.65rem; font-weight: 700;
+    letter-spacing: 0.12em; text-transform: uppercase;
+    color: var(--paper); background: var(--ink);
+    display: inline-block; padding: 0.18em 0.7em; border-radius: 3px;
+    margin-bottom: 0.5rem;
+  }
+  .ledger-row {
+    display: grid; grid-template-columns: 1fr auto auto auto;
+    gap: 0 0.6rem; align-items: center;
+    padding: 0.45rem 0.6rem; border-radius: 5px;
+    font-size: 0.78rem; border-bottom: 1px solid #f0e8dc;
+  }
+  .ledger-row:last-child { border-bottom: none; }
+  .ledger-row:hover { background: #fdf8f2; }
+  .ledger-spot { font-weight: 600; color: var(--ink); line-height: 1.35; }
+  .ledger-spot-pay { font-family: 'DM Mono',monospace; font-size: 0.6rem; color: var(--muted); font-weight: 400; }
+  .ledger-jpy { font-family: 'DM Mono',monospace; font-weight: 700; color: var(--ink); white-space: nowrap; }
+  .ledger-twd { font-family: 'DM Mono',monospace; font-size: 0.7rem; color: var(--muted); white-space: nowrap; }
+  .ledger-rebate { font-family: 'DM Mono',monospace; font-size: 0.68rem; color: #27ae60; font-weight: 700; white-space: nowrap; }
+  .ledger-del { background: none; border: none; color: #ccc; cursor: pointer; font-size: 0.8rem; padding: 0 0.2rem; transition: color 0.15s; }
+  .ledger-del:hover { color: var(--red); }
+  .ledger-day-total {
+    display: flex; justify-content: space-between;
+    padding: 0.35rem 0.6rem; margin-top: 0.2rem;
+    font-family: 'DM Mono',monospace; font-size: 0.68rem;
+    color: var(--muted); border-top: 1.5px dashed #e0d8cc;
+  }
+  .ledger-card-breakdown {
+    display: flex; flex-wrap: wrap; gap: 0.4rem;
+    padding: 0.6rem; background: white; border-radius: 8px;
+    margin-bottom: 1rem; border: 1.5px solid #e0d8cc;
+  }
+  .ledger-card-chip {
+    font-family: 'DM Mono',monospace; font-size: 0.65rem; font-weight: 700;
+    padding: 0.25em 0.65em; border-radius: 20px; white-space: nowrap;
+  }
+  .ledger-empty {
+    text-align: center; padding: 2rem; color: var(--muted);
+    font-family: 'DM Mono',monospace; font-size: 0.8rem;
+  }
+
+  @media (max-width: 600px) {
+    .spot-row { grid-template-columns: 18px 1fr; }
+    .pay-col { display:none; }
+    .tracker-cards { grid-template-columns: repeat(2, 1fr); }
+    .ledger-summary-bar { grid-template-columns: 1fr 1fr; }
   }
 </style>
 </head>
 <body>
+
 <!-- ── TRACKER DASHBOARD (sticky, shown only in 行程支付對照 sub-panel) ── -->
 <div class="tracker-bar" id="tracker-bar">
   <div class="tracker-bar-inner">
@@ -747,10 +1845,12 @@ const firebaseConfig = {
   appId:             "1:179782530206:web:93d42650009b01ad56778f",
   measurementId:     "G-30P0GGS1YE"
 };
-firebase.initializeApp(firebaseConfig);
-const db = firebase.firestore();
+if (typeof firebase !== "undefined") {
+  firebase.initializeApp(firebaseConfig);
+}
+const db = (typeof firebase !== "undefined") ? firebase.firestore() : null;
 // 所有美食資料存在 Firestore 的這份文件裡（單一 doc，陣列欄位）
-const FOOD_DOC = db.collection('kobe2026').doc('food');
+const FOOD_DOC = (typeof db !== 'undefined') ? db.collection('kobe2026').doc('food') : null;
 
 // ── 美食清單 編輯器 ──────────────────────────────────────
 let foodRows = [];
@@ -770,6 +1870,7 @@ function foodSetStatus(msg, color) {
 
 // ── 從 Firestore 讀取 ─────────────────────────────────────
 async function foodLoad() {
+  if (!db || !FOOD_DOC) return;
   foodSetStatus('⏳ 同步中…', '#b8860b');
   try {
     const snap = await FOOD_DOC.get();
@@ -978,6 +2079,7 @@ function foodDeleteRow(idx) {
 }
 
 async function foodSave() {
+  if (!db || !FOOD_DOC) return;
   await foodPushToFirebase();
   const btn = document.getElementById('food-edit-btn');
   if (btn) {
@@ -1017,7 +2119,7 @@ document.addEventListener('DOMContentLoaded', foodLoad);
 
 <script>
 // ── 交通清單 編輯器 ──────────────────────────────────────
-const TRANS_DOC = db.collection('kobe2026').doc('transport');
+const TRANS_DOC = (typeof db !== 'undefined') ? db.collection('kobe2026').doc('transport') : null;
 let transRows = [];
 let transEditMode = false;
 let transSyncing = false;
@@ -1030,6 +2132,7 @@ function transSetStatus(msg, color) {
 }
 
 async function transLoad() {
+  if (!db || !TRANS_DOC) return;
   transSetStatus('⏳ 同步中…', '#b8860b');
   try {
     const snap = await TRANS_DOC.get();
@@ -1175,6 +2278,7 @@ function transDeleteRow(idx) {
 }
 
 async function transSave() {
+  if (!db || !TRANS_DOC) return;
   await transPushToFirebase();
   const btn = document.getElementById('trans-edit-btn');
   if (btn) {
@@ -1204,7 +2308,7 @@ document.addEventListener('DOMContentLoaded', transLoad);
 
 <script>
 // ── 飯店詢價 編輯器 ──────────────────────────────────────
-const HOTEL_DOC = db.collection('kobe2026').doc('hotel');
+const HOTEL_DOC = (typeof db !== 'undefined') ? db.collection('kobe2026').doc('hotel') : null;
 let hotelRows = [];
 let hotelEditMode = false;
 let hotelSyncing = false;
@@ -1217,6 +2321,7 @@ function hotelSetStatus(msg, color) {
 }
 
 async function hotelLoad() {
+  if (!db || !HOTEL_DOC) return;
   hotelSetStatus('⏳ 同步中…', '#b8860b');
   try {
     const snap = await HOTEL_DOC.get();
@@ -1435,6 +2540,7 @@ function hotelDeleteRow(idx) {
 }
 
 async function hotelSave() {
+  if (!db || !HOTEL_DOC) return;
   await hotelPushToFirebase();
   const btn = document.getElementById('hotel-edit-btn');
   if (btn) {
@@ -1464,7 +2570,7 @@ document.addEventListener('DOMContentLoaded', hotelLoad);
 
 <script>
 // ── 小筆記 ──────────────────────────────────────────────
-const NOTES_DOC = db.collection('kobe2026').doc('notes');
+const NOTES_DOC = (typeof db !== 'undefined') ? db.collection('kobe2026').doc('notes') : null;
 let notesData = [];
 
 // 分類對應色系（便利貼風）
@@ -1481,6 +2587,7 @@ function notesSetStatus(msg, color) {
 }
 
 async function notesLoad() {
+  if (!db || !NOTES_DOC) return;
   notesSetStatus('⏳ 同步中…', '#b8860b');
   try {
     const snap = await NOTES_DOC.get();
@@ -1779,7 +2886,7 @@ document.addEventListener('DOMContentLoaded', notesLoad);
 
 <script>
 // ── 景點清單 編輯器 ──────────────────────────────────────
-const SPOTS_DOC = db.collection('kobe2026').doc('spots');
+const SPOTS_DOC = (typeof db !== 'undefined') ? db.collection('kobe2026').doc('spots') : null;
 let spotsRows = [];
 let spotsEditMode = false;
 let spotsSyncing = false;
@@ -1794,6 +2901,7 @@ function spotsSetStatus(msg, color) {
 }
 
 async function spotsLoad() {
+  if (!db || !SPOTS_DOC) return;
   spotsSetStatus('⏳ 同步中…', '#b8860b');
   try {
     const snap = await SPOTS_DOC.get();
@@ -1963,6 +3071,7 @@ function spotsDeleteRow(idx) {
 }
 
 async function spotsSave() {
+  if (!db || !SPOTS_DOC) return;
   await spotsPushToFirebase();
   const btn = document.getElementById('spots-edit-btn');
   if (btn) {
@@ -2396,29 +3505,23 @@ document.addEventListener('DOMContentLoaded', spotsLoad);
 </div>
 </div>
 
-<footer>
-  Travel / 202610_Kobe.html &nbsp;·&nbsp; 神戶大阪五日遊 &nbsp;·&nbsp; 2026
-</footer>
-
-<!-- ════════════════════════════════════════════════
-     本頁行程專屬設定
-     ════════════════════════════════════════════════ -->
 <script>
-// ── 支付顧問資料（本旅程專屬） ──────────────────────────────
+// ── Payment Advisor Data ──────────────────────────────
 const PAY_VENUES = {
-  drugstore:    '藥妝 / 電器',
-  convenience:  '便利商店',
-  restaurant:   '餐廳美食',
-  transport:    '交通',
-  hotel:        '住宿',
-  entertainment:'樂園觀光',
-  smallshop:    '小店（現金限定）',
-  fashion:      '服飾購物（UNIQLO等）'
+  drugstore: '藥妝 / 電器',
+  convenience: '便利商店',
+  restaurant: '餐廳美食',
+  transport: '交通',
+  hotel: '住宿',
+  entertainment: '樂園觀光',
+  smallshop: '小店（現金限定）',
+  fashion: '服飾購物（UNIQLO等）'
 };
 
 const PAY_ADVICE = {
   drugstore: {
-    best: '玉山熊本熊卡（實體 or Apple Pay）', rate: '8.5%',
+    best: '玉山熊本熊卡（實體 or Apple Pay）',
+    rate: '8.5%',
     reason: '松本清、唐吉軻德、大國藥妝、BicCamera、Yodobashi 皆在指定通路，享 2.5% + 加碼6% = 8.5%，每期回饋上限 NT$500，約8,333元消費封頂。',
     tips: '⚠ 超出額度後改刷星展eco極簡卡（5%），或聯邦LINE Bank熊大卡（2.5%無上限）補位。',
     ranking: [
@@ -2429,20 +3532,23 @@ const PAY_ADVICE = {
     ]
   },
   convenience: {
-    best: 'Suica / ICOCA（西瓜卡/伊可卡）', rate: '加值8.5% / 免帶現金',
-    reason: '關西地區建議以 ICOCA 為主，7-11、全家、Lawson 全面支援感應付款。加值時用玉山熊本熊卡（交通卡屬熊好用指定通路）可享8.5%回饋。',
+    best: 'Suica（西瓜卡）or 玉山熊本熊卡',
+    rate: '8.5% / 免帶現金',
+    reason: '便利商店（7-11、全家、Lawson）全面支援Suica感應付款。加值時用玉山熊本熊卡（Suica屬熊好用指定通路）可享8.5%回饋，之後持Suica消費零接觸最便利。',
     tips: '✅ 備用：PayPay掃碼付款也通（5%，但額度有限）。',
     ranking: [
-      { pay: 'ICOCA/Suica（加值用熊本熊）', rate: '加值8.5%', note: '關西交通+超商通用，最便利', cap: '加值NT$8,333封頂' },
+      { pay: 'Suica西瓜卡（加值用熊本熊）', rate: '加值8.5%', note: '搭車+超商通用，最便利', cap: '加值NT$8,333封頂' },
       { pay: 'PayPay（玉山Wallet）', rate: '5%', note: '掃碼付款備用', cap: '每季NT$100' },
       { pay: '玉山熊本熊卡（實體）', rate: '2.5%', note: '一般日本消費無上限', cap: '無上限' },
     ]
   },
   restaurant: {
-    best: '玉山熊本熊卡（指定餐廳）', rate: '8.5%（指定通路）',
-    reason: '壽司郎、藏壽司、松屋、牛角、SUKIYA、一蘭拉麵、鳥貴族 皆在熊好吃指定通路。道頓堀一帶的居酒屋多支援PayPay。',
+    best: '玉山熊本熊卡（指定餐廳）',
+    rate: '8.5%（指定通路）',
+    reason: '壽司郎、藏壽司、松屋、牛角、SUKIYA、一蘭拉麵、鳥貴族、敘敘苑、Shake Shack 皆在熊好吃指定通路，享8.5%。未在指定通路的餐廳可改用PayPay（5%）或星展eco（5%）。',
     tips: '✅ 進店前先確認該餐廳是否接受PayPay，許多居酒屋、拉麵店都支援。',
     ranking: [
+      { pay: '國泰CUBE卡【日本賞】', rate: '3.5%', note: '日本實體消費無上限，切換日本賞即可', cap: '無上限' },
       { pay: '玉山熊本熊卡（指定餐廳）', rate: '8.5%', note: '壽司郎/一蘭/鳥貴族/牛角等（有上限）', cap: '每期NT$500' },
       { pay: 'PayPay（玉山Wallet）', rate: '5%', note: '不收信用卡的小餐廳適用', cap: '每季NT$100' },
       { pay: '星展eco極簡卡', rate: '5%', note: '一般餐廳實體刷卡', cap: '每期NT$600' },
@@ -2450,17 +3556,20 @@ const PAY_ADVICE = {
     ]
   },
   transport: {
-    best: 'ICOCA/Suica（玉山熊本熊加值）', rate: '加值8.5% + 搭車零接觸',
-    reason: 'ICOCA 覆蓋關西JR、阪急、阪神、地鐵、バス全線。加值時以Apple Pay綁定玉山熊本熊卡，享8.5%回饋。',
+    best: 'Suica（玉山熊本熊加值）',
+    rate: '加值8.5% + 搭車零接觸',
+    reason: 'Suica覆蓋JR、地鐵、私鐵、巴士全線。加值時以Apple Pay綁定玉山熊本熊卡，享8.5%回饋（Suica屬指定通路「熊好用」）。搭車直接感應最快速，無需買票。',
     tips: '✅ 建議每次加值3,000–5,000日圓，餘額不足時再用熊本熊卡補值，持續賺8.5%。',
     ranking: [
-      { pay: 'ICOCA（熊本熊加值）', rate: '加值8.5%', note: '關西JR/私鐵/地鐵/巴士全通', cap: '加值NT$8,333封頂' },
+      { pay: 'Suica（熊本熊加值）', rate: '加值8.5%', note: 'JR/地鐵/巴士全通，最便利', cap: '加值NT$8,333封頂' },
+      { pay: '玉山熊本熊卡（JR/航空）', rate: '8.5%', note: '熊好遊：JAL/JR鐵路/樂天旅遊', cap: '同上' },
       { pay: '台新Richart（玩旅刷）', rate: '3.3%（淨1.8%）', note: '含Suica/ICOCA交通卡儲值', cap: '無上限' },
     ]
   },
   hotel: {
-    best: '玉山熊本熊卡（指定住宿）', rate: '8.5%',
-    reason: '樂天旅遊、東橫INN、APA飯店、星野集團皆在指定通路（熊好遊）。',
+    best: '玉山熊本熊卡（指定住宿）',
+    rate: '8.5%',
+    reason: '樂天旅遊、東橫INN、APA飯店、星野集團皆在指定通路（熊好遊）。台新Richart玩旅刷亦支援訂房，3.3%無上限作為補位。',
     tips: '✅ 建議預訂時即以熊本熊卡付款，而非到現場刷卡。',
     ranking: [
       { pay: '玉山熊本熊卡', rate: '8.5%', note: '樂天旅遊/東橫INN/APA/星野集團', cap: '每期NT$500' },
@@ -2469,30 +3578,34 @@ const PAY_ADVICE = {
     ]
   },
   entertainment: {
-    best: '玉山熊本熊卡', rate: '8.5%',
-    reason: '日本環球影城（USJ）在熊好玩指定通路，享8.5%回饋。神戶花鳥園、有馬温泉門票建議提前線上購買。',
+    best: '玉山熊本熊卡',
+    rate: '8.5%',
+    reason: '東京迪士尼樂園、日本環球影城（USJ）、豪斯登堡、富士急樂園、東京華納兄弟哈利波特影城均在熊好玩指定通路，享8.5%回饋。',
     tips: '✅ 建議提前線上購票時即用熊本熊卡付款。',
     ranking: [
-      { pay: '玉山熊本熊卡', rate: '8.5%', note: 'USJ等指定通路', cap: '每期NT$500' },
+      { pay: '玉山熊本熊卡', rate: '8.5%', note: '迪士尼/USJ/富士急等指定通路', cap: '每期NT$500' },
       { pay: '星展eco極簡卡', rate: '5%', note: '現場門票或其他景點', cap: '每期NT$600' },
-      { pay: '台新Richart（玩旅刷）', rate: '3.3%（淨1.8%）', note: '無上限補位', cap: '無上限' },
+      { pay: '聯邦LINE Bank熊大卡', rate: '2.5%', note: '補位無上限', cap: '無上限' },
     ]
   },
   smallshop: {
-    best: 'PayPay（玉山Wallet）', rate: '5%',
-    reason: '神戶南京町、道頓堀一帶的小商店、居酒屋大多支援PayPay掃碼，使用玉山Wallet綁定熊本熊卡可享5%回饋。',
-    tips: '✅ 台灣不需另外申請PayPay，玉山Wallet出示條碼給店家掃即可。\n⚠ 每季回饋上限NT$100，超額後改用ICOCA。',
+    best: 'PayPay（玉山Wallet）',
+    rate: '5%',
+    reason: '許多日本小商店、居酒屋、計程車、市場攤位不接受信用卡刷卡，但大多支援PayPay掃碼。使用玉山Wallet透過電子支付方式使用PayPay，綁定熊本熊卡可享5%回饋。',
+    tips: '✅ 台灣不需另外申請PayPay，玉山Wallet出示條碼給店家掃即可。\n⚠ 每季回饋上限NT$100，超額後改用Suica（電子錢包功能）。',
     ranking: [
       { pay: 'PayPay（玉山Wallet）', rate: '5%', note: '小店掃碼付款神器', cap: '每季NT$100' },
-      { pay: 'ICOCA（電子錢包）', rate: '—', note: '便利/自販機無回饋但最便利', cap: '—' },
+      { pay: 'Suica（電子錢包）', rate: '—', note: '便利/自販機無回饋但最便利', cap: '—' },
     ]
   },
   fashion: {
-    best: '玉山熊本熊卡（UNIQLO/GU）', rate: '8.5%',
-    reason: 'UNIQLO、GU 已納入指定通路（熊好買），享8.5%。心齋橋一帶的大型購物商場多可刷卡。',
-    tips: '✅ 建議在熊本熊卡額度用在購買金額較大的服飾，超額後改星展eco（5%）。',
+    best: '玉山熊本熊卡（UNIQLO/GU）',
+    rate: '8.5%',
+    reason: 'UNIQLO、GU 已納入指定通路（熊好買），享8.5%。niko and…、3 Coins 也在名單內。本次行程 Hands 澀谷、3 COINS @Shibuya 109 亦適用。',
+    tips: '✅ 建議在熊本熊卡8,333元額度用在購買金額較大的服飾，超額後改星展eco（5%）。',
     ranking: [
-      { pay: '玉山熊本熊卡', rate: '8.5%', note: 'UNIQLO/GU等指定通路', cap: '每期NT$500' },
+      { pay: '國泰CUBE卡【日本賞】', rate: '3.5%', note: '日本實體消費無上限保底', cap: '無上限' },
+      { pay: '玉山熊本熊卡', rate: '8.5%', note: 'UNIQLO/GU/niko and…/3 Coins/Hands', cap: '每期NT$500' },
       { pay: '星展eco極簡卡', rate: '5%', note: '補位大額購物', cap: '每期NT$600' },
       { pay: '台新Richart（玩旅刷）', rate: '3.3%（淨1.8%）', note: '無上限後盾', cap: '無上限' },
     ]
@@ -2510,23 +3623,26 @@ function paySelectVenue(el) {
 
 async function payGetAdvice() {
   const loading = document.getElementById('pay-loading');
-  const status  = document.getElementById('pay-status');
-  const result  = document.getElementById('pay-result');
+  const status = document.getElementById('pay-status');
+  const result = document.getElementById('pay-result');
   loading.style.display = 'block';
   result.innerHTML = '';
-  const msgs = ['比對指定通路清單...', '計算2026 Q4回饋額度...', '確認各卡封頂限制...', '排序最佳支付方案...'];
+
+  const msgs = ['比對指定通路清單...', '計算2026 Q2回饋額度...', '確認各卡封頂限制...', '排序最佳支付方案...'];
   let i = 0;
   const interval = setInterval(() => { if (i < msgs.length) status.textContent = msgs[i++]; }, 400);
   await new Promise(r => setTimeout(r, 1700));
   clearInterval(interval);
   loading.style.display = 'none';
+
   const d = PAY_ADVICE[currentPayVenue];
   if (!d) return;
   const venueName = PAY_VENUES[currentPayVenue];
   const rankColors = ['#b8860b', '#aaa', '#cd7f32', '#7a8a9a'];
+
   result.innerHTML = `
     <div class="pay-ai-box">
-      <div class="pay-ai-title">✦ 2026 Q4 最佳建議 — ${venueName}</div>
+      <div class="pay-ai-title">✦ 2026 Q2 最佳建議 — ${venueName}</div>
       <div class="pay-ai-best">最佳選擇：${d.best} <span style="font-family:'DM Mono',monospace;color:#f0c040;font-size:0.9rem;">${d.rate}</span></div>
       <div class="pay-ai-reason">${d.reason}<br><br>${d.tips}</div>
     </div>
@@ -2548,57 +3664,1169 @@ async function payGetAdvice() {
     </div>`;
 }
 
-// ── 本旅程 TRIP_CONFIG（tracker.js 引擎讀取此設定） ──────────
-const TRIP_CONFIG = {
-  storageKey:  'kobe2610',
-  exportName:  '神戶大阪五日遊記帳',
-  dayLabels: {
-    d1: 'D1 · 10/22（四）神戶',
-    d2: 'D2 · 10/23（五）神戶',
-    d3: 'D3 · 10/24（六）',
-    d4: 'D4 · 10/25（日）大阪',
-    d5: 'D5 · 10/26（一）返程日',
-  },
-  dayOrder: [
-    'D1 · 10/22（四）神戶',
-    'D2 · 10/23（五）神戶',
-    'D3 · 10/24（六）',
-    'D4 · 10/25（日）大阪',
-    'D5 · 10/26（一）返程日',
-    '其他'
-  ],
-  freeDays: ['d1','d2','d3','d4','d5'],
-  TRACKER_CAPS: {
-    kuma:  { label: '🐻 熊本熊', cap: 500,   rate: 0.085, color: '#b8680b', unlimited: false, condNote: '須：① 指定通路 ② 活動登錄1次 ③ 加碼6%每期上限NT$500', feeNote: '含1.5%手續費（已含於回饋結構中）' },
-    eco:   { label: '🌿 星展eco', cap: 600,  rate: 0.05,  color: '#2e7d52', unlimited: false, feeNote: '含1.5%手續費（已含於回饋結構中）' },
-    pay:   { label: '🔴 PayPay',  cap: 100,  rate: 0.05,  color: '#cc0033', unlimited: false, feeNote: '免收海外手續費；每季上限NT$100' },
-    rich:  { label: '🐶 Richart', cap: 99999,rate: 0.018, color: '#2c5f8a', unlimited: true,  feeNote: '玩旅刷3.3%－手續費1.5%＝淨回饋1.8%' },
-    suica: { label: '🍉 ICOCA',   cap: 0,    rate: 0,     color: '#3a8a4a', unlimited: true,  noRebate: true, feeNote: '交通卡消費，無回饋，僅作支出記帳' },
-    cash:  { label: '💴 日幣現金', cap: 0,   rate: 0,     color: '#888',    unlimited: true,  noRebate: true, feeNote: '現金消費，無回饋，僅作支出記帳' },
-  },
-  TRACKER_SPOTS: {
-    'd1-kobe-arrival': { name: '神戶市區',      primary: 'eco',  fallback: 'rich' },
-    'd1-donki-kobe':   { name: '唐吉軻德 神戶', primary: 'kuma', fallback: 'eco'  },
-    'd2-osaka-dept':   { name: '大阪百貨',      primary: 'eco',  fallback: 'rich' },
-    'd3-arima':        { name: '有馬温泉',      primary: 'eco',  fallback: 'rich' },
-    'd3-spot':         { name: '景點待補充',    primary: 'eco',  fallback: 'rich' },
-    'd5-airport-tax':  { name: '關西機場免稅',  primary: 'eco',  fallback: 'rich' },
-  },
-  CARD_CHIP_STYLE: {
-    kuma:  'background:#fff0d4;color:#b8680b;border:1px solid #e8c080;',
-    eco:   'background:#d4f0e0;color:#2e7d52;border:1px solid #80c8a0;',
-    pay:   'background:#ffe0e0;color:#cc0033;border:1px solid #f0a0a0;',
-    rich:  'background:#d4e4f5;color:#2c5f8a;border:1px solid #80a8d8;',
-    suica: 'background:#d8f0dc;color:#3a8a4a;border:1px solid #88cc90;',
-    cash:  'background:#f0ebe5;color:#777;border:1px solid #ccc;',
-  },
-};
-</script>
+function switchPayTab(name, btn) {
+  document.querySelectorAll('.pay-sub-panel').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.pay-sub-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('pay-panel-' + name).classList.add('active');
+  btn.classList.add('active');
+  // Show tracker bar only on itinerary sub-tab
+  if (name === 'itinerary' && trackerActive) {
+    document.getElementById('tracker-bar').classList.add('visible');
+  } else {
+    document.getElementById('tracker-bar').classList.remove('visible');
+  }
+}
 
-<!-- ── 共用 JS（順序重要：先 TRIP_CONFIG，再 tracker, export, tabs） ── -->
-<script src="https://cdnjs.cloudflare.com/ajax/libs/exceljs/4.4.0/exceljs.min.js"></script>
-<script src="js/tracker.js"></script>
-<script src="js/export.js"></script>
-<script src="js/tabs.js"></script>
+// 頁籤切換
+function switchTab(id, btn) {
+  document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  btn.classList.add('active');
+  // Hide tracker bar when leaving payment tab
+  if (id !== 'payment') {
+    document.getElementById('tracker-bar').classList.remove('visible');
+  } else if (trackerActive) {
+    document.getElementById('tracker-bar').classList.add('visible');
+  }
+}
+
+// staggered animation
+document.querySelectorAll('.event').forEach((el, i) => {
+  el.style.animationDelay = (i * 0.04) + 's';
+});
+
+// ─── 回饋率說明（含國外手續費扣除後的「實際淨回饋」）─────────────────
+// 熊本熊卡：帳面8.5%，但須滿足條件：① 指定通路（熊好買/熊好遊/熊好吃等）
+//           ② 活動期間完成登錄（每期僅需登錄1次）
+//           ③ 加碼6%每歸戶每期回饋上限NT$500（≈ NT$8,333消費封頂）
+//           ④ 超過上限後一般日本消費仍享2.5%無上限
+//           → 追蹤器顯示8.5%（含登錄＋指定通路條件）
+// 星展eco：  5% 是在「帳單同時列示手續費」條件下計算
+//           → 官方宣稱5%為含手續費的帳面值，追蹤器沿用 5%
+// Richart玩旅刷：宣稱3.3%，但仍收1.5%手續費
+//           → 實際淨回饋 = 3.3% - 1.5% = 1.8%（追蹤器使用淨值）
+// PayPay(玉山Wallet)：日本PayPay不走信用卡刷卡流程，不收海外交易手續費
+//           → 5% 為實際淨回饋；每季回饋上限NT$100
+// Suica：   電子票券儲值消費，無信用卡回饋，僅作消費記帳用
+// 日幣現金：現金消費，無回饋，僅作消費記帳用
+const TRACKER_CAPS = {
+  kuma:  {
+    label: '🐻 熊本熊',
+    cap: 500, rate: 0.085, color: '#b8680b', unlimited: false,
+    condNote: '須：① 指定通路（唐吉軻德/松本清/BicCamera/UNIQLO/Suica儲值等）② 活動登錄1次 ③ 加碼6%每期上限NT$500（≈¥40,000封頂），超過上限後一般日本消費仍享2.5%',
+    feeNote: '含1.5%手續費（已含於回饋結構中）'
+  },
+  eco:   { label: '🌿 星展eco',  cap: 600,   rate: 0.05,  color: '#2e7d52', unlimited: false, feeNote: '含1.5%手續費（已含於回饋結構中）' },
+  pay:   { label: '🔴 PayPay',  cap: 100,   rate: 0.05,  color: '#cc0033', unlimited: false, feeNote: '免收海外手續費（行動支付通道）；每季上限NT$100' },
+  rich:  { label: '🐶 Richart', cap: 99999, rate: 0.018, color: '#2c5f8a', unlimited: true,  feeNote: '玩旅刷3.3%－手續費1.5%＝淨回饋1.8%' },
+  suica: { label: '🍉 Suica',   cap: 0,     rate: 0,     color: '#3a8a4a', unlimited: true,  noRebate: true, feeNote: '交通卡消費，無回饋，僅作支出記帳' },
+  cash:  { label: '💴 日幣現金', cap: 0,     rate: 0,     color: '#888',    unlimited: true,  noRebate: true, feeNote: '現金消費，無回饋，僅作支出記帳' },
+};
+
+const TRACKER_SPOTS = {
+  'd1-kobe-arrival': { name: '神戶市區',      primary: 'eco',  fallback: 'rich' },
+  'd1-donki-kobe':   { name: '唐吉軻德 神戶', primary: 'kuma', fallback: 'eco'  },
+  'd2-osaka-dept':   { name: '大阪百貨',      primary: 'eco',  fallback: 'rich' },
+  'd3-arima':        { name: '有馬温泉',      primary: 'eco',  fallback: 'rich' },
+  'd3-spot':         { name: '景點待補充',    primary: 'eco',  fallback: 'rich' },
+  'd5-airport-tax':  { name: '關西機場免稅',  primary: 'eco',  fallback: 'rich' },
+};
+
+let trackerUsed = { kuma: 0, eco: 0, pay: 0, rich: 0 };
+let trackerLogs = {};
+let trackerPendingSpot = null;
+let trackerActive = false;
+let trackerSelectedPay = null; // 使用者手動選取的支付方式（null = 跟隨推薦）
+
+// 取得目前 modal 中選取的支付方式 key
+function trackerGetSelectedPayKey() {
+  return trackerSelectedPay || (trackerPendingSpot ? trackerGetEffectivePay(trackerPendingSpot).pay : null);
+}
+
+// 渲染支付方式選擇器
+function trackerRenderPaySelector(recommendedKey) {
+  const container = document.getElementById('tracker-pay-selector');
+  if (!container) return;
+  const activeKey = trackerSelectedPay || recommendedKey;
+  container.innerHTML = Object.entries(TRACKER_CAPS).map(([key, cfg]) => {
+    const isRec = key === recommendedKey;
+    const isActive = key === activeKey;
+    let rateLabel;
+    if (cfg.noRebate)        rateLabel = '無回饋';
+    else if (key === 'rich') rateLabel = '淨1.8%';
+    else if (key === 'kuma') rateLabel = '8.5%⚠';
+    else                     rateLabel = `${(cfg.rate*100).toFixed(1)}%`;
+    const tooltipTitle = key === 'kuma'
+      ? '⚠ 須滿足：① 完成活動登錄 ② 指定商店通路 ③ 持實體卡刷（非玉山Wallet）'
+      : (cfg.feeNote || '');
+    return `<button
+      class="pay-sel-btn${isActive ? ` active-${key}` : ''}${isRec ? ' recommended' : ''}"
+      onclick="trackerSelectPay('${key}')"
+      title="${tooltipTitle}"
+    >${cfg.label} ${rateLabel}${isRec ? ' ★' : ''}</button>`;
+  }).join('');
+}
+
+function trackerSelectPay(key) {
+  trackerSelectedPay = key;
+  const eff = trackerGetEffectivePay(trackerPendingSpot);
+  trackerRenderPaySelector(eff.pay);
+  trackerUpdatePreview();
+}
+let TRACKER_JPY_TWD_LIVE = 0.201; // 備援預設值（¥100 = NT$20.10）
+
+// ── 即時匯率：多來源備援，無需 API Key ──
+async function fetchBOTRate() {
+  // 策略1: open.er-api.com（完全免費，無 key，每日更新）
+  try {
+    const res = await fetch('https://open.er-api.com/v6/latest/JPY', { signal: AbortSignal.timeout(5000) });
+    if (res.ok) {
+      const d = await res.json();
+      const twd = d?.rates?.TWD;
+      if (twd && twd > 0) {
+        TRACKER_JPY_TWD_LIVE = twd;
+        updateRateDisplay('open.er-api');
+        return;
+      }
+    }
+  } catch(e) {}
+
+  // 策略2: cdn.jsdelivr.net 上的 floatrates 快取（CDN 通常不被 CORS 阻擋）
+  try {
+    const res = await fetch('https://cdn.jsdelivr.net/npm/@fawazahmed0/currency-api@latest/v1/currencies/jpy.json', { signal: AbortSignal.timeout(5000) });
+    if (res.ok) {
+      const d = await res.json();
+      const twd = d?.jpy?.twd;
+      if (twd && twd > 0) {
+        TRACKER_JPY_TWD_LIVE = twd;
+        updateRateDisplay('fawazahmed0');
+        return;
+      }
+    }
+  } catch(e) {}
+
+  // 策略3: 同源備援（直接抓 fawazahmed0 CDN）
+  try {
+    const today = new Date().toISOString().slice(0,10);
+    const res = await fetch(`https://cdn.jsdelivr.net/npm/@fawazahmed0/currency-api@${today}/v1/currencies/jpy.min.json`, { signal: AbortSignal.timeout(5000) });
+    if (res.ok) {
+      const d = await res.json();
+      const twd = d?.jpy?.twd;
+      if (twd && twd > 0) {
+        TRACKER_JPY_TWD_LIVE = twd;
+        updateRateDisplay('fawazahmed0-daily');
+        return;
+      }
+    }
+  } catch(e) {}
+
+  // 所有來源失敗，使用備援值並標示
+  updateRateDisplay('fallback');
+}
+
+function updateRateDisplay(source) {
+  const el = document.getElementById('tracker-rate-display');
+  if (!el) return;
+  const rate100 = (TRACKER_JPY_TWD_LIVE * 100).toFixed(2);
+  if (source === 'fallback') {
+    el.textContent = `¥100 ≒ NT$${rate100}（預設值）`;
+    el.style.color = '#f0c040';
+  } else {
+    el.textContent = `¥100 = NT$${rate100}　即時匯率 ✓`;
+    el.style.color = '#6ec88a';
+  }
+}
+
+function trackerSaveState() {
+  try { localStorage.setItem('kobe26_tracker_used', JSON.stringify(trackerUsed)); } catch(e){}
+  try { localStorage.setItem('kobe26_tracker_logs', JSON.stringify(trackerLogs)); } catch(e){}
+}
+function trackerLoadState() {
+  try { const u = localStorage.getItem('kobe26_tracker_used'); if(u) trackerUsed = JSON.parse(u); } catch(e){}
+  try { const l = localStorage.getItem('kobe26_tracker_logs'); if(l) trackerLogs = JSON.parse(l); } catch(e){}
+}
+
+function trackerActivate() {
+  trackerActive = true;
+  trackerLoadState();
+  freeLogsLoad();
+  skipLoad();
+  fetchBOTRate();
+  document.getElementById('tracker-bar').classList.add('visible');
+  trackerRenderDashboard();
+  trackerRenderAllSpotStatuses();
+  // 注入略過按鈕並套用狀態（需在 add-btn 顯示前）
+  skipInjectButtons();
+  skipApplyAll();
+  skipSetPanelClass(true);
+  document.querySelectorAll('.add-btn').forEach(b => b.style.display = 'inline-flex');
+  // 重新隱藏已略過行程的記帳按鈕
+  document.querySelectorAll('#pay-panel-itinerary .spot-row.skipped .add-btn')
+    .forEach(b => b.style.display = 'none');
+  trackerRenderAllLogs();
+  freeStripsShow();
+  freeRenderAllDayLogs();
+}
+
+function trackerRenderDashboard() {
+  const container = document.getElementById('tracker-cards');
+  container.innerHTML = Object.entries(TRACKER_CAPS)
+    .filter(([key, cfg]) => !cfg.noRebate)   // suica/cash 不顯示在儀表板
+    .map(([key, cfg]) => {
+    const u = trackerUsed[key] || 0;
+    const pct = cfg.unlimited ? 0 : Math.min(100, (u / cfg.cap) * 100);
+    const remaining = cfg.unlimited ? '∞' : Math.max(0, cfg.cap - u);
+    const barCls = cfg.unlimited ? 'ok' : (pct >= 100 ? 'full' : pct >= 70 ? 'warn' : 'ok');
+    const cardCls = cfg.unlimited ? '' : (pct >= 100 ? 'exhausted' : pct >= 70 ? 'warning' : '');
+    const pctLabel = cfg.unlimited ? '無上限' : (pct >= 100 ? '已用盡' : `${Math.round(pct)}%`);
+    const rateDisplay = key === 'rich' ? '淨1.8%' : `${(cfg.rate*100).toFixed(1)}%`;
+    return `
+    <div class="tracker-card ${cardCls}" id="tc-${key}">
+      <div class="tc-head">
+        <span class="tc-name">${cfg.label} <span style="font-size:0.58rem;opacity:0.7;">${rateDisplay}</span></span>
+        <span class="tc-pct ${barCls}">${pctLabel}</span>
+      </div>
+      ${!cfg.unlimited ? `
+      <div class="tc-bar-track"><div class="tc-bar-fill ${barCls}" id="tbar-${key}" style="width:${pct}%"></div></div>
+      <div class="tc-amounts">
+        <span class="tc-used">已用 NT$${u.toFixed(0)}</span>
+        <span class="tc-cap">上限 NT$${cfg.cap}</span>
+      </div>` : `
+      <div style="font-size:0.62rem;color:#555;margin-top:0.25rem;font-family:'DM Mono',monospace;">無回饋上限 · 已記 NT$${u.toFixed(0)}</div>`}
+    </div>`;
+  }).join('');
+}
+
+function trackerUpdateDashboard(key) {
+  const cfg = TRACKER_CAPS[key];
+  const u = trackerUsed[key] || 0;
+  const pct = cfg.unlimited ? 0 : Math.min(100, (u / cfg.cap) * 100);
+  const barCls = cfg.unlimited ? 'ok' : (pct >= 100 ? 'full' : pct >= 70 ? 'warn' : 'ok');
+  const pctLabel = cfg.unlimited ? '無上限' : (pct >= 100 ? '已用盡' : `${Math.round(pct)}%`);
+  const cardEl = document.getElementById(`tc-${key}`);
+  if (!cardEl) return;
+  cardEl.className = `tracker-card ${cfg.unlimited ? '' : (pct>=100?'exhausted':pct>=70?'warning':'')}`;
+  cardEl.querySelector('.tc-pct').textContent = pctLabel;
+  cardEl.querySelector('.tc-pct').className = `tc-pct ${barCls}`;
+  const barEl = document.getElementById(`tbar-${key}`);
+  if (barEl) { barEl.style.width = pct + '%'; barEl.className = `tc-bar-fill ${barCls}`; }
+  const usedEl = cardEl.querySelector('.tc-used');
+  if (usedEl) usedEl.textContent = `已用 NT$${u.toFixed(0)}`;
+}
+
+function trackerGetEffectivePay(spotId) {
+  const s = TRACKER_SPOTS[spotId];
+  if (!s) return null;
+  const priCfg = TRACKER_CAPS[s.primary];
+  if (!priCfg.unlimited && (trackerUsed[s.primary]||0) >= priCfg.cap) {
+    const fbCfg = TRACKER_CAPS[s.fallback];
+    if (!fbCfg.unlimited && (trackerUsed[s.fallback]||0) >= fbCfg.cap) {
+      return { pay: 'rich', primaryExhausted: true, fallbackExhausted: true };
+    }
+    return { pay: s.fallback, primaryExhausted: true, fallbackExhausted: false };
+  }
+  return { pay: s.primary, primaryExhausted: false, fallbackExhausted: false };
+}
+
+function trackerRenderSpotStatus(spotId) {
+  const s = TRACKER_SPOTS[spotId];
+  if (!s) return;
+  const col = document.getElementById(`paycol-${spotId}`);
+  if (!col) return;
+  const eff = trackerGetEffectivePay(spotId);
+  const priCfg = TRACKER_CAPS[s.primary];
+  const u = trackerUsed[s.primary] || 0;
+  // 剩餘回饋額度（NT$）
+  const rebateRemaining = priCfg.unlimited ? Infinity : Math.max(0, priCfg.cap - u);
+  // 還能享有回饋的消費上限：NT$ → 換算日幣
+  const spendRemainingTWD = priCfg.unlimited ? Infinity : Math.round(rebateRemaining / priCfg.rate);
+  const spendRemainingJPY = priCfg.unlimited ? Infinity : Math.round(spendRemainingTWD / TRACKER_JPY_TWD_LIVE);
+
+  let statusHtml = '';
+  let fallbackHtml = '';
+  if (eff.primaryExhausted) {
+    statusHtml = `<span class="pay-status-chip chip-exhausted">額度已用盡</span>`;
+    const fbCfg = TRACKER_CAPS[s.fallback];
+    const fbRate = s.fallback === 'rich' ? '淨1.8%' : '5%';
+    fallbackHtml = `<div class="fallback-pay show">↪ 改用 ${fbCfg.label}<br><span style="font-family:'DM Mono',monospace;font-weight:700;color:#b8860b;">${fbRate}</span></div>`;
+  } else {
+    const pct = priCfg.unlimited ? 0 : (u / priCfg.cap) * 100;
+    const chipCls = pct >= 70 ? 'chip-warn' : 'chip-ok';
+    if (priCfg.unlimited) {
+      statusHtml = `<span class="pay-status-chip chip-ok">無上限</span>`;
+    } else {
+      statusHtml = `<span class="pay-status-chip ${chipCls}" title="回饋剩餘 NT$${rebateRemaining.toFixed(0)}｜可刷 NT$${spendRemainingTWD.toLocaleString()}">
+        <span style="font-size:0.72rem;opacity:0.75;display:block;line-height:1.2;">還能刷</span>
+        <span style="font-size:1rem;font-weight:900;font-family:'DM Mono',monospace;line-height:1.2;">¥${spendRemainingJPY.toLocaleString()}</span>
+      </span>`;
+    }
+  }
+
+  const existingPb = col.querySelectorAll('.pb:not(.pay-status-chip), .pb-rate');
+  let pbHtml = '';
+  existingPb.forEach(el => { pbHtml += el.outerHTML; });
+  col.innerHTML = pbHtml + statusHtml + fallbackHtml;
+}
+
+function trackerRenderAllSpotStatuses() {
+  Object.keys(TRACKER_SPOTS).forEach(id => trackerRenderSpotStatus(id));
+}
+
+function trackerRenderLogs(spotId) {
+  const el = document.getElementById(`logs-${spotId}`);
+  if (!el) return;
+  const entries = trackerLogs[spotId] || [];
+  if (entries.length === 0) { el.innerHTML = ''; return; }
+  el.innerHTML = entries.map((e, i) => `
+    <div class="log-entry">
+      <span>¥${e.jpy.toLocaleString()}</span>
+      <span>→</span>
+      <span class="log-amt">NT$${e.twd.toFixed(0)}</span>
+      <span class="log-rebate">回饋 NT$${e.rebate.toFixed(1)}</span>
+      <span style="font-size:0.58rem;color:#aaa;">(${TRACKER_CAPS[e.payUsed]?.label||e.payUsed})</span>
+      <button class="log-del" onclick="trackerDeleteLog('${spotId}',${i})" title="刪除">✕</button>
+    </div>`).join('');
+  const btn = document.getElementById(`btn-${spotId}`);
+  if (btn) { btn.classList.add('logged'); btn.textContent = `＋ 記帳 (${entries.length}筆)`; }
+}
+
+function trackerRenderAllLogs() {
+  Object.keys(trackerLogs).forEach(spotId => trackerRenderLogs(spotId));
+}
+
+function trackerOpenModal(spotId) {
+  if (!trackerActive) { trackerActivate(); }
+  trackerPendingSpot = spotId;
+  trackerSelectedPay = null; // 重置為推薦方式
+  const s = TRACKER_SPOTS[spotId];
+  const eff = trackerGetEffectivePay(spotId);
+  const payCfg = TRACKER_CAPS[eff.pay];
+  document.getElementById('tracker-modal-title').textContent = s.name;
+  document.getElementById('tracker-modal-sub').innerHTML =
+    (eff.primaryExhausted ? `<span style="color:var(--red);font-size:0.72rem;">⚠ ${TRACKER_CAPS[s.primary].label} 額度已用盡，推薦已自動切換</span><br>` : '');
+  trackerRenderPaySelector(eff.pay);
+  document.getElementById('tracker-modal-amount').value = '';
+  trackerUpdatePreview();
+  document.getElementById('tracker-modal').classList.add('open');
+  setTimeout(() => document.getElementById('tracker-modal-amount').focus(), 100);
+}
+
+function trackerUpdatePreview() {
+  if (!trackerPendingSpot) return;
+  const s = TRACKER_SPOTS[trackerPendingSpot];
+  const selectedKey = trackerGetSelectedPayKey();
+  const payCfg = TRACKER_CAPS[selectedKey];
+  const jpy = parseFloat(document.getElementById('tracker-modal-amount').value) || 0;
+  const twd = jpy * TRACKER_JPY_TWD_LIVE;
+
+  // 無回饋卡（Suica / 日幣現金）
+  if (payCfg.noRebate) {
+    document.getElementById('tracker-modal-preview').innerHTML = jpy === 0
+      ? `<span style="color:#888;font-size:0.72rem;">此支付方式無回饋，僅記錄支出金額</span>`
+      : `消費 ¥${jpy.toLocaleString()} ≒ NT$${Math.round(twd).toLocaleString()}<br>
+         <span style="color:#aaa;font-size:0.72rem;">無回饋 · 僅作支出記帳</span>`;
+    return;
+  }
+
+  const maxRebate = payCfg.unlimited ? Infinity : Math.max(0, payCfg.cap - (trackerUsed[selectedKey]||0));
+  const rebate = Math.min(twd * payCfg.rate, maxRebate);
+  const newTotal = (trackerUsed[selectedKey]||0) + rebate;
+  const pctAfter = payCfg.unlimited ? 0 : Math.min(100, (newTotal / payCfg.cap) * 100);
+
+  // 剩餘可刷（日幣）
+  const rebateLeft = payCfg.unlimited ? Infinity : Math.max(0, payCfg.cap - (trackerUsed[selectedKey]||0));
+  const spendLeftJPY = payCfg.unlimited ? null : Math.round((rebateLeft / payCfg.rate) / TRACKER_JPY_TWD_LIVE);
+  const remainHtml = payCfg.unlimited
+    ? `<span style="color:#6ec88a;font-size:0.72rem;">無上限</span>`
+    : `還能刷 <strong>¥${spendLeftJPY.toLocaleString()}</strong>（回饋剩 NT$${rebateLeft.toFixed(0)}）`;
+
+  // 熊本熊條件提醒
+  const kumaWarn = selectedKey === 'kuma'
+    ? `<div style="font-size:0.68rem;color:#b8680b;margin-top:0.3rem;line-height:1.5;">
+         ⚠ 須：① 完成活動登錄 ② 指定商店通路 ③ 持實體卡刷（非玉山Wallet）
+       </div>` : '';
+
+  let warnHtml = '';
+  if (!payCfg.unlimited && pctAfter >= 100) {
+    warnHtml = `<div class="prev-warn">⚠ 此筆後 ${payCfg.label} 額度將用盡</div>`;
+  } else if (!payCfg.unlimited && pctAfter >= 70) {
+    const afterLeft = Math.max(0, payCfg.cap - newTotal);
+    const afterJPY = Math.round((afterLeft / payCfg.rate) / TRACKER_JPY_TWD_LIVE);
+    warnHtml = `<div class="prev-warn">⚠ 此筆後還能刷約 <strong>¥${afterJPY.toLocaleString()}</strong>（回饋剩 NT$${afterLeft.toFixed(0)}）</div>`;
+  }
+
+  document.getElementById('tracker-modal-preview').innerHTML = jpy === 0
+    ? `<span style="color:#888;font-size:0.78rem;">${remainHtml}<br>輸入日幣金額預覽回饋</span>${kumaWarn}`
+    : `消費 ¥${jpy.toLocaleString()} ≒ NT$${Math.round(twd).toLocaleString()}<br>
+       回饋率 <span class="prev-rate">${(payCfg.rate*100).toFixed(1)}%</span>　
+       預估回饋 <span class="prev-rebate">NT$${rebate.toFixed(1)}</span><br>
+       ${remainHtml}
+       ${warnHtml}${kumaWarn}`;
+}
+
+function trackerCloseModal() {
+  document.getElementById('tracker-modal').classList.remove('open');
+  trackerPendingSpot = null;
+  trackerSelectedPay = null;
+}
+
+function trackerConfirmLog() {
+  const jpy = parseFloat(document.getElementById('tracker-modal-amount').value);
+  if (!jpy || jpy <= 0 || !trackerPendingSpot) return;
+  const selectedKey = trackerGetSelectedPayKey();
+  const payCfg = TRACKER_CAPS[selectedKey];
+  const twd = jpy * TRACKER_JPY_TWD_LIVE;
+
+  let rebate = 0;
+  if (!payCfg.noRebate) {
+    const maxRebate = payCfg.unlimited ? twd * payCfg.rate : Math.max(0, payCfg.cap - (trackerUsed[selectedKey]||0));
+    rebate = Math.min(twd * payCfg.rate, maxRebate);
+    if (!trackerUsed[selectedKey]) trackerUsed[selectedKey] = 0;
+    trackerUsed[selectedKey] += rebate;
+  }
+
+  if (!trackerLogs[trackerPendingSpot]) trackerLogs[trackerPendingSpot] = [];
+  trackerLogs[trackerPendingSpot].push({ jpy, twd, rebate, payUsed: selectedKey });
+  trackerSaveState();
+  const spot = trackerPendingSpot;
+  trackerCloseModal();
+  if (!payCfg.noRebate) trackerUpdateDashboard(selectedKey);
+  trackerRenderAllSpotStatuses();
+  trackerRenderLogs(spot);
+}
+
+function trackerDeleteLog(spotId, idx) {
+  const e = trackerLogs[spotId][idx];
+  if (!e) return;
+  const cfg = TRACKER_CAPS[e.payUsed];
+  if (!cfg?.noRebate) {
+    trackerUsed[e.payUsed] = Math.max(0, (trackerUsed[e.payUsed]||0) - e.rebate);
+  }
+  trackerLogs[spotId].splice(idx, 1);
+  trackerSaveState();
+  if (!cfg?.noRebate) trackerUpdateDashboard(e.payUsed);
+  trackerRenderAllSpotStatuses();
+  trackerRenderLogs(spotId);
+}
+
+// ── 匯出 CSV ──────────────────────────────────────────
+function exportXLSX() {
+  if (typeof ExcelJS === 'undefined') {
+    alert('Excel 匯出中，請稍候再試（程式庫載入中）…');
+    return;
+  }
+  if (typeof ExcelJS === 'undefined') {
+    alert('Excel 匯出程式庫尚未載入，請確認網路連線後重試。');
+    return;
+  }
+
+  const rate    = TRACKER_JPY_TWD_LIVE;
+  const now     = new Date();
+  const dateStr = `${now.getFullYear()}${String(now.getMonth()+1).padStart(2,'0')}${String(now.getDate()).padStart(2,'0')}_${String(now.getHours()).padStart(2,'0')}${String(now.getMinutes()).padStart(2,'0')}`;
+  const DAY_LABELS = { d1: 'D1 10/22', d2: 'D2 10/23', d3: 'D3 10/24', d4: 'D4 10/25', d5: 'D5 10/26' };
+  const FONT = 'Microsoft JhengHei';
+
+  // ── 收集資料 ──
+  const dataRows = [];
+  Object.entries(trackerLogs).forEach(([spotId, entries]) => {
+    const dayKey   = spotId.slice(0, 2);
+    const spotName = TRACKER_SPOTS[spotId]?.name || spotId;
+    entries.forEach(e => {
+      const cfg = TRACKER_CAPS[e.payUsed];
+      dataRows.push({
+        day:    DAY_LABELS[dayKey] || dayKey,
+        name:   spotName,
+        pay:    (cfg?.label || e.payUsed).replace(/[\u{1F000}-\u{1FFFF}]/gu, '').trim(),
+        jpy:    e.jpy,
+        twd:    Math.round(e.twd),
+        rebate: Math.round(e.rebate),
+        type:   '行程據點'
+      });
+    });
+  });
+  Object.entries(freeLogs).forEach(([day, entries]) => {
+    entries.forEach(e => {
+      const cfg = TRACKER_CAPS[e.payUsed];
+      dataRows.push({
+        day:    DAY_LABELS[day] || day,
+        name:   e.name,
+        pay:    (cfg?.label || e.payUsed).replace(/[\u{1F000}-\u{1FFFF}]/gu, '').trim(),
+        jpy:    e.jpy,
+        twd:    Math.round(e.twd),
+        rebate: Math.round(e.rebate),
+        type:   '自由記帳'
+      });
+    });
+  });
+
+  if (dataRows.length === 0) {
+    alert('目前沒有任何記帳資料可以匯出。');
+    return;
+  }
+
+  const totalJPY    = dataRows.reduce((s, r) => s + r.jpy,    0);
+  const totalTWD    = dataRows.reduce((s, r) => s + r.twd,    0);
+  const totalRebate = dataRows.reduce((s, r) => s + r.rebate, 0);
+
+  // ── 建立 Workbook ──
+  const wb = new ExcelJS.Workbook();
+  wb.creator  = '神戶大阪旅遊行程';
+  wb.created  = now;
+
+  // ════════════════════════════════
+  //  工作表 1：消費明細
+  // ════════════════════════════════
+  const ws = wb.addWorksheet('消費明細');
+
+  // 欄定義
+  ws.columns = [
+    { key: 'day',    width: 11 },
+    { key: 'name',   width: 30 },
+    { key: 'pay',    width: 15 },
+    { key: 'jpy',    width: 14 },
+    { key: 'twd',    width: 14 },
+    { key: 'rebate', width: 13 },
+    { key: 'type',   width: 11 },
+  ];
+
+  // ── 共用樣式建構函式 ──
+  const hdrFill   = { type:'pattern', pattern:'solid', fgColor:{argb:'FF1A1209'} };
+  const altFill   = { type:'pattern', pattern:'solid', fgColor:{argb:'FFF5F1EA'} };
+  const whtFill   = { type:'pattern', pattern:'solid', fgColor:{argb:'FFFFFFFF'} };
+  const totFill   = { type:'pattern', pattern:'solid', fgColor:{argb:'FFEDE4D0'} };
+
+  const bdrThin  = { style:'thin',   color:{argb:'FFE0D8CC'} };
+  const bdrMedGold = { style:'medium', color:{argb:'FFB8860B'} };
+  const bdrThinGold= { style:'thin',  color:{argb:'FFC8B88A'} };
+  const bdrThinDark= { style:'thin',  color:{argb:'FF444444'} };
+
+  const dataBorder = { top:bdrThin, bottom:bdrThin, left:bdrThin, right:bdrThin };
+  const hdrBorder  = { top:bdrThinDark, bottom:bdrMedGold, left:bdrThinDark, right:bdrThinDark };
+  const totBorder  = { top:bdrMedGold, bottom:bdrThinGold, left:bdrThinGold, right:bdrThinGold };
+
+  const ctr = { horizontal:'center', vertical:'middle' };
+  const lft = { horizontal:'left',   vertical:'middle' };
+
+  // 標題列
+  const hdrRow = ws.addRow(['日次','據點 / 說明','支付方式','消費（日圓）','換算（台幣）','回饋（台幣）','類型']);
+  hdrRow.height = 22;
+  hdrRow.eachCell((cell, colNum) => {
+    cell.font      = { bold:true, color:{argb:'FFFFFFFF'}, name:FONT, size:11 };
+    cell.fill      = hdrFill;
+    cell.alignment = colNum === 2 ? lft : ctr;
+    cell.border    = hdrBorder;
+  });
+
+  // 資料列
+  dataRows.forEach((row, i) => {
+    const exRow  = ws.addRow([row.day, row.name, row.pay, row.jpy, row.twd, row.rebate, row.type]);
+    const fill   = i % 2 === 1 ? altFill : whtFill;
+    const isGreen = row.rebate > 0;
+
+    exRow.eachCell({ includeEmpty: true }, (cell, colNum) => {
+      cell.fill   = fill;
+      cell.border = dataBorder;
+      cell.font   = { name:FONT, size:10 };
+
+      if (colNum === 2) {
+        cell.alignment = lft;
+      } else if (colNum === 4 || colNum === 5) {
+        // 日圓 / 台幣：整數，置中
+        cell.numFmt    = '0';
+        cell.alignment = ctr;
+      } else if (colNum === 6) {
+        // 回饋：整數，置中，有值綠色
+        cell.numFmt    = '0';
+        cell.alignment = ctr;
+        cell.font      = { name:FONT, size:10, color:{ argb: isGreen ? 'FF1E8449' : 'FF999999' } };
+      } else {
+        cell.alignment = ctr;
+      }
+    });
+  });
+
+  // 空白分隔列
+  ws.addRow([]);
+
+  // 合計列
+  const totRow = ws.addRow(['', '合計', '', totalJPY, totalTWD, totalRebate, '']);
+  totRow.eachCell({ includeEmpty: true }, (cell, colNum) => {
+    cell.fill   = totFill;
+    cell.border = totBorder;
+    if (colNum === 2) {
+      cell.font      = { bold:true, name:FONT, size:10 };
+      cell.alignment = lft;
+    } else if (colNum === 4 || colNum === 5) {
+      cell.numFmt    = '0';
+      cell.font      = { bold:true, name:FONT, size:10 };
+      cell.alignment = ctr;
+    } else if (colNum === 6) {
+      cell.numFmt    = '0';
+      cell.font      = { bold:true, name:FONT, size:11, color:{argb:'FF1E8449'} };
+      cell.alignment = ctr;
+    } else {
+      cell.font      = { bold:true, name:FONT, size:10 };
+      cell.alignment = ctr;
+    }
+  });
+
+  // 備註列
+  const rateRow = ws.addRow(['', `匯率基準：¥100 = NT$${(rate * 100).toFixed(2)}`, '', '', '', '', '']);
+  rateRow.getCell(2).font      = { italic:true, color:{argb:'FFAAAAAA'}, name:FONT, size:9 };
+  rateRow.getCell(2).alignment = lft;
+
+  const timeRow = ws.addRow(['', `匯出時間：${now.toLocaleString('zh-TW')}`, '', '', '', '', '']);
+  timeRow.getCell(2).font      = { italic:true, color:{argb:'FFAAAAAA'}, name:FONT, size:9 };
+  timeRow.getCell(2).alignment = lft;
+
+  // ════════════════════════════════
+  //  工作表 2：各卡回饋彙總
+  // ════════════════════════════════
+  const ws2 = wb.addWorksheet('各卡回饋彙總');
+  ws2.columns = [
+    { key:'pay',    width:16 },
+    { key:'count',  width:8  },
+    { key:'jpy',    width:16 },
+    { key:'twd',    width:16 },
+    { key:'rebate', width:16 },
+  ];
+
+  const s2HdrRow = ws2.addRow(['支付方式','筆數','消費日圓合計','消費台幣合計','回饋台幣合計']);
+  s2HdrRow.height = 22;
+  s2HdrRow.eachCell((cell, colNum) => {
+    cell.font      = { bold:true, color:{argb:'FFFFFFFF'}, name:FONT, size:11 };
+    cell.fill      = hdrFill;
+    cell.alignment = colNum === 1 ? lft : ctr;
+    cell.border    = hdrBorder;
+  });
+
+  const byCard = {};
+  dataRows.forEach(r => {
+    if (!byCard[r.pay]) byCard[r.pay] = { count:0, jpy:0, twd:0, rebate:0 };
+    byCard[r.pay].count++;
+    byCard[r.pay].jpy    += r.jpy;
+    byCard[r.pay].twd    += r.twd;
+    byCard[r.pay].rebate += r.rebate;
+  });
+  Object.entries(byCard).forEach(([pay, d], i) => {
+    const r    = ws2.addRow([pay, d.count, d.jpy, d.twd, d.rebate]);
+    const fill = i % 2 === 1 ? altFill : whtFill;
+    r.eachCell({ includeEmpty:true }, (cell, colNum) => {
+      cell.fill      = fill;
+      cell.font      = { name:FONT, size:10 };
+      cell.border    = dataBorder;
+      cell.alignment = colNum === 1 ? lft : ctr;
+      if (colNum >= 3) cell.numFmt = '0';
+    });
+  });
+
+  ws2.addRow([]);
+  const s2Tot = ws2.addRow(['合計', dataRows.length, totalJPY, totalTWD, totalRebate]);
+  s2Tot.eachCell({ includeEmpty:true }, (cell, colNum) => {
+    cell.fill   = totFill;
+    cell.border = totBorder;
+    cell.font   = colNum === 5
+      ? { bold:true, name:FONT, size:11, color:{argb:'FF1E8449'} }
+      : { bold:true, name:FONT, size:10 };
+    cell.alignment = colNum === 1 ? lft : ctr;
+    if (colNum >= 3) cell.numFmt = '0';
+  });
+
+  // ── 下載 ──
+  wb.xlsx.writeBuffer().then(buf => {
+    const blob = new Blob([buf], { type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+    const url  = URL.createObjectURL(blob);
+    const a    = document.createElement('a');
+    a.href     = url;
+    a.download = `神戶大阪記帳_${dateStr}.xlsx`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  });
+}
+
+// ── 行程略過標記 ──────────────────────────────────────
+let skipState = {}; // { spotRowId: true/false }
+
+function skipSave() {
+  try { localStorage.setItem('kobe26_skip', JSON.stringify(skipState)); } catch(e) {}
+}
+function skipLoad() {
+  try {
+    const d = localStorage.getItem('kobe26_skip');
+    if (d) skipState = JSON.parse(d);
+  } catch(e) {}
+}
+
+// 為每個 spot-row 在 spot-body 內注入略過按鈕（只執行一次）
+function skipInjectButtons() {
+  document.querySelectorAll('#pay-panel-itinerary .spot-row').forEach((row, i) => {
+    const body = row.querySelector('.spot-body');
+    if (!body || body.querySelector('.skip-btn')) return; // 已注入
+
+    // 產生穩定 ID
+    const spotId = body.getAttribute('data-spot') || `generic-row-${i}`;
+    row.setAttribute('data-skip-id', spotId);
+
+    const btn = document.createElement('button');
+    btn.className = 'skip-btn';
+    btn.setAttribute('data-skip-id', spotId);
+    btn.onclick = () => skipToggle(spotId);
+    body.appendChild(btn);
+  });
+}
+
+function skipApplyAll() {
+  document.querySelectorAll('#pay-panel-itinerary .spot-row[data-skip-id]').forEach(row => {
+    const id = row.getAttribute('data-skip-id');
+    skipApply(row, id);
+  });
+}
+
+function skipApply(row, id) {
+  const isSkipped = !!skipState[id];
+  const btn = row.querySelector('.skip-btn');
+
+  if (isSkipped) {
+    row.classList.add('skipped');
+    // 隱藏記帳按鈕
+    row.querySelectorAll('.add-btn').forEach(b => b.style.display = 'none');
+    if (btn) btn.textContent = '↩ 恢復此行程';
+    // 加略過標籤（若尚未存在）
+    const body = row.querySelector('.spot-body');
+    if (body && !body.querySelector('.skip-badge')) {
+      const badge = document.createElement('span');
+      badge.className = 'skip-badge';
+      badge.textContent = '未執行';
+      body.appendChild(badge);
+    }
+  } else {
+    row.classList.remove('skipped');
+    // 若追蹤器已啟動，重新顯示記帳按鈕
+    if (trackerActive) {
+      row.querySelectorAll('.add-btn').forEach(b => b.style.display = 'inline-flex');
+    }
+    if (btn) btn.textContent = '✕ 略過此行程';
+    // 移除略過標籤
+    const badge = row.querySelector('.skip-badge');
+    if (badge) badge.remove();
+  }
+}
+
+function skipToggle(id) {
+  skipState[id] = !skipState[id];
+  skipSave();
+  const row = document.querySelector(`#pay-panel-itinerary .spot-row[data-skip-id="${id}"]`);
+  if (row) skipApply(row, id);
+}
+
+// 讓支付對照子頁籤的 itin-day 區域套用 tracker-on class（控制略過按鈕顯示）
+function skipSetPanelClass(active) {
+  const panel = document.getElementById('pay-panel-itinerary');
+  if (!panel) return;
+  if (active) panel.classList.add('tracker-on');
+  else panel.classList.remove('tracker-on');
+}
+
+// ── 重置確認 ──────────────────────────────────────────
+function resetConfirmOpen() {
+  document.getElementById('reset-confirm-overlay').classList.add('open');
+}
+function resetConfirmClose() {
+  document.getElementById('reset-confirm-overlay').classList.remove('open');
+}
+function resetConfirmDo() {
+  resetConfirmClose();
+  trackerResetAll();
+}
+function trackerResetAll() {
+  trackerUsed = { kuma: 0, eco: 0, pay: 0, rich: 0, suica: 0, cash: 0 };
+  trackerLogs = {};
+  freeLogs = {};
+  trackerSaveState();
+  freeLogsSave();
+  trackerRenderDashboard();
+  trackerRenderAllSpotStatuses();
+  document.querySelectorAll('.log-list').forEach(el => el.innerHTML = '');
+  document.querySelectorAll('.add-btn').forEach(b => {
+    b.classList.remove('logged');
+    b.textContent = '＋ 記帳';
+  });
+  // 略過標記保留（重置只清記帳，不影響行程略過標記）
+  document.querySelectorAll('#pay-panel-itinerary .spot-row.skipped .add-btn')
+    .forEach(b => b.style.display = 'none');
+  freeRenderAllDayLogs();
+}
+
+// ── 消費明細 ──────────────────────────────────────────
+// spotId → Day 標籤 對應表
+const SPOT_DAY_MAP = {
+  d1: 'D1 · 10/22（四）神戶',
+  d2: 'D2 · 10/23（五）神戶',
+  d3: 'D3 · 10/24（六）',
+  d4: 'D4 · 10/25（日）大阪',
+};
+function getSpotDay(spotId) {
+  const prefix = spotId.slice(0, 2);
+  return SPOT_DAY_MAP[prefix] || '其他';
+}
+
+const CARD_CHIP_STYLE = {
+  kuma:  'background:#fff0d4;color:#b8680b;border:1px solid #e8c080;',
+  eco:   'background:#d4f0e0;color:#2e7d52;border:1px solid #80c8a0;',
+  pay:   'background:#ffe0e0;color:#cc0033;border:1px solid #f0a0a0;',
+  rich:  'background:#d4e4f5;color:#2c5f8a;border:1px solid #80a8d8;',
+  suica: 'background:#d8f0dc;color:#3a8a4a;border:1px solid #88cc90;',
+  cash:  'background:#f0ebe5;color:#777;border:1px solid #ccc;',
+};
+
+function ledgerOpen() {
+  ledgerRender();
+  document.getElementById('ledger-overlay').classList.add('open');
+}
+function ledgerClose() {
+  document.getElementById('ledger-overlay').classList.remove('open');
+}
+
+function ledgerRender() {
+  const body = document.getElementById('ledger-body');
+
+  // 收集所有記帳，展平為列表
+  let allEntries = [];
+  // 固定據點記帳
+  Object.entries(trackerLogs).forEach(([spotId, entries]) => {
+    entries.forEach((e, idx) => {
+      allEntries.push({
+        spotId, idx, ...e,
+        day: getSpotDay(spotId),
+        spotName: TRACKER_SPOTS[spotId]?.name || spotId,
+        isFree: false
+      });
+    });
+  });
+  // 自由記帳
+  Object.entries(freeLogs).forEach(([day, entries]) => {
+    entries.forEach((e, idx) => {
+      allEntries.push({
+        spotId: `free-${day}`, idx, ...e,
+        day: getSpotDay(day),
+        spotName: e.name,
+        isFree: true
+      });
+    });
+  });
+
+  if (allEntries.length === 0) {
+    body.innerHTML = `<div class="ledger-empty">📭 尚無記帳記錄<br><span style="font-size:0.7rem;">按各據點的「＋ 記帳」開始記錄</span></div>`;
+    return;
+  }
+
+  // 總計
+  const totalJPY = allEntries.reduce((s, e) => s + e.jpy, 0);
+  const totalTWD = allEntries.reduce((s, e) => s + e.twd, 0);
+  const totalRebate = allEntries.reduce((s, e) => s + e.rebate, 0);
+  const totalCount = allEntries.length;
+
+  // 各卡回饋小計（排除無回饋項目）
+  const cardRebate = {};
+  allEntries.forEach(e => {
+    if (e.rebate > 0) cardRebate[e.payUsed] = (cardRebate[e.payUsed]||0) + e.rebate;
+  });
+
+  // 摘要卡
+  let summaryHtml = `
+    <div class="ledger-summary-bar">
+      <div class="ledger-sum-card">
+        <div class="ledger-sum-label">總消費（日圓）</div>
+        <div class="ledger-sum-val">¥${totalJPY.toLocaleString()}</div>
+        <div class="ledger-sum-sub">≒ NT$${Math.round(totalTWD).toLocaleString()}</div>
+      </div>
+      <div class="ledger-sum-card">
+        <div class="ledger-sum-label">累積回饋</div>
+        <div class="ledger-sum-val" style="color:#27ae60;">NT$${totalRebate.toFixed(1)}</div>
+        <div class="ledger-sum-sub">共 ${totalCount} 筆消費</div>
+      </div>
+    </div>
+    <div class="ledger-card-breakdown">
+      ${Object.entries(cardRebate).map(([key, val]) => {
+        const cfg = TRACKER_CAPS[key];
+        return `<span class="ledger-card-chip" style="${CARD_CHIP_STYLE[key]||''}">${cfg?.label||key} 回饋 NT$${val.toFixed(1)}</span>`;
+      }).join('')}
+    </div>`;
+
+  // 按天分組
+  const dayOrder = ['D1 · 10/22（四）神戶','D2 · 10/23（五）神戶','D3 · 10/24（六）','D4 · 10/25（日）大阪','D5 · 10/26（一）返程日','其他'];
+  const byDay = {};
+  allEntries.forEach(e => { (byDay[e.day] = byDay[e.day]||[]).push(e); });
+
+  let daysHtml = '';
+  dayOrder.forEach(day => {
+    const entries = byDay[day];
+    if (!entries) return;
+    const dayJPY = entries.reduce((s,e)=>s+e.jpy,0);
+    const dayRebate = entries.reduce((s,e)=>s+e.rebate,0);
+
+    const rowsHtml = entries.map(e => {
+      const cfg = TRACKER_CAPS[e.payUsed];
+      const rebateDisplay = (cfg?.noRebate || e.rebate === 0)
+        ? `<span style="color:#bbb;font-size:0.65rem;">無回饋</span>`
+        : `<span class="ledger-rebate">+NT$${e.rebate.toFixed(1)}</span>`;
+      const freeTag = e.isFree
+        ? `<span style="font-family:'DM Mono',monospace;font-size:0.55rem;color:#aaa;background:#f5f0ea;padding:0.1em 0.4em;border-radius:3px;margin-left:0.3rem;">自由記帳</span>` : '';
+      const delFn = e.isFree
+        ? `freeDeleteEntry('${e.spotId.replace('free-','')}',${e.idx})`
+        : `ledgerDeleteEntry('${e.spotId}',${e.idx})`;
+      return `<div class="ledger-row">
+        <div>
+          <div class="ledger-spot">${e.spotName}${freeTag}</div>
+          <div class="ledger-spot-pay" style="${CARD_CHIP_STYLE[e.payUsed]||''}; padding:0.1em 0.4em; border-radius:3px; display:inline-block; margin-top:0.15rem;">${cfg?.label||e.payUsed}</div>
+        </div>
+        <div class="ledger-jpy">¥${e.jpy.toLocaleString()}</div>
+        ${rebateDisplay}
+        <button class="ledger-del" onclick="${delFn}" title="刪除此筆">✕</button>
+      </div>`;
+    }).join('');
+
+    daysHtml += `<div class="ledger-day-block">
+      <div class="ledger-day-label">${day}</div>
+      ${rowsHtml}
+      <div class="ledger-day-total">
+        <span>小計</span>
+        <span>¥${dayJPY.toLocaleString()} &nbsp;｜&nbsp; 回饋 NT$${dayRebate.toFixed(1)}</span>
+      </div>
+    </div>`;
+  });
+
+  body.innerHTML = summaryHtml + daysHtml;
+}
+
+function ledgerDeleteEntry(spotId, idx) {
+  if (!trackerLogs[spotId] || !trackerLogs[spotId][idx]) return;
+  const e = trackerLogs[spotId][idx];
+  const cfg = TRACKER_CAPS[e.payUsed];
+  if (!cfg?.noRebate) {
+    trackerUsed[e.payUsed] = Math.max(0, (trackerUsed[e.payUsed]||0) - e.rebate);
+  }
+  trackerLogs[spotId].splice(idx, 1);
+  if (trackerLogs[spotId].length === 0) delete trackerLogs[spotId];
+  trackerSaveState();
+  if (!cfg?.noRebate) trackerUpdateDashboard(e.payUsed);
+  trackerRenderAllSpotStatuses();
+  trackerRenderLogs(spotId);
+  ledgerRender();
+}
+
+// ── 自由記帳 ──────────────────────────────────────────
+// 儲存結構：freeLogs[day] = [{ name, jpy, twd, rebate, payUsed }, ...]
+let freeLogs = {};
+let freePendingDay = null;
+let freeSelectedPay = 'eco';
+
+function freeLogsSave() {
+  try { localStorage.setItem('kobe26_free_logs', JSON.stringify(freeLogs)); } catch(e) {}
+}
+function freeLogsLoad() {
+  try {
+    const d = localStorage.getItem('kobe26_free_logs');
+    if (d) freeLogs = JSON.parse(d);
+  } catch(e) {}
+}
+
+function freeModalOpen(day) {
+  if (!trackerActive) trackerActivate();
+  freePendingDay = day;
+  freeSelectedPay = 'eco'; // 預設
+  document.getElementById('free-modal-name').value = '';
+  document.getElementById('free-modal-amount').value = '';
+  freeRenderPaySelector();
+  freeModalUpdatePreview();
+  document.getElementById('free-modal').classList.add('open');
+  setTimeout(() => document.getElementById('free-modal-name').focus(), 100);
+}
+
+function freeModalClose() {
+  document.getElementById('free-modal').classList.remove('open');
+  freePendingDay = null;
+}
+
+function freeRenderPaySelector() {
+  const container = document.getElementById('free-pay-selector');
+  if (!container) return;
+  container.innerHTML = Object.entries(TRACKER_CAPS).map(([key, cfg]) => {
+    const isActive = key === freeSelectedPay;
+    let rateLabel;
+    if (cfg.noRebate)        rateLabel = '無回饋';
+    else if (key === 'rich') rateLabel = '淨1.8%';
+    else if (key === 'kuma') rateLabel = '8.5%⚠';
+    else                     rateLabel = `${(cfg.rate*100).toFixed(1)}%`;
+    return `<button
+      class="pay-sel-btn${isActive ? ` active-${key}` : ''}"
+      onclick="freeSelectPay('${key}')"
+      title="${cfg.feeNote||''}"
+    >${cfg.label} ${rateLabel}</button>`;
+  }).join('');
+}
+
+function freeSelectPay(key) {
+  freeSelectedPay = key;
+  freeRenderPaySelector();
+  freeModalUpdatePreview();
+}
+
+function freeModalUpdatePreview() {
+  const jpy = parseFloat(document.getElementById('free-modal-amount').value) || 0;
+  const cfg = TRACKER_CAPS[freeSelectedPay];
+  const preview = document.getElementById('free-modal-preview');
+  if (!cfg || jpy === 0) { preview.innerHTML = ''; return; }
+  const twd = jpy * TRACKER_JPY_TWD_LIVE;
+  if (cfg.noRebate) {
+    preview.innerHTML = `≒ NT$${Math.round(twd).toLocaleString()} · 無回饋`;
+    return;
+  }
+  const maxRebate = cfg.unlimited ? Infinity : Math.max(0, cfg.cap - (trackerUsed[freeSelectedPay]||0));
+  const rebate = Math.min(twd * cfg.rate, maxRebate);
+  const kumaWarn = freeSelectedPay === 'kuma'
+    ? `<div style="font-size:0.65rem;color:#b8680b;margin-top:0.2rem;">⚠ 須登錄＋指定通路＋實體卡刷</div>` : '';
+  preview.innerHTML = `≒ NT$${Math.round(twd).toLocaleString()} · 回饋 <strong style="color:#27ae60;">NT$${rebate.toFixed(1)}</strong>${kumaWarn}`;
+}
+
+function freeModalConfirm() {
+  const name = document.getElementById('free-modal-name').value.trim() || '其他消費';
+  const jpy = parseFloat(document.getElementById('free-modal-amount').value);
+  if (!jpy || jpy <= 0 || !freePendingDay) return;
+  const cfg = TRACKER_CAPS[freeSelectedPay];
+  const twd = jpy * TRACKER_JPY_TWD_LIVE;
+  let rebate = 0;
+  if (!cfg.noRebate) {
+    const maxRebate = cfg.unlimited ? twd * cfg.rate : Math.max(0, cfg.cap - (trackerUsed[freeSelectedPay]||0));
+    rebate = Math.min(twd * cfg.rate, maxRebate);
+    trackerUsed[freeSelectedPay] = (trackerUsed[freeSelectedPay]||0) + rebate;
+    trackerSaveState();
+    trackerUpdateDashboard(freeSelectedPay);
+    trackerRenderAllSpotStatuses();
+  }
+  if (!freeLogs[freePendingDay]) freeLogs[freePendingDay] = [];
+  freeLogs[freePendingDay].push({ name, jpy, twd, rebate, payUsed: freeSelectedPay });
+  freeLogsSave();
+  const day = freePendingDay;
+  freeModalClose();
+  freeRenderDayLogs(day);
+}
+
+function freeRenderDayLogs(day) {
+  const container = document.getElementById(`free-logs-${day}`);
+  if (!container) return;
+  const entries = freeLogs[day] || [];
+  const btn = document.getElementById(`free-btn-${day}`);
+
+  if (entries.length === 0) {
+    container.innerHTML = '';
+    if (btn) { btn.classList.remove('has-logs'); btn.textContent = '＋ 新增消費'; }
+    return;
+  }
+  container.innerHTML = entries.map((e, i) => {
+    const cfg = TRACKER_CAPS[e.payUsed];
+    const rebateHtml = cfg?.noRebate || e.rebate === 0
+      ? `<span class="fle-norebate">無回饋</span>`
+      : `<span class="fle-rebate">+NT$${e.rebate.toFixed(1)}</span>`;
+    const chipStyle = CARD_CHIP_STYLE[e.payUsed] || '';
+    return `<div class="free-log-entry">
+      <span class="fle-name">${e.name}</span>
+      <span style="${chipStyle}; padding:0.1em 0.4em; border-radius:3px; font-family:'DM Mono',monospace; font-size:0.58rem; font-weight:700;">${cfg?.label||e.payUsed}</span>
+      <span class="fle-jpy">¥${e.jpy.toLocaleString()}</span>
+      ${rebateHtml}
+      <button class="log-del" onclick="freeDeleteEntry('${day}',${i})" title="刪除">✕</button>
+    </div>`;
+  }).join('');
+  if (btn) { btn.classList.add('has-logs'); btn.textContent = `＋ 新增消費（${entries.length}筆）`; }
+}
+
+function freeDeleteEntry(day, idx) {
+  if (!freeLogs[day]?.[idx]) return;
+  const e = freeLogs[day][idx];
+  const cfg = TRACKER_CAPS[e.payUsed];
+  if (!cfg?.noRebate) {
+    trackerUsed[e.payUsed] = Math.max(0, (trackerUsed[e.payUsed]||0) - e.rebate);
+    trackerSaveState();
+    trackerUpdateDashboard(e.payUsed);
+    trackerRenderAllSpotStatuses();
+  }
+  freeLogs[day].splice(idx, 1);
+  freeLogsSave();
+  freeRenderDayLogs(day);
+  // 若明細帳本正開著，同步更新
+  if (document.getElementById('ledger-overlay').classList.contains('open')) ledgerRender();
+}
+
+function freeRenderAllDayLogs() {
+  ['d1','d2','d3','d4','d5'].forEach(d => freeRenderDayLogs(d));
+}
+
+// 顯示自由記帳帶（追蹤器啟動時）
+function freeStripsShow() {
+  document.querySelectorAll('.free-log-strip').forEach(el => el.classList.add('tracker-on'));
+}
+
+// Close free modal on overlay click / ESC
+document.getElementById('free-modal').addEventListener('click', function(e) {
+  if (e.target === this) freeModalClose();
+});
+document.getElementById('free-modal-amount').addEventListener('keydown', function(e) {
+  if (e.key === 'Enter') freeModalConfirm();
+});
+document.getElementById('tracker-modal').addEventListener('click', function(e) {
+  if (e.target === this) trackerCloseModal();
+});
+document.getElementById('reset-confirm-overlay').addEventListener('click', function(e) {
+  if (e.target === this) resetConfirmClose();
+});
+document.getElementById('ledger-overlay').addEventListener('click', function(e) {
+  if (e.target === this) ledgerClose();
+});
+// Enter key confirms modal
+document.getElementById('tracker-modal-amount').addEventListener('keydown', function(e) {
+  if (e.key === 'Enter') trackerConfirmLog();
+});
+// ESC closes all modals
+document.addEventListener('keydown', function(e) {
+  if (e.key === 'Escape') {
+    trackerCloseModal();
+    resetConfirmClose();
+    ledgerClose();
+    freeModalClose();
+  }
+});
+
+// Auto-restore tracker state on load
+window.addEventListener('load', () => {
+  fetchBOTRate();
+  freeLogsLoad();
+  skipLoad();
+  const hasFreeEntries = Object.values(freeLogs).some(arr => arr.length > 0);
+  try {
+    const saved = localStorage.getItem('kobe26_tracker_used');
+    if (saved) {
+      const parsed = JSON.parse(saved);
+      if (Object.values(parsed).some(v => v > 0) || hasFreeEntries) {
+        trackerActivate();
+        return;
+      }
+    } else if (hasFreeEntries) {
+      trackerActivate();
+      return;
+    }
+  } catch(e) {}
+  document.querySelectorAll('.add-btn').forEach(b => {
+    if (!trackerActive) b.style.display = 'none';
+  });
+  // 若有略過標記，也需要注入按鈕並套用（即使追蹤器未啟動）
+  if (Object.keys(skipState).length > 0) {
+    skipInjectButtons();
+    skipApplyAll();
+  }
+});
+</script>
 </body>
 </html>
