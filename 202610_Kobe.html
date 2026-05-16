@@ -580,16 +580,18 @@
   .pay-badge-gray { background: #e0d8cc; color: var(--muted); }
   .food-table-wrap {
     overflow-x: auto;
+    -webkit-overflow-scrolling: touch; /* iOS 慣性捲動 */
     border-radius: 6px;
     border: 1px solid #e0d8cc;
     width: 100%;
   }
   .food-table {
     width: 100%;
+    min-width: 780px;          /* 手機時觸發橫向捲動，電腦版自動撐滿 */
     border-collapse: collapse;
     font-size: 0.8rem;
     background: white;
-    table-layout: fixed;
+    table-layout: auto;        /* 讓欄寬依內容自動分配，不強制壓縮 */
   }
   .food-table thead tr {
     background: var(--ink);
@@ -1118,6 +1120,20 @@
     .pay-col { display:none; }
     .tracker-cards { grid-template-columns: repeat(2, 1fr); }
     .ledger-summary-bar { grid-template-columns: 1fr 1fr; }
+  }
+
+  /* ── RWD：手機版橫向捲動提示 ── */
+  @media (max-width: 600px) {
+    .food-table-wrap::after {
+      content: '← 左右滑動查看完整內容 →';
+      display: block;
+      text-align: center;
+      font-family: 'DM Mono', monospace;
+      font-size: 0.6rem;
+      color: var(--muted);
+      padding: 0.3rem 0;
+      opacity: 0.6;
+    }
   }
 </style>
 </head>
