@@ -495,10 +495,19 @@
         <div class="swatch" data-grad="linear-gradient(90deg,#1a5a7a,#5aaccd)" style="background:linear-gradient(90deg,#1a5a7a,#5aaccd)"></div>
       </div>
     </div>
+    <!-- 範本來源提示 -->
+    <div style="font-family:'DM Mono',monospace;font-size:0.62rem;color:var(--muted);margin-bottom:1rem;padding:0.5rem 0.75rem;background:var(--cream);border-radius:4px;line-height:1.6;">
+      📋 範本來源：<span style="color:var(--ink);font-weight:700;">202610_Kobe.html</span>（最新行程）<br>
+      將完整繼承所有功能架構，僅替換標題、日期、配色。
+    </div>
+
     <div class="modal-actions">
       <button class="btn-cancel" onclick="closeModal()">取消 Cancel</button>
       <button class="btn-create" onclick="createTrip()">產生旅程檔案 →</button>
     </div>
+
+    <!-- 網路失敗時的備用說明（預設隱藏）-->
+    <div id="fallback-guide" style="display:none;"></div>
   </div>
 </div>
 
@@ -540,8 +549,19 @@ function calcNights(start, end) {
   return { days: diff + 1, nights: diff };
 }
 
-/* ── 產生新旅程 HTML ── */
-function createTrip() {
+/* ════════════════════════════════════════════════════════
+   產生新旅程 HTML — 方案 B：從 GitHub Pages 抓最新範本
+   範本來源：TEMPLATE_URL 指定的最新行程頁
+   替換規則：只動 header 資訊、title、TRIP_CONFIG 識別欄位，
+             其餘所有功能、CSS、JS 完整繼承。
+   ════════════════════════════════════════════════════════ */
+
+// ── 範本設定（未來換新基準行程時只改這一行）──
+const TEMPLATE_URL = 'https://jiajie8259.github.io/202610_Kobe.html';
+// 備用：若 GitHub 抓取失敗，提示使用者手動複製的說明
+const TEMPLATE_FALLBACK_NAME = '202610_Kobe.html';
+
+async function createTrip() {
   const dest    = document.getElementById('f-dest').value.trim();
   const sub     = document.getElementById('f-sub').value.trim();
   const start   = document.getElementById('f-start').value;
@@ -551,52 +571,103 @@ function createTrip() {
   const tagsRaw = document.getElementById('f-tags').value.trim();
   const grad    = document.querySelector('#swatches .swatch.selected')?.dataset.grad
                   || 'linear-gradient(90deg,#c0392b,#e67e22)';
+
   if (!dest) { alert('請填寫目的地名稱'); return; }
+
   const tags    = tagsRaw ? tagsRaw.split(/[,，]/).map(t => t.trim()).filter(Boolean) : [country];
-  const { days } = calcNights(start, end);
   const year    = start ? start.split('-')[0] : new Date().getFullYear();
   const fname   = `${year}_${dest.replace(/\s+/g, '_')}.html`;
   const dateDsp = (start && end) ? `${formatDate(start)} – ${formatDate(end).slice(-8)}` : '待定';
-  const tagsHtml = tags.map(t => `    <span class="trip-tag">${t}</span>`).join('\n');
-  const html = `<!DOCTYPE html>
-<html lang="zh-TW">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>${dest} · 旅遊記錄</title>
-<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@400;600;900&family=DM+Mono:wght@400;500&family=Cormorant+Garamond:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="css/base.css">
-<link rel="stylesheet" href="css/trip-page.css">
-<link rel="stylesheet" href="css/tracker.css">
-<style>
-  header::before {
-    content: '${dest.slice(0,2)}';
-    position: absolute; font-size: 16rem; font-weight: 900; opacity: 0.04;
-    top: 50%; left: 50%; transform: translate(-50%,-50%);
-    white-space: nowrap; pointer-events: none; font-family: 'Noto Serif TC', serif;
+  const tagsHtml = tags.map(t => `<span class="trip-tag">${t}</span>`).join(' ');
+
+  // ── 顯示讀取中狀態 ──
+  const btn = document.querySelector('.btn-create');
+  const origText = btn.textContent;
+  btn.textContent = '⏳ 抓取範本中…';
+  btn.disabled = true;
+
+  let tmpl = null;
+  try {
+    const res = await fetch(TEMPLATE_URL, { cache: 'no-cache' });
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    tmpl = await res.text();
+  } catch (err) {
+    btn.textContent = origText;
+    btn.disabled = false;
+    // 抓取失敗 → 顯示手動複製說明
+    showFallbackGuide(fname, dest, sub, country, flag, dateDsp, grad, tagsHtml);
+    return;
   }
-  header::after {
-    content: ''; position: absolute; inset: 0;
-    background: ${grad}; opacity: 0.15; pointer-events: none;
-  }
-</style>
-</head>
-<body>
-<header>
-  <div class="date-tag">${flag} ${country} · ${dateDsp}</div>
-  <h1>${dest}</h1>
-  <p>${sub || '行程記錄'}</p>
-</header>
-<div class="divider"></div>
-<div class="tab-nav">
-  <button class="tab-btn active" onclick="switchTab('itinerary',this)">📅 行程總覽</button>
-</div>
-<div id="itinerary" class="tab-panel active">
-<main>
+
+  btn.textContent = origText;
+  btn.disabled = false;
+
+  // ══════════════════════════════════════════
+  // 對範本 HTML 進行替換
+  // ══════════════════════════════════════════
+  let html = tmpl;
+
+  // 1. <title>
+  html = html.replace(
+    /<title>[^<]*<\/title>/,
+    `<title>${dest} · 旅遊記錄</title>`
+  );
+
+  // 2. header 內容（date-tag / h1 / p）
+  html = html.replace(
+    /(<div class="date-tag">)[^<]*/,
+    `$1${flag} ${country} · ${dateDsp}`
+  );
+  html = html.replace(
+    /(<header[^>]*>[\s\S]*?<div class="date-tag">[^<]*<\/div>\s*<h1>)[^<]*/,
+    `$1${dest}`
+  );
+  html = html.replace(
+    /(<header[^>]*>[\s\S]*?<\/h1>\s*<p>)[^<]*/,
+    `$1${sub || '行程記錄'}`
+  );
+
+  // 3. header::before 背景文字（城市名）
+  html = html.replace(
+    /(header::before\s*\{[\s\S]*?content:\s*')[^']*'/,
+    `$1${dest.slice(0, 2)}'`
+  );
+
+  // 4. header::after 漸層配色
+  html = html.replace(
+    /(header::after[\s\S]*?background:\s*)[^;]+;/,
+    `$1${grad}; opacity: 0.15;`
+  );
+
+  // 5. TRIP_CONFIG — storageKey（避免 localStorage 衝突）
+  const storageKey = `trip_${year}_${dest.replace(/[^a-zA-Z0-9\u4e00-\u9fff]/g, '').slice(0, 8)}`;
+  html = html.replace(
+    /(storageKey:\s*')[^']*'/,
+    `$1${storageKey}'`
+  );
+
+  // 6. TRIP_CONFIG — exportName
+  html = html.replace(
+    /(exportName:\s*')[^']*'/,
+    `$1${dest}記帳'`
+  );
+
+  // 7. 頁尾 footer 文字
+  html = html.replace(
+    /<footer>[^<]*<\/footer>/,
+    `<footer>Travel / ${fname} &nbsp;·&nbsp; ${dest} &nbsp;·&nbsp; ${year}</footer>`
+  );
+
+  // 8. 清空行程內容（itinerary tab 的 <main> 留骨架，避免帶入舊行程資料）
+  html = html.replace(
+    /(<div id="itinerary" class="tab-panel[^"]*">\s*<main>)([\s\S]*?)(<\/main>\s*<\/div>)/,
+    `$1
   <a href="index.html" style="display:inline-flex;align-items:center;gap:0.4rem;font-family:'DM Mono',monospace;font-size:0.7rem;letter-spacing:0.1em;color:var(--gold);text-decoration:none;margin-bottom:2rem;opacity:0.8;">← 返回旅遊首頁</a>
-  <div style="display:flex;flex-wrap:wrap;gap:0.4rem;margin-bottom:2rem;">
-${tagsHtml}
-  </div>
+
+  <!-- 標籤 -->
+  <div style="display:flex;flex-wrap:wrap;gap:0.4rem;margin-bottom:2rem;">${tagsHtml}</div>
+
+  <!-- ══ DAY 1 ══ 複製此區塊新增每日行程 -->
   <div class="day-block">
     <div class="day-header">
       <div class="day-label">D1</div>
@@ -613,21 +684,54 @@ ${tagsHtml}
       </div>
     </div>
   </div>
-</main>
-</div>
-<footer>Travel / ${fname} &nbsp;·&nbsp; ${dest} &nbsp;·&nbsp; ${year}</footer>
-<script src="js/tracker.js"><\\/script>
-<script src="js/export.js"><\\/script>
-<script src="js/tabs.js"><\\/script>
-</body>
-</html>`;
+  <!-- 在此繼續加入 D2、D3… 的 .day-block -->
+
+$3`
+  );
+
+  // 9. 清空其他 Firebase 編輯器資料（美食、交通、景點、飯店、小筆記 清空資料列）
+  //    保留 UI 架構，只清除 Firestore collection 路徑避免寫入舊旅程的文件
+  html = html.replace(
+    /db\.collection\('[^']+'\)/g,
+    `db.collection('${storageKey}')`
+  );
+
+  // ── 下載 ──
   const blob = new Blob([html], { type: 'text/html;charset=utf-8' });
   const url  = URL.createObjectURL(blob);
   const a    = Object.assign(document.createElement('a'), { href: url, download: fname });
   a.click();
   URL.revokeObjectURL(url);
+
   closeModal();
-  alert(`✅ 已產生 ${fname}！\n放入 Travel/ 資料夾後，手動把旅程卡片加進 index.html。`);
+  alert(
+    `✅ 已產生 ${fname}！\n\n` +
+    `繼承自：${TEMPLATE_FALLBACK_NAME} 的完整功能架構\n` +
+    `Firebase 集合：${storageKey}\n\n` +
+    `接下來：\n` +
+    `1. 把 ${fname} 放入 Travel/ 資料夾\n` +
+    `2. 在 index.html 的旅程列表加入新卡片\n` +
+    `3. 開始填入行程內容！`
+  );
+}
+
+/* ── 網路失敗時的備用說明 ── */
+function showFallbackGuide(fname, dest, sub, country, flag, dateDsp, grad, tagsHtml) {
+  const guide = document.getElementById('fallback-guide');
+  guide.innerHTML = `
+    <div style="background:#fff3cd;border:1.5px solid #e8c040;border-radius:8px;padding:1.1rem 1.3rem;margin-top:1rem;font-size:0.82rem;line-height:1.8;">
+      <div style="font-weight:900;margin-bottom:0.5rem;">⚠️ 無法連線至 GitHub，請手動複製範本</div>
+      <div style="font-family:'DM Mono',monospace;font-size:0.75rem;color:#555;">
+        1. 複製 <strong>${TEMPLATE_FALLBACK_NAME}</strong> → 重新命名為 <strong>${fname}</strong><br>
+        2. 用文字編輯器開啟，找到以下區段修改：<br>
+        &nbsp;&nbsp;• <code>&lt;title&gt;</code> → <strong>${dest} · 旅遊記錄</strong><br>
+        &nbsp;&nbsp;• <code>date-tag</code> → <strong>${flag} ${country} · ${dateDsp}</strong><br>
+        &nbsp;&nbsp;• <code>&lt;h1&gt;</code> → <strong>${dest}</strong><br>
+        &nbsp;&nbsp;• <code>storageKey</code> → 新的唯一字串<br>
+        &nbsp;&nbsp;• <code>header::before content</code> → <strong>'${dest.slice(0,2)}'</strong>
+      </div>
+    </div>`;
+  guide.style.display = 'block';
 }
 </script>
 </body>
