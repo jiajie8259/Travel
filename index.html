@@ -735,9 +735,15 @@ $3`
   }
   grid.querySelector('.add-card').insertAdjacentHTML('beforebegin', cardBlock);
 
-  // ── 步驟 3：序列化已更新的 DOM，下載為 index.html ──
+  // ── 步驟 3：從 DOM 組合乾淨的 HTML 字串並下載 index.html ──
+  // 注意：不用 XMLSerializer（會把 script 內容轉義成 XHTML，導致 JS 全部失效）
+  // 改用 innerHTML 直接取得 HTML 字串，再手動加回 <!DOCTYPE html>
   await new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r)));
-  const updatedHTML = '<!DOCTYPE html>\n' + new XMLSerializer().serializeToString(document);
+  const updatedHTML = '<!DOCTYPE html>\n<html lang="zh-TW">\n'
+    + document.head.outerHTML
+    + '\n'
+    + document.body.outerHTML
+    + '\n</html>';
   const idxBlob = new Blob([updatedHTML], { type: 'text/html;charset=utf-8' });
   const idxUrl  = URL.createObjectURL(idxBlob);
   await new Promise(r => setTimeout(r, 600));
