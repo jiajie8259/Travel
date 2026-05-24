@@ -498,7 +498,7 @@
     <!-- 範本來源提示 -->
     <div style="font-family:'DM Mono',monospace;font-size:0.62rem;color:var(--muted);margin-bottom:1rem;padding:0.5rem 0.75rem;background:var(--cream);border-radius:4px;line-height:1.6;">
       📋 範本來源：<span style="color:var(--ink);font-weight:700;">202610_Kobe.html</span>（最新行程）<br>
-      將完整繼承所有功能架構，僅替換標題、日期、配色。
+      本機開啟或 GitHub Pages 均可自動讀取，完整繼承所有功能架構。
     </div>
 
     <div class="modal-actions">
@@ -557,8 +557,10 @@ function calcNights(start, end) {
    ════════════════════════════════════════════════════════ */
 
 // ── 範本設定（未來換新基準行程時只改這一行）──
+// 相對路徑：本機 file:// 和 GitHub Pages 都能正常讀取
+const TEMPLATE_RELATIVE = './202610_Kobe.html';
+// 絕對路徑：僅作備用（線上環境）
 const TEMPLATE_URL = 'https://jiajie8259.github.io/202610_Kobe.html';
-// 備用：若 GitHub 抓取失敗，提示使用者手動複製的說明
 const TEMPLATE_FALLBACK_NAME = '202610_Kobe.html';
 
 async function createTrip() {
@@ -587,14 +589,27 @@ async function createTrip() {
   btn.disabled = true;
 
   let tmpl = null;
-  try {
-    const res = await fetch(TEMPLATE_URL, { cache: 'no-cache' });
-    if (!res.ok) throw new Error(`HTTP ${res.status}`);
-    tmpl = await res.text();
-  } catch (err) {
+
+  // 嘗試順序：
+  // 1. 相對路徑（本機 file:// 和 GitHub Pages 均可用）
+  // 2. 絕對路徑（線上備用）
+  // 3. 顯示手動複製說明
+  const urlsToTry = [TEMPLATE_RELATIVE, TEMPLATE_URL];
+
+  for (const url of urlsToTry) {
+    try {
+      const res = await fetch(url, { cache: 'no-cache' });
+      if (!res.ok) continue;
+      tmpl = await res.text();
+      if (tmpl && tmpl.includes('<!DOCTYPE')) break; // 確認是有效 HTML
+    } catch (e) {
+      continue; // 試下一個
+    }
+  }
+
+  if (!tmpl) {
     btn.textContent = origText;
     btn.disabled = false;
-    // 抓取失敗 → 顯示手動複製說明
     showFallbackGuide(fname, dest, sub, country, flag, dateDsp, grad, tagsHtml);
     return;
   }
