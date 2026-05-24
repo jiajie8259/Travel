@@ -359,7 +359,7 @@
       <div class="year-line"></div>
     </div>
 
-    <div class="trip-grid">
+    <div class="trip-grid" id="grid-2026">
 
       <!-- 東京 -->
       <a class="trip-card" href="2026_tokyo.html">
@@ -411,7 +411,7 @@
       </a>
 
       <!-- 新增下一趟 -->
-      <div class="trip-card add-card" onclick="openModal()">
+      <div id="add-card-2026" class="trip-card add-card" onclick="openModal()">
         <div class="add-inner">
           <span class="add-plus">＋</span>
           下一趟旅程
@@ -422,7 +422,7 @@
   </div>
 
   <!-- ── 2027（預留）── -->
-  <div class="year-group">
+  <div class="year-group" id="year-group-2027">
     <div class="year-header">
       <div>
         <div class="year-label">Year</div>
@@ -430,7 +430,7 @@
       </div>
       <div class="year-line"></div>
     </div>
-    <div class="trip-grid">
+    <div class="trip-grid" id="grid-2027">
       <div class="trip-card add-card" onclick="openModal()">
         <div class="add-inner">
           <span class="add-plus">＋</span>
@@ -455,6 +455,11 @@
     <div class="field-group">
       <label class="field-label">目的地名稱 Destination</label>
       <input class="field-input" id="f-dest" type="text" placeholder="例：京都五日遊">
+    </div>
+    <div class="field-group">
+      <label class="field-label">英文檔名 Filename <span style="font-weight:400;opacity:0.6;">（英數字，自動加年月前綴）</span></label>
+      <input class="field-input" id="f-slug" type="text" placeholder="例：Kyoto" style="font-family:'DM Mono',monospace;">
+      <div id="fname-preview" style="font-family:'DM Mono',monospace;font-size:0.65rem;color:var(--muted);margin-top:0.3rem;padding-left:0.2rem;">← 填入開始日期後自動預覽</div>
     </div>
     <div class="field-group">
       <label class="field-label">副標題 Subtitle</label>
@@ -537,6 +542,25 @@ document.getElementById('swatches').addEventListener('click', function(e) {
   sw.classList.add('selected');
 });
 
+/* ── 即時預覽檔名 ── */
+function updateFnamePreview() {
+  const start = document.getElementById('f-start').value;
+  const slug  = document.getElementById('f-slug').value.trim().replace(/[^a-zA-Z0-9_-]/g, '') || 'NewTrip';
+  const preview = document.getElementById('fname-preview');
+  if (!preview) return;
+  if (start) {
+    const y = start.split('-')[0];
+    const m = start.split('-')[1];
+    preview.textContent = `→ 檔名：${y}${m}_${slug}.html`;
+    preview.style.color = 'var(--ink)';
+  } else {
+    preview.textContent = '← 填入開始日期後自動預覽';
+    preview.style.color = 'var(--muted)';
+  }
+}
+document.getElementById('f-start').addEventListener('change', updateFnamePreview);
+document.getElementById('f-slug').addEventListener('input', updateFnamePreview);
+
 /* ── 工具函式 ── */
 function formatDate(d) {
   if (!d) return '';
@@ -571,14 +595,18 @@ async function createTrip() {
   const country = document.getElementById('f-country').value.trim() || '日本';
   const flag    = document.getElementById('f-flag').value.trim()    || '🌍';
   const tagsRaw = document.getElementById('f-tags').value.trim();
+  const slug    = document.getElementById('f-slug').value.trim().replace(/[^a-zA-Z0-9_-]/g, '') || 'NewTrip';
   const grad    = document.querySelector('#swatches .swatch.selected')?.dataset.grad
                   || 'linear-gradient(90deg,#c0392b,#e67e22)';
 
   if (!dest) { alert('請填寫目的地名稱'); return; }
+  if (!start) { alert('請填寫開始日期（用於產生檔名）'); return; }
 
   const tags    = tagsRaw ? tagsRaw.split(/[,，]/).map(t => t.trim()).filter(Boolean) : [country];
-  const year    = start ? start.split('-')[0] : new Date().getFullYear();
-  const fname   = `${year}_${dest.replace(/\s+/g, '_')}.html`;
+  // 檔名格式：YYYYMM_Slug.html
+  const year    = start.split('-')[0];
+  const month   = start.split('-')[1];
+  const fname   = `${year}${month}_${slug}.html`;
   const dateDsp = (start && end) ? `${formatDate(start)} – ${formatDate(end).slice(-8)}` : '待定';
   const tagsHtml = tags.map(t => `<span class="trip-tag">${t}</span>`).join(' ');
 
@@ -711,22 +739,86 @@ $3`
     `db.collection('${storageKey}')`
   );
 
-  // ── 下載 ──
+  // ── 步驟 1：下載新行程 HTML ──
   const blob = new Blob([html], { type: 'text/html;charset=utf-8' });
   const url  = URL.createObjectURL(blob);
   const a    = Object.assign(document.createElement('a'), { href: url, download: fname });
   a.click();
   URL.revokeObjectURL(url);
 
+  // ── 步驟 2：在 DOM 即時插入旅程卡片 ──
+  const nights = (start && end)
+    ? Math.round((new Date(end) - new Date(start)) / 86400000)
+    : '?';
+  const days   = nights === '?' ? '?' : nights + 1;
+
+  const cardHTML = `
+      <!-- ${dest}（自動新增）-->
+      <a class="trip-card" href="${fname}" style="animation:fadeUp 0.5s ease both;">
+        <div class="trip-card-banner" style="background:${grad};"></div>
+        <div class="trip-card-body">
+          <div class="trip-meta">
+            <span class="trip-flag">${flag}</span>
+            <span class="trip-dates">${start ? start.replace(/-/g,'/').replace(/(\d{4})\/(\d{2})\/(\d{2})/,'$1 / $2 / $3') : ''} – ${end ? end.slice(5).replace('-','/') : ''}</span>
+            <span class="badge-upcoming">upcoming</span>
+          </div>
+          <div class="trip-title">${dest}</div>
+          <div class="trip-subtitle">${sub || ''}</div>
+          <div class="trip-tags">${tags.map(t=>`<span class="trip-tag">${t}</span>`).join('')}</div>
+        </div>
+        <div class="trip-card-footer">
+          <span class="trip-days">${days} 天 ${nights} 夜</span>
+          <span class="trip-arrow">→</span>
+        </div>
+      </a>`;
+
+  // 找對應年份的 grid 插入（有則插入；無則建立新年份區塊）
+  const gridId = `grid-${year}`;
+  let grid = document.getElementById(gridId);
+
+  if (!grid) {
+    // 年份區塊不存在 → 在 footer 前建立
+    const main = document.querySelector('main');
+    const newYearGroup = document.createElement('div');
+    newYearGroup.className = 'year-group';
+    newYearGroup.id = `year-group-${year}`;
+    newYearGroup.innerHTML = `
+      <div class="year-header">
+        <div>
+          <div class="year-label">Year</div>
+          <div class="year-num">${year}</div>
+        </div>
+        <div class="year-line"></div>
+      </div>
+      <div class="trip-grid" id="${gridId}">
+        <div class="trip-card add-card" onclick="openModal()">
+          <div class="add-inner"><span class="add-plus">＋</span>下一趟旅程</div>
+        </div>
+      </div>`;
+    // 插在最後一個 year-group 之後、footer 之前
+    const footer = document.querySelector('footer');
+    main.insertBefore(newYearGroup, footer);
+    grid = document.getElementById(gridId);
+  }
+
+  // 在 add-card 前插入新卡片
+  const addCard = grid.querySelector('.add-card');
+  addCard.insertAdjacentHTML('beforebegin', cardHTML);
+
+  // ── 步驟 3：下載更新後的 index.html ──
+  await new Promise(r => setTimeout(r, 300)); // 等 DOM 更新完畢
+  const updatedIndex = '<!DOCTYPE html>\n' + document.documentElement.outerHTML;
+  const idxBlob = new Blob([updatedIndex], { type: 'text/html;charset=utf-8' });
+  const idxUrl  = URL.createObjectURL(idxBlob);
+  const idxA    = Object.assign(document.createElement('a'), { href: idxUrl, download: 'index.html' });
+  setTimeout(() => { idxA.click(); URL.revokeObjectURL(idxUrl); }, 500);
+
   closeModal();
   alert(
-    `✅ 已產生 ${fname}！\n\n` +
-    `繼承自：${TEMPLATE_FALLBACK_NAME} 的完整功能架構\n` +
-    `Firebase 集合：${storageKey}\n\n` +
-    `接下來：\n` +
-    `1. 把 ${fname} 放入 Travel/ 資料夾\n` +
-    `2. 在 index.html 的旅程列表加入新卡片\n` +
-    `3. 開始填入行程內容！`
+    `✅ 完成！已下載兩個檔案：\n\n` +
+    `📄 ${fname}（新行程）\n` +
+    `📄 index.html（已加入新旅程卡片）\n\n` +
+    `請將兩個檔案放入 Travel/ 資料夾取代舊版即可。`
   );
 }
 
