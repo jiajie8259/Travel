@@ -410,6 +410,7 @@
         </div>
       </a>
 
+      <!-- INJECT:2026 -->
       <!-- 新增下一趟 -->
       <div id="add-card-2026" class="trip-card add-card" onclick="openModal()">
         <div class="add-inner">
@@ -421,6 +422,7 @@
     </div>
   </div>
 
+  <!-- INJECT:NEW_YEAR -->
   <!-- ── 2027（預留）── -->
   <div class="year-group" id="year-group-2027">
     <div class="year-header">
@@ -603,37 +605,153 @@ async function createTrip() {
   if (!start) { alert('請填寫開始日期（用於產生檔名）'); return; }
 
   const tags    = tagsRaw ? tagsRaw.split(/[,，]/).map(t => t.trim()).filter(Boolean) : [country];
-  // 檔名格式：YYYYMM_Slug.html
   const year    = start.split('-')[0];
   const month   = start.split('-')[1];
   const fname   = `${year}${month}_${slug}.html`;
   const dateDsp = (start && end) ? `${formatDate(start)} – ${formatDate(end).slice(-8)}` : '待定';
   const tagsHtml = tags.map(t => `<span class="trip-tag">${t}</span>`).join(' ');
+  const nights  = (start && end) ? Math.round((new Date(end) - new Date(start)) / 86400000) : '?';
+  const days    = nights === '?' ? '?' : nights + 1;
 
-  // ── 顯示讀取中狀態 ──
+  // ── 讀取中狀態 ──
   const btn = document.querySelector('.btn-create');
   const origText = btn.textContent;
-  btn.textContent = '⏳ 抓取範本中…';
+  btn.textContent = '⏳ 處理中…';
   btn.disabled = true;
 
+  // ══════════════════════════════
+  // 步驟 1：從 GitHub 抓取行程範本
+  // ══════════════════════════════
   let tmpl = null;
-
-  // 嘗試順序：
-  // 1. 相對路徑（本機 file:// 和 GitHub Pages 均可用）
-  // 2. 絕對路徑（線上備用）
-  // 3. 顯示手動複製說明
   const urlsToTry = [TEMPLATE_RELATIVE, TEMPLATE_URL];
-
   for (const url of urlsToTry) {
     try {
       const res = await fetch(url, { cache: 'no-cache' });
       if (!res.ok) continue;
-      tmpl = await res.text();
-      if (tmpl && tmpl.includes('<!DOCTYPE')) break; // 確認是有效 HTML
-    } catch (e) {
-      continue; // 試下一個
-    }
+      const txt = await res.text();
+      if (txt && txt.includes('<!DOCTYPE')) { tmpl = txt; break; }
+    } catch(e) { continue; }
   }
+
+  btn.textContent = origText;
+  btn.disabled = false;
+
+  if (!tmpl) {
+    showFallbackGuide(fname, dest, sub, country, flag, dateDsp, grad, tagsHtml);
+    return;
+  }
+
+  // ══════════════════════════════
+  // 步驟 2：替換範本關鍵欄位
+  // ══════════════════════════════
+  let html = tmpl;
+  const storageKey = `trip_${year}${month}_${slug.slice(0,8)}`;
+
+  html = html.replace(/<title>[^<]*<\/title>/, `<title>${dest} · 旅遊記錄</title>`);
+  html = html.replace(/(<div class="date-tag">)[^<]*/, `$1${flag} ${country} · ${dateDsp}`);
+  html = html.replace(/(<header[^>]*>[\s\S]*?<div class="date-tag">[^<]*<\/div>\s*<h1>)[^<]*/, `$1${dest}`);
+  html = html.replace(/(<header[^>]*>[\s\S]*?<\/h1>\s*<p>)[^<]*/, `$1${sub || '行程記錄'}`);
+  html = html.replace(/(header::before\s*\{[\s\S]*?content:\s*')[^']*'/, `$1${dest.slice(0, 2)}'`);
+  html = html.replace(/(header::after[\s\S]*?background:\s*)[^;]+;/, `$1${grad}; opacity: 0.15;`);
+  html = html.replace(/(storageKey:\s*')[^']*'/, `$1${storageKey}'`);
+  html = html.replace(/(exportName:\s*')[^']*'/, `$1${dest}記帳'`);
+  html = html.replace(/<footer>[^<]*<\/footer>/, `<footer>Travel / ${fname} &nbsp;·&nbsp; ${dest} &nbsp;·&nbsp; ${year}</footer>`);
+  html = html.replace(/db\.collection\('[^']+'\)/g, `db.collection('${storageKey}')`);
+  html = html.replace(
+    /(<div id="itinerary" class="tab-panel[^"]*">\s*<main>)([\s\S]*?)(<\/main>\s*<\/div>)/,
+    `$1
+  <a href="index.html" style="display:inline-flex;align-items:center;gap:0.4rem;font-family:'DM Mono',monospace;font-size:0.7rem;letter-spacing:0.1em;color:var(--gold);text-decoration:none;margin-bottom:2rem;opacity:0.8;">← 返回旅遊首頁</a>
+  <div style="display:flex;flex-wrap:wrap;gap:0.4rem;margin-bottom:2rem;">${tagsHtml}</div>
+  <div class="day-block">
+    <div class="day-header">
+      <div class="day-label">D1</div>
+      <div class="day-sub">${start ? formatDate(start) : '第一天'} · 出發</div>
+    </div>
+    <div class="period">
+      <div class="period-title">早上・出發</div>
+      <div class="event">
+        <div class="event-type"><span class="tag tag-transport">交通</span></div>
+        <div class="event-body">
+          <div class="event-name">✈ 出發</div>
+          <div class="event-note">從台灣出發，前往${country}。</div>
+        </div>
+      </div>
+    </div>
+  </div>
+$3`
+  );
+
+  // ══════════════════════════════════════════
+  // 步驟 3：下載新行程 HTML
+  // ══════════════════════════════════════════
+  const tripBlob = new Blob([html], { type: 'text/html;charset=utf-8' });
+  const tripUrl  = URL.createObjectURL(tripBlob);
+  const tripA    = Object.assign(document.createElement('a'), { href: tripUrl, download: fname });
+  tripA.click();
+  URL.revokeObjectURL(tripUrl);
+
+  // ══════════════════════════════════════════
+  // 步驟 4：讀取 index.html 原始碼 → 字串插入新卡片 → 下載
+  // ══════════════════════════════════════════
+  const cardBlock = `
+      <!-- ${dest}（自動新增）-->
+      <a class="trip-card" href="${fname}">
+        <div class="trip-card-banner" style="background:${grad};"></div>
+        <div class="trip-card-body">
+          <div class="trip-meta">
+            <span class="trip-flag">${flag}</span>
+            <span class="trip-dates">${start.replace(/-/g, '/').replace(/(\d{4})\/(\d{2})\/(\d{2})/, '$1 / $2 / $3')} – ${end ? end.slice(5).replace('-', '/') : ''}</span>
+            <span class="badge-upcoming">upcoming</span>
+          </div>
+          <div class="trip-title">${dest}</div>
+          <div class="trip-subtitle">${sub || ''}</div>
+          <div class="trip-tags">${tags.map(t => `<span class="trip-tag">${t}</span>`).join('')}</div>
+        </div>
+        <div class="trip-card-footer">
+          <span class="trip-days">${days} 天 ${nights} 夜</span>
+          <span class="trip-arrow">→</span>
+        </div>
+      </a>
+`;
+
+  // ── 步驟 2：把新卡片插入當前頁面 DOM（視覺回饋）──
+  const gridId = `grid-${year}`;
+  let grid = document.getElementById(gridId);
+  if (!grid) {
+    const nyg = document.createElement('div');
+    nyg.className = 'year-group';
+    nyg.innerHTML = `
+      <div class="year-header">
+        <div><div class="year-label">Year</div><div class="year-num">${year}</div></div>
+        <div class="year-line"></div>
+      </div>
+      <div class="trip-grid" id="${gridId}">
+        <div class="trip-card add-card" onclick="openModal()">
+          <div class="add-inner"><span class="add-plus">＋</span>下一趟旅程</div>
+        </div>
+      </div>`;
+    document.querySelector('footer').before(nyg);
+    grid = document.getElementById(gridId);
+  }
+  grid.querySelector('.add-card').insertAdjacentHTML('beforebegin', cardBlock);
+
+  // ── 步驟 3：序列化已更新的 DOM，下載為 index.html ──
+  await new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r)));
+  const updatedHTML = '<!DOCTYPE html>\n' + new XMLSerializer().serializeToString(document);
+  const idxBlob = new Blob([updatedHTML], { type: 'text/html;charset=utf-8' });
+  const idxUrl  = URL.createObjectURL(idxBlob);
+  await new Promise(r => setTimeout(r, 600));
+  const idxA = Object.assign(document.createElement('a'), { href: idxUrl, download: 'index.html' });
+  document.body.appendChild(idxA);
+  idxA.click();
+  document.body.removeChild(idxA);
+  URL.revokeObjectURL(idxUrl);
+
+  closeModal();
+  alert(`✅ 完成！已下載兩個檔案：\n\n📄 ${fname}（新行程）\n📄 index.html（已加入新旅程卡片）\n\n請將兩個檔案放入 Travel/ 資料夾取代舊版即可。`);
+}
+
+
 
   if (!tmpl) {
     btn.textContent = origText;
@@ -739,88 +857,6 @@ $3`
     `db.collection('${storageKey}')`
   );
 
-  // ── 步驟 1：下載新行程 HTML ──
-  const blob = new Blob([html], { type: 'text/html;charset=utf-8' });
-  const url  = URL.createObjectURL(blob);
-  const a    = Object.assign(document.createElement('a'), { href: url, download: fname });
-  a.click();
-  URL.revokeObjectURL(url);
-
-  // ── 步驟 2：在 DOM 即時插入旅程卡片 ──
-  const nights = (start && end)
-    ? Math.round((new Date(end) - new Date(start)) / 86400000)
-    : '?';
-  const days   = nights === '?' ? '?' : nights + 1;
-
-  const cardHTML = `
-      <!-- ${dest}（自動新增）-->
-      <a class="trip-card" href="${fname}" style="animation:fadeUp 0.5s ease both;">
-        <div class="trip-card-banner" style="background:${grad};"></div>
-        <div class="trip-card-body">
-          <div class="trip-meta">
-            <span class="trip-flag">${flag}</span>
-            <span class="trip-dates">${start ? start.replace(/-/g,'/').replace(/(\d{4})\/(\d{2})\/(\d{2})/,'$1 / $2 / $3') : ''} – ${end ? end.slice(5).replace('-','/') : ''}</span>
-            <span class="badge-upcoming">upcoming</span>
-          </div>
-          <div class="trip-title">${dest}</div>
-          <div class="trip-subtitle">${sub || ''}</div>
-          <div class="trip-tags">${tags.map(t=>`<span class="trip-tag">${t}</span>`).join('')}</div>
-        </div>
-        <div class="trip-card-footer">
-          <span class="trip-days">${days} 天 ${nights} 夜</span>
-          <span class="trip-arrow">→</span>
-        </div>
-      </a>`;
-
-  // 找對應年份的 grid 插入（有則插入；無則建立新年份區塊）
-  const gridId = `grid-${year}`;
-  let grid = document.getElementById(gridId);
-
-  if (!grid) {
-    // 年份區塊不存在 → 在 footer 前建立
-    const main = document.querySelector('main');
-    const newYearGroup = document.createElement('div');
-    newYearGroup.className = 'year-group';
-    newYearGroup.id = `year-group-${year}`;
-    newYearGroup.innerHTML = `
-      <div class="year-header">
-        <div>
-          <div class="year-label">Year</div>
-          <div class="year-num">${year}</div>
-        </div>
-        <div class="year-line"></div>
-      </div>
-      <div class="trip-grid" id="${gridId}">
-        <div class="trip-card add-card" onclick="openModal()">
-          <div class="add-inner"><span class="add-plus">＋</span>下一趟旅程</div>
-        </div>
-      </div>`;
-    // 插在最後一個 year-group 之後、footer 之前
-    const footer = document.querySelector('footer');
-    main.insertBefore(newYearGroup, footer);
-    grid = document.getElementById(gridId);
-  }
-
-  // 在 add-card 前插入新卡片
-  const addCard = grid.querySelector('.add-card');
-  addCard.insertAdjacentHTML('beforebegin', cardHTML);
-
-  // ── 步驟 3：下載更新後的 index.html ──
-  await new Promise(r => setTimeout(r, 300)); // 等 DOM 更新完畢
-  const updatedIndex = '<!DOCTYPE html>\n' + document.documentElement.outerHTML;
-  const idxBlob = new Blob([updatedIndex], { type: 'text/html;charset=utf-8' });
-  const idxUrl  = URL.createObjectURL(idxBlob);
-  const idxA    = Object.assign(document.createElement('a'), { href: idxUrl, download: 'index.html' });
-  setTimeout(() => { idxA.click(); URL.revokeObjectURL(idxUrl); }, 500);
-
-  closeModal();
-  alert(
-    `✅ 完成！已下載兩個檔案：\n\n` +
-    `📄 ${fname}（新行程）\n` +
-    `📄 index.html（已加入新旅程卡片）\n\n` +
-    `請將兩個檔案放入 Travel/ 資料夾取代舊版即可。`
-  );
-}
 
 /* ── 網路失敗時的備用說明 ── */
 function showFallbackGuide(fname, dest, sub, country, flag, dateDsp, grad, tagsHtml) {
