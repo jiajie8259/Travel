@@ -848,6 +848,72 @@ async function createTrip() {
   // Firebase collection path
   html = html.replace(/db\.collection\('[^']+'\)/g, "db.collection('" + storageKey + "')");
 
+  // ── 清空各頁籤的舊行程資料，只保留功能架構 ──
+
+  // 1. cards 頁籤：清空 mini-card 內容，留空殼提示
+  html = html.replace(
+    /(<div id="cards" class="tab-panel">\s*<div id="card-section">\s*<h2[^<]*<\/h2>\s*<div class="card-grid">)[\s\S]*?(<\/div>\s*<\/div>\s*<\/div>\s*\n\n<!-- ══ TAB)/,
+    '$1\n    <div style="padding:3rem;text-align:center;color:var(--muted);font-family:\'DM Mono\',monospace;font-size:0.82rem;line-height:2;border:1.5px dashed #ccc;border-radius:8px;margin:1rem 0;">\n      ✂ 隨身小卡待補充<br>\n      <span style="font-size:0.7rem;opacity:0.6;">行程確認後，依每日行程內容填入各天小卡</span>\n    </div>\n  $2'
+  );
+
+  // 2. TRACKER_SPOTS：清空，避免帶入舊據點
+  html = html.replace(
+    /(TRACKER_SPOTS:\s*\{)[\s\S]*?(\},\s*\n\s*CARD_CHIP_STYLE)/,
+    '$1\n  $2'
+  );
+
+  // 3. pay-panel-itinerary：清空 itin-day 區塊和警示，留「開始追蹤」按鈕
+  html = html.replace(
+    /(<div id="pay-panel-itinerary"[\s\S]*?開始追蹤[\s\S]*?<\/button>\s*<\/div>)[\s\S]*?(<div id="pay-panel-advisor")/,
+    '$1\n\n    <div class="empty-notice" style="margin-top:1.5rem;">\n      📍 行程支付對照待補充<br>\n      <span style="font-size:0.75rem;opacity:0.7;">確認行程據點後，在 TRIP_CONFIG 的 TRACKER_SPOTS 填入各景點設定</span>\n    </div>\n\n  $2'
+  );
+
+  // 4. dayLabels / dayOrder / freeDays：根據輸入日期自動生成
+  if (start && end) {
+    const startD = new Date(start);
+    const endD   = new Date(end);
+    const totalDays = Math.round((endD - startD) / 86400000) + 1;
+    const weekdays  = ['日','一','二','三','四','五','六'];
+
+    // 建立各天的資料
+    const dayEntries = [];
+    for (let d = 0; d < totalDays; d++) {
+      const date = new Date(startD);
+      date.setDate(startD.getDate() + d);
+      const mo   = date.getMonth() + 1;
+      const dy   = date.getDate();
+      const wday = weekdays[date.getDay()];
+      dayEntries.push({
+        key:   'd' + (d + 1),
+        label: 'D' + (d + 1) + ' · ' + mo + '/' + dy + '（' + wday + '）'
+      });
+    }
+
+    // 替換 dayLabels
+    let labelsStr = '';
+    dayEntries.forEach(function(e) { labelsStr += '    ' + e.key + ': ' + "'" + e.label + "'" + ',\n'; });
+    html = html.replace(
+      /dayLabels:\s*\{[\s\S]*?\},/,
+      'dayLabels: {\n' + labelsStr + '  },'
+    );
+
+    // 替換 dayOrder
+    let orderStr = '';
+    dayEntries.forEach(function(e) { orderStr += "    '" + e.label + "',\n"; });
+    orderStr += "    '" + '其他' + "',\n";
+    html = html.replace(
+      /dayOrder:\s*\[[\s\S]*?\],/,
+      'dayOrder: [\n' + orderStr + '  ],'
+    );
+
+    // 替換 freeDays
+    const freeDaysArr = dayEntries.map(function(e) { return "'" + e.key + "'"; }).join(',');
+    html = html.replace(
+      /freeDays:\s*\[[^\]]*\]/,
+      'freeDays: [' + freeDaysArr + ']'
+    );
+
+  }
   // itinerary content - 清空舊行程，留 D1 骨架
   const itinNew = [
     '<a href="index.html" style="display:inline-flex;align-items:center;gap:0.4rem;',
