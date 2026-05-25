@@ -206,6 +206,95 @@
     vertical-align: middle; margin-left: 0.4rem;
   }
 
+  /* ── 編輯模式 ── */
+  /* 頂部編輯列 */
+  .edit-bar {
+    display: none;
+    background: #1a1209;
+    color: #f0c040;
+    padding: 0.55rem 1.5rem;
+    font-family: 'DM Mono', monospace;
+    font-size: 0.72rem;
+    letter-spacing: 0.08em;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.3);
+  }
+  .edit-bar.active { display: flex; }
+  .edit-bar-label { display: flex; align-items: center; gap: 0.5rem; }
+  .edit-bar-dot {
+    width: 8px; height: 8px; border-radius: 50%;
+    background: #f0c040; animation: editPulse 1.5s infinite;
+  }
+  @keyframes editPulse {
+    0%,100% { opacity: 1; } 50% { opacity: 0.3; }
+  }
+  .edit-bar-actions { display: flex; gap: 0.6rem; }
+  .edit-bar-btn {
+    background: none; border: 1px solid rgba(255,255,255,0.25);
+    color: var(--paper); font-family: 'DM Mono', monospace;
+    font-size: 0.68rem; letter-spacing: 0.05em;
+    padding: 0.3rem 0.8rem; border-radius: 4px;
+    cursor: pointer; transition: all 0.15s;
+  }
+  .edit-bar-btn:hover { background: rgba(255,255,255,0.1); }
+  .edit-bar-btn.save-btn {
+    background: #f0c040; color: #1a1209;
+    border-color: #f0c040; font-weight: 700;
+  }
+  .edit-bar-btn.save-btn:hover { background: #e8b830; }
+
+  /* 卡片刪除按鈕（預設隱藏，編輯模式顯示）*/
+  .card-delete-btn {
+    display: none;
+    position: absolute;
+    top: 0.5rem; right: 0.5rem;
+    width: 24px; height: 24px;
+    background: rgba(192,57,43,0.9);
+    color: white;
+    border: none;
+    border-radius: 50%;
+    font-size: 0.75rem;
+    line-height: 24px;
+    text-align: center;
+    cursor: pointer;
+    z-index: 10;
+    transition: background 0.15s, transform 0.15s;
+  }
+  .card-delete-btn:hover { background: #a93226; transform: scale(1.15); }
+
+  /* 編輯模式下的卡片樣式 */
+  body.edit-mode .trip-card:not(.add-card) {
+    position: relative;
+    outline: 2px dashed rgba(184,134,11,0.4);
+    outline-offset: 2px;
+  }
+  body.edit-mode .trip-card:not(.add-card):hover {
+    outline-color: var(--red);
+  }
+  body.edit-mode .card-delete-btn { display: block; }
+
+  /* 年份區塊刪除按鈕 */
+  .year-delete-btn {
+    display: none;
+    background: none;
+    border: 1px dashed #ccc;
+    color: var(--muted);
+    font-family: 'DM Mono', monospace;
+    font-size: 0.6rem;
+    padding: 0.2rem 0.6rem;
+    border-radius: 3px;
+    cursor: pointer;
+    margin-left: 0.75rem;
+    transition: all 0.15s;
+  }
+  .year-delete-btn:hover { border-color: var(--red); color: var(--red); }
+  body.edit-mode .year-delete-btn { display: inline-block; }
+
   /* ── FOOTER ── */
   footer {
     text-align: center; padding: 2rem; font-size: 0.75rem;
@@ -295,6 +384,18 @@
 </head>
 <body>
 
+<!-- ── 編輯列（編輯模式顯示）── -->
+<div class="edit-bar" id="editBar">
+  <div class="edit-bar-label">
+    <div class="edit-bar-dot"></div>
+    <span>編輯模式 — 點擊卡片右上角 ✕ 可刪除</span>
+  </div>
+  <div class="edit-bar-actions">
+    <button class="edit-bar-btn" onclick="toggleEditMode()">✕ 離開編輯</button>
+    <button class="edit-bar-btn save-btn" onclick="saveIndex()">⬇ 儲存 index.html</button>
+  </div>
+</div>
+
 <!-- ── HERO（縮短版）── -->
 <div class="hero">
   <div class="hero-bg-text">TRAVEL</div>
@@ -352,9 +453,10 @@
   <!-- ── 2026 ── -->
   <div class="year-group">
     <div class="year-header">
-      <div>
+      <div style="display:flex;align-items:baseline;gap:0.5rem;">
         <div class="year-label">Year</div>
         <div class="year-num">2026</div>
+        <button class="year-delete-btn" onclick="deleteYearGroup(event, this)">✕ 刪除此年份區塊</button>
       </div>
       <div class="year-line"></div>
     </div>
@@ -363,6 +465,7 @@
 
       <!-- 東京 -->
       <a class="trip-card" href="2026_tokyo.html">
+        <button class="card-delete-btn" onclick="deleteCard(event, this)" title="刪除此行程卡片">✕</button>
         <div class="trip-card-banner" style="background: linear-gradient(90deg, #c0392b, #e67e22);"></div>
         <div class="trip-card-body">
           <div class="trip-meta">
@@ -387,6 +490,7 @@
 
       <!-- 神戶大阪 -->
       <a class="trip-card" href="202610_Kobe.html">
+        <button class="card-delete-btn" onclick="deleteCard(event, this)" title="刪除此行程卡片">✕</button>
         <div class="trip-card-banner" style="background: linear-gradient(90deg, #2c3e7a, #6a5acd);"></div>
         <div class="trip-card-body">
           <div class="trip-meta">
@@ -426,9 +530,10 @@
   <!-- ── 2027（預留）── -->
   <div class="year-group" id="year-group-2027">
     <div class="year-header">
-      <div>
+      <div style="display:flex;align-items:baseline;gap:0.5rem;">
         <div class="year-label">Year</div>
         <div class="year-num" style="color:#ccc;">2027</div>
+        <button class="year-delete-btn" onclick="deleteYearGroup(event, this)">✕ 刪除此年份區塊</button>
       </div>
       <div class="year-line"></div>
     </div>
@@ -443,6 +548,17 @@
   </div>
 
 </main>
+
+<!-- ── 編輯版面按鈕 ── -->
+<div style="text-align:center;padding:0.75rem 0 0.25rem;">
+  <button onclick="toggleEditMode()" id="editModeBtn"
+    style="background:none;border:1px dashed #ccc;color:var(--muted);
+           font-family:'DM Mono',monospace;font-size:0.68rem;letter-spacing:0.08em;
+           padding:0.4rem 1.1rem;border-radius:4px;cursor:pointer;
+           transition:all 0.15s;">
+    ✏️ 編輯版面
+  </button>
+</div>
 
 <footer>
   Travel / index.html &nbsp;·&nbsp; Personal Travel Archive &nbsp;·&nbsp; Updated 2026
@@ -522,6 +638,64 @@
 /* ── Repository Structure 展開/收合 ── */
 function toggleReadme() {
   document.getElementById('readmeBox').classList.toggle('open');
+}
+
+/* ══════════════════════════════════════════
+   編輯模式
+   ══════════════════════════════════════════ */
+let editMode = false;
+
+function toggleEditMode() {
+  editMode = !editMode;
+  document.body.classList.toggle('edit-mode', editMode);
+  document.getElementById('editBar').classList.toggle('active', editMode);
+  const btn = document.getElementById('editModeBtn');
+  if (btn) btn.style.display = editMode ? 'none' : '';
+}
+
+/* 刪除單張旅程卡片 */
+function deleteCard(e, btn) {
+  e.preventDefault();
+  e.stopPropagation();
+  const card = btn.closest('.trip-card');
+  const title = card.querySelector('.trip-title')?.textContent || '此行程';
+  if (!confirm('確定要從版面移除 [' + title + '] 嗎?\n(只移除首頁卡片，不會刪除行程 HTML 檔案)')) return;
+  card.style.transition = 'opacity 0.25s, transform 0.25s';
+  card.style.opacity = '0';
+  card.style.transform = 'scale(0.92)';
+  setTimeout(() => card.remove(), 260);
+}
+
+/* 刪除整個年份區塊（只在沒有旅程卡片時，或使用者確認後）*/
+function deleteYearGroup(e, btn) {
+  e.preventDefault();
+  e.stopPropagation();
+  const group = btn.closest('.year-group');
+  const yearNum = group.querySelector('.year-num')?.textContent || '此年份';
+  const cards = group.querySelectorAll('.trip-card:not(.add-card)');
+  const msg = cards.length > 0
+    ? '確定要移除 ' + yearNum + ' 整個年份區塊 (含 ' + cards.length + ' 筆旅程卡片)？'
+    : '確定要移除空的 ' + yearNum + ' 年份區塊？';
+  if (!confirm(msg)) return;
+  group.style.transition = 'opacity 0.3s';
+  group.style.opacity = '0';
+  setTimeout(() => group.remove(), 310);
+}
+
+/* 儲存（下載）更新後的 index.html */
+function saveIndex() {
+  const updatedHTML = '<!DOCTYPE html>\n<html lang="zh-TW">\n'
+    + document.head.outerHTML + '\n'
+    + document.body.outerHTML + '\n</html>';
+  const blob = new Blob([updatedHTML], { type: 'text/html;charset=utf-8' });
+  const url  = URL.createObjectURL(blob);
+  const a    = Object.assign(document.createElement('a'), { href: url, download: 'index.html' });
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+  // 儲存後離開編輯模式
+  setTimeout(() => { toggleEditMode(); }, 300);
 }
 
 /* ── Modal ── */
@@ -714,6 +888,7 @@ async function createTrip() {
   // ── 步驟 4：把新卡片插入 DOM，再下載更新後的 index.html ──
   const cardHTML = [
     '<a class="trip-card" href="' + fname + '" style="animation:fadeUp 0.5s ease both;">',
+    '  <button class="card-delete-btn" onclick="deleteCard(event, this)" title="刪除此行程卡片">✕</button>',
     '  <div class="trip-card-banner" style="background:' + grad + ';"></div>',
     '  <div class="trip-card-body">',
     '    <div class="trip-meta">',
@@ -731,6 +906,9 @@ async function createTrip() {
     '  </div>',
     '</a>'
   ].join('\n');
+
+  // 防止重複：如果同檔名的卡片已存在就跳過 DOM 插入
+  const alreadyExists = document.querySelector('a.trip-card[href="' + fname + '"]');
 
   const gridId = 'grid-' + year;
   let grid = document.getElementById(gridId);
@@ -750,7 +928,9 @@ async function createTrip() {
     document.querySelector('footer').before(nyg);
     grid = document.getElementById(gridId);
   }
-  grid.querySelector('.add-card').insertAdjacentHTML('beforebegin', cardHTML);
+  if (!alreadyExists) {
+    grid.querySelector('.add-card').insertAdjacentHTML('beforebegin', cardHTML);
+  }
 
   // 等 DOM 更新後序列化下載 index.html
   await new Promise(r => setTimeout(r, 600));
