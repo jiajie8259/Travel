@@ -848,6 +848,18 @@ async function createTrip() {
   // Firebase collection path
   html = html.replace(/db\.collection\('[^']+'\)/g, "db.collection('" + storageKey + "')");
 
+  // localStorage key：把所有 'kobe26_xxx' 換成新的 storageKey
+  // 這樣新行程不會讀到神戶舊資料，各行程的資料完全獨立
+  html = html.replace(/'kobe26_food_rows'/g,    "'" + storageKey + "_food_rows'");
+  html = html.replace(/'kobe26_trans_rows'/g,   "'" + storageKey + "_trans_rows'");
+  html = html.replace(/'kobe26_hotel_rows'/g,   "'" + storageKey + "_hotel_rows'");
+  html = html.replace(/'kobe26_spots_rows'/g,   "'" + storageKey + "_spots_rows'");
+  html = html.replace(/'kobe26_notes'/g,        "'" + storageKey + "_notes'");
+  html = html.replace(/'kobe26_tracker_used'/g, "'" + storageKey + "_tracker_used'");
+  html = html.replace(/'kobe26_tracker_logs'/g, "'" + storageKey + "_tracker_logs'");
+  html = html.replace(/'kobe26_free_logs'/g,    "'" + storageKey + "_free_logs'");
+  html = html.replace(/'kobe26_skip'/g,         "'" + storageKey + "_skip'");
+
   // ── 清空各頁籤的舊行程資料，只保留功能架構 ──
 
   // 1. cards 頁籤：清空 mini-card 內容，留空殼提示
