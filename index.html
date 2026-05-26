@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>旅遊記錄 · Travel Log</title>
-<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@400;600;900&family=DM+Mono:wght@400;500&family=Cormorant+Garamond:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@400;600;900&amp;family=DM+Mono:wght@400;500&amp;family=Cormorant+Garamond:ital,wght@0,400;0,600;1,400&amp;display=swap" rel="stylesheet">
 <style>
   :root {
     --ink:        #0e0c09;
@@ -539,7 +539,24 @@
       <div class="year-line"></div>
     </div>
     <div class="trip-grid" id="grid-2027">
-      <div class="trip-card add-card" onclick="openModal()">
+      <a class="trip-card" href="202703_kyoto.html" style="animation:fadeUp 0.5s ease both;">
+  <button class="card-delete-btn" onclick="deleteCard(event, this)" title="刪除此行程卡片">✕</button>
+  <div class="trip-card-banner" style="background:linear-gradient(90deg,#7a1a4a,#cd5a8a);"></div>
+  <div class="trip-card-body">
+    <div class="trip-meta">
+      <span class="trip-flag">🌍</span>
+      <span class="trip-dates">2027/03/25 – 03/28</span>
+      <span class="badge-upcoming">upcoming</span>
+    </div>
+    <div class="trip-title">京都名古屋</div>
+    <div class="trip-subtitle"></div>
+    <div class="trip-tags"><span class="trip-tag">京都</span> <span class="trip-tag">名古屋</span> <span class="trip-tag">櫻花</span></div>
+  </div>
+  <div class="trip-card-footer">
+    <span class="trip-days">4 天 3 夜</span>
+    <span class="trip-arrow">→</span>
+  </div>
+</a><div class="trip-card add-card" onclick="openModal()">
         <div class="add-inner">
           <span class="add-plus">＋</span>
           新增 2027 旅程
@@ -552,8 +569,7 @@
 
 <!-- ── 編輯版面按鈕 ── -->
 <div style="text-align:center;padding:0.75rem 0 0.25rem;">
-  <button onclick="toggleEditMode()" id="editModeBtn"
-    style="background:none;border:1px dashed #ccc;color:var(--muted);
+  <button onclick="toggleEditMode()" id="editModeBtn" style="background:none;border:1px dashed #ccc;color:var(--muted);
            font-family:'DM Mono',monospace;font-size:0.68rem;letter-spacing:0.08em;
            padding:0.4rem 1.1rem;border-radius:4px;cursor:pointer;
            transition:all 0.15s;">
@@ -577,7 +593,7 @@
     <div class="field-group">
       <label class="field-label">英文檔名 Filename <span style="font-weight:400;opacity:0.6;">（英數字，自動加年月前綴）</span></label>
       <input class="field-input" id="f-slug" type="text" placeholder="例：Kyoto" style="font-family:'DM Mono',monospace;">
-      <div id="fname-preview" style="font-family:'DM Mono',monospace;font-size:0.65rem;color:var(--muted);margin-top:0.3rem;padding-left:0.2rem;">← 填入開始日期後自動預覽</div>
+      <div id="fname-preview" style="font-family: &quot;DM Mono&quot;, monospace; font-size: 0.65rem; color: var(--ink); margin-top: 0.3rem; padding-left: 0.2rem;">→ 檔名：202703_kyoto.html</div>
     </div>
 
     <div class="field-row">
@@ -601,10 +617,10 @@
     <div class="field-group">
       <label class="field-label">卡片配色</label>
       <div class="color-swatches" id="swatches">
-        <div class="swatch selected" data-grad="linear-gradient(90deg,#c0392b,#e67e22)" style="background:linear-gradient(90deg,#c0392b,#e67e22)"></div>
+        <div class="swatch" data-grad="linear-gradient(90deg,#c0392b,#e67e22)" style="background:linear-gradient(90deg,#c0392b,#e67e22)"></div>
         <div class="swatch" data-grad="linear-gradient(90deg,#2c3e7a,#6a5acd)" style="background:linear-gradient(90deg,#2c3e7a,#6a5acd)"></div>
         <div class="swatch" data-grad="linear-gradient(90deg,#1a7a4a,#52c07a)" style="background:linear-gradient(90deg,#1a7a4a,#52c07a)"></div>
-        <div class="swatch" data-grad="linear-gradient(90deg,#7a1a4a,#cd5a8a)" style="background:linear-gradient(90deg,#7a1a4a,#cd5a8a)"></div>
+        <div class="swatch selected" data-grad="linear-gradient(90deg,#7a1a4a,#cd5a8a)" style="background:linear-gradient(90deg,#7a1a4a,#cd5a8a)"></div>
         <div class="swatch" data-grad="linear-gradient(90deg,#b5922a,#e8d5a0)" style="background:linear-gradient(90deg,#b5922a,#e8d5a0)"></div>
         <div class="swatch" data-grad="linear-gradient(90deg,#1a5a7a,#5aaccd)" style="background:linear-gradient(90deg,#1a5a7a,#5aaccd)"></div>
       </div>
@@ -1093,5 +1109,7 @@ function showFallbackGuide(fname, dest, sub, country, flag, dateDsp, grad, tagsH
   guide.style.display = 'block';
 }
 </script>
+
+
 </body>
 </html>
