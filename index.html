@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>旅遊記錄 · Travel Log</title>
-<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@400;600;900&amp;family=DM+Mono:wght@400;500&amp;family=Cormorant+Garamond:ital,wght@0,400;0,600;1,400&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@400;600;900&family=DM+Mono:wght@400;500&family=Cormorant+Garamond:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
 <style>
   :root {
     --ink:        #0e0c09;
@@ -323,8 +323,9 @@
     to   { opacity: 1; transform: none; }
   }
   .modal-inner {
-    background: var(--paper); border-radius: 12px; padding: 2.5rem;
+    background: var(--paper); border-radius: 12px; padding: 1.75rem 2rem;
     max-width: 480px; width: calc(100% - 2rem);
+    max-height: 92vh; overflow-y: auto;
     box-shadow: 0 24px 64px rgba(0,0,0,0.3);
     position: relative; animation: modalIn 0.25s ease;
   }
@@ -538,24 +539,7 @@
       <div class="year-line"></div>
     </div>
     <div class="trip-grid" id="grid-2027">
-      <a class="trip-card" href="202703_kyoto.html" style="animation:fadeUp 0.5s ease both;">
-  <button class="card-delete-btn" onclick="deleteCard(event, this)" title="刪除此行程卡片">✕</button>
-  <div class="trip-card-banner" style="background:linear-gradient(90deg,#7a1a4a,#cd5a8a);"></div>
-  <div class="trip-card-body">
-    <div class="trip-meta">
-      <span class="trip-flag">🌍</span>
-      <span class="trip-dates">2027/03/25 – 03/28</span>
-      <span class="badge-upcoming">upcoming</span>
-    </div>
-    <div class="trip-title">京都名古屋</div>
-    <div class="trip-subtitle"></div>
-    <div class="trip-tags"><span class="trip-tag">京都</span> <span class="trip-tag">名古屋</span> <span class="trip-tag">櫻花</span></div>
-  </div>
-  <div class="trip-card-footer">
-    <span class="trip-days">4 天 3 夜</span>
-    <span class="trip-arrow">→</span>
-  </div>
-</a><div class="trip-card add-card" onclick="openModal()">
+      <div class="trip-card add-card" onclick="openModal()">
         <div class="add-inner">
           <span class="add-plus">＋</span>
           新增 2027 旅程
@@ -568,7 +552,8 @@
 
 <!-- ── 編輯版面按鈕 ── -->
 <div style="text-align:center;padding:0.75rem 0 0.25rem;">
-  <button onclick="toggleEditMode()" id="editModeBtn" style="background:none;border:1px dashed #ccc;color:var(--muted);
+  <button onclick="toggleEditMode()" id="editModeBtn"
+    style="background:none;border:1px dashed #ccc;color:var(--muted);
            font-family:'DM Mono',monospace;font-size:0.68rem;letter-spacing:0.08em;
            padding:0.4rem 1.1rem;border-radius:4px;cursor:pointer;
            transition:all 0.15s;">
@@ -581,11 +566,10 @@
 </footer>
 
 <!-- ── 新增旅程 MODAL ── -->
-<div id="tripModal" class="modal-overlay open">
+<div id="tripModal" class="modal-overlay">
   <div class="modal-inner">
     <button class="modal-close" onclick="closeModal()">✕</button>
     <div class="modal-title">新增旅程</div>
-    <div class="modal-sub">Add New Trip</div>
     <div class="field-group">
       <label class="field-label">目的地名稱 Destination</label>
       <input class="field-input" id="f-dest" type="text" placeholder="例：京都五日遊">
@@ -593,7 +577,7 @@
     <div class="field-group">
       <label class="field-label">英文檔名 Filename <span style="font-weight:400;opacity:0.6;">（英數字，自動加年月前綴）</span></label>
       <input class="field-input" id="f-slug" type="text" placeholder="例：Kyoto" style="font-family:'DM Mono',monospace;">
-      <div id="fname-preview" style="font-family: &quot;DM Mono&quot;, monospace; font-size: 0.65rem; color: var(--ink); margin-top: 0.3rem; padding-left: 0.2rem;">→ 檔名：202703_kyoto.html</div>
+      <div id="fname-preview" style="font-family:'DM Mono',monospace;font-size:0.65rem;color:var(--muted);margin-top:0.3rem;padding-left:0.2rem;">← 填入開始日期後自動預覽</div>
     </div>
     <div class="field-group">
       <label class="field-label">副標題 Subtitle</label>
@@ -609,15 +593,9 @@
         <input class="field-input" id="f-end" type="date">
       </div>
     </div>
-    <div class="field-row">
-      <div class="field-group">
-        <label class="field-label">國家</label>
-        <input class="field-input" id="f-country" type="text" placeholder="例：日本">
-      </div>
-      <div class="field-group">
-        <label class="field-label">國旗 Emoji</label>
-        <input class="field-input" id="f-flag" type="text" placeholder="🇯🇵" maxlength="4">
-      </div>
+    <div class="field-group">
+      <label class="field-label">國家</label>
+      <input class="field-input" id="f-country" type="text" placeholder="例：日本">
     </div>
     <div class="field-group">
       <label class="field-label">標籤（逗號分隔）</label>
@@ -626,19 +604,15 @@
     <div class="field-group">
       <label class="field-label">卡片配色</label>
       <div class="color-swatches" id="swatches">
-        <div class="swatch" data-grad="linear-gradient(90deg,#c0392b,#e67e22)" style="background:linear-gradient(90deg,#c0392b,#e67e22)"></div>
+        <div class="swatch selected" data-grad="linear-gradient(90deg,#c0392b,#e67e22)" style="background:linear-gradient(90deg,#c0392b,#e67e22)"></div>
         <div class="swatch" data-grad="linear-gradient(90deg,#2c3e7a,#6a5acd)" style="background:linear-gradient(90deg,#2c3e7a,#6a5acd)"></div>
         <div class="swatch" data-grad="linear-gradient(90deg,#1a7a4a,#52c07a)" style="background:linear-gradient(90deg,#1a7a4a,#52c07a)"></div>
-        <div class="swatch selected" data-grad="linear-gradient(90deg,#7a1a4a,#cd5a8a)" style="background:linear-gradient(90deg,#7a1a4a,#cd5a8a)"></div>
+        <div class="swatch" data-grad="linear-gradient(90deg,#7a1a4a,#cd5a8a)" style="background:linear-gradient(90deg,#7a1a4a,#cd5a8a)"></div>
         <div class="swatch" data-grad="linear-gradient(90deg,#b5922a,#e8d5a0)" style="background:linear-gradient(90deg,#b5922a,#e8d5a0)"></div>
         <div class="swatch" data-grad="linear-gradient(90deg,#1a5a7a,#5aaccd)" style="background:linear-gradient(90deg,#1a5a7a,#5aaccd)"></div>
       </div>
     </div>
-    <!-- 範本來源提示 -->
-    <div style="font-family:'DM Mono',monospace;font-size:0.62rem;color:var(--muted);margin-bottom:1rem;padding:0.5rem 0.75rem;background:var(--cream);border-radius:4px;line-height:1.6;">
-      📋 範本來源：<span style="color:var(--ink);font-weight:700;">202610_Kobe.html</span>（最新行程）<br>
-      本機開啟或 GitHub Pages 均可自動讀取，完整繼承所有功能架構。
-    </div>
+
 
     <div class="modal-actions">
       <button class="btn-cancel" onclick="closeModal()">取消 Cancel</button>
@@ -700,6 +674,13 @@ function deleteYearGroup(e, btn) {
 
 /* 儲存（下載）更新後的 index.html */
 function saveIndex() {
+  // 序列化前先清除所有暫態 class，避免存入 edit-mode / active 狀態
+  document.body.classList.remove('edit-mode');
+  document.getElementById('editBar').classList.remove('active');
+  const editBtn = document.getElementById('editModeBtn');
+  if (editBtn) editBtn.style.display = '';
+  editMode = false;
+
   const updatedHTML = '<!DOCTYPE html>\n<html lang="zh-TW">\n'
     + document.head.outerHTML + '\n'
     + document.body.outerHTML + '\n</html>';
@@ -785,7 +766,7 @@ async function createTrip() {
   const start   = document.getElementById('f-start').value;
   const end     = document.getElementById('f-end').value;
   const country = document.getElementById('f-country').value.trim() || '日本';
-  const flag    = document.getElementById('f-flag').value.trim()    || '🌍';
+  const flag    = '🌍'; // 統一使用預設地球圖示，不再讓使用者手動輸入
   const tagsRaw = document.getElementById('f-tags').value.trim();
   const slug    = document.getElementById('f-slug').value.trim().replace(/[^a-zA-Z0-9_-]/g, '') || 'NewTrip';
   const grad    = document.querySelector('#swatches .swatch.selected')?.dataset.grad
@@ -876,13 +857,60 @@ async function createTrip() {
   html = html.replace(/'kobe26_free_logs'/g,    "'" + storageKey + "_free_logs'");
   html = html.replace(/'kobe26_skip'/g,         "'" + storageKey + "_skip'");
 
+  // 「讀取失敗」→「暫無資料」（空集合不是錯誤，是正常的新行程狀態）
+  html = html.replace(/⚠ 讀取失敗（離線模式）/g, '📭 暫無資料');
+  html = html.replace(/⚠ 讀取失敗/g,             '📭 暫無資料');
+  html = html.replace(/△ 讀取失敗/g,             '📭 暫無資料');
+
   // ── 清空各頁籤的舊行程資料，只保留功能架構 ──
 
-  // 1. cards 頁籤：清空 mini-card 內容，留空殼提示
-  html = html.replace(
-    /(<div id="cards" class="tab-panel">\s*<div id="card-section">\s*<h2[^<]*<\/h2>\s*<div class="card-grid">)[\s\S]*?(<\/div>\s*<\/div>\s*<\/div>\s*\n\n<!-- ══ TAB)/,
-    '$1\n    <div style="padding:3rem;text-align:center;color:var(--muted);font-family:\'DM Mono\',monospace;font-size:0.82rem;line-height:2;border:1.5px dashed #ccc;border-radius:8px;margin:1rem 0;">\n      ✂ 隨身小卡待補充<br>\n      <span style="font-size:0.7rem;opacity:0.6;">行程確認後，依每日行程內容填入各天小卡</span>\n    </div>\n  $2'
-  );
+  // 1. cards 頁籤：清空 mini-card 內容，根據天數自動生成空白小卡
+  //    做法：抓整個 card-grid 的內容並替換成空白骨架
+  (function() {
+    // 計算天數（已在上面算好）
+    const startD2 = new Date(start);
+    const endD2   = new Date(end);
+    const nDays   = (start && end) ? Math.round((endD2 - startD2) / 86400000) + 1 : 5;
+    const weekdays = ['日','一','二','三','四','五','六'];
+
+    let blankCards = '';
+    for (let d = 0; d < nDays; d++) {
+      const date = new Date(startD2);
+      date.setDate(startD2.getDate() + d);
+      const mo   = date.getMonth() + 1;
+      const dy   = date.getDate();
+      const wday = weekdays[date.getDay()];
+      const dNum = d + 1;
+      const isLast = (d === nDays - 1);
+      blankCards += [
+        '    <!-- D' + dNum + ' -->',
+        '    <div class="mini-card">',
+        '      <div class="mini-card-header">',
+        '        <div class="day-big">D' + dNum + '</div>',
+        '        <div class="day-info">',
+        '          <div>' + mo + '/' + dy + ' (' + wday + ')&nbsp;&nbsp;' + (isLast ? '返程日' : '待補充') + '</div>',
+        '          <div style="opacity:0.6;font-size:0.65rem;">' + (isLast ? '返程' : '行程待確認') + '</div>',
+        '        </div>',
+        '      </div>',
+        '      <div class="mini-card-body">',
+        '        <div class="mini-card-period">早上</div>',
+        '        <div class="item"><div class="item-dot" style="background:#aaa"></div><div class="item-text">（待補充）</div></div>',
+        '        <div class="mini-card-period">下午</div>',
+        '        <div class="item"><div class="item-dot" style="background:#6b7c5e"></div><div class="item-text">景點待補充</div></div>',
+        '        <div class="mini-card-period">晚上</div>',
+        '        <div class="item"><div class="item-dot" style="background:#c0392b"></div><div class="item-text">餐飲待補充</div></div>',
+        '      </div>',
+        '    </div>',
+        ''
+      ].join('\n');
+    }
+
+    const countNote = '<p style="font-size:0.75rem;color:#aaa;margin-top:1.5rem;text-align:center;">共 ' + nDays + ' 張 · 列印後剪開，每天帶當天那張即可</p>';
+    html = html.replace(
+      /(<div class="card-grid">)[\s\S]*?(<\/div>\s*<p style[^>]*>.*?<\/p>)/,
+      '$1\n' + blankCards + '  ' + countNote
+    );
+  })();
 
   // 2. TRACKER_SPOTS：清空，避免帶入舊據點
   html = html.replace(
@@ -1026,8 +1054,15 @@ async function createTrip() {
     grid.querySelector('.add-card').insertAdjacentHTML('beforebegin', cardHTML);
   }
 
-  // 等 DOM 更新後序列化下載 index.html
-  await new Promise(r => setTimeout(r, 600));
+  // 先關 modal、清除所有暫態 class，再序列化
+  closeModal();
+  document.body.classList.remove('edit-mode');
+  document.getElementById('editBar').classList.remove('active');
+  const editBtn = document.getElementById('editModeBtn');
+  if (editBtn) editBtn.style.display = '';
+
+  await new Promise(r => setTimeout(r, 400)); // 等動畫完成
+
   const updatedHTML = '<!DOCTYPE html>\n<html lang="zh-TW">\n'
     + document.head.outerHTML + '\n'
     + document.body.outerHTML + '\n</html>';
@@ -1039,7 +1074,6 @@ async function createTrip() {
   document.body.removeChild(idxA);
   URL.revokeObjectURL(idxUrl);
 
-  closeModal();
   alert('✅ 完成！已下載兩個檔案：\n\n📄 ' + fname + '（新行程）\n📄 index.html（已加入新旅程卡片）\n\n請將兩個檔案放入 Travel/ 資料夾取代舊版即可。');
 }
 
@@ -1062,7 +1096,5 @@ function showFallbackGuide(fname, dest, sub, country, flag, dateDsp, grad, tagsH
   guide.style.display = 'block';
 }
 </script>
-
-
 </body>
 </html>
