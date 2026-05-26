@@ -579,10 +579,7 @@
       <input class="field-input" id="f-slug" type="text" placeholder="例：Kyoto" style="font-family:'DM Mono',monospace;">
       <div id="fname-preview" style="font-family:'DM Mono',monospace;font-size:0.65rem;color:var(--muted);margin-top:0.3rem;padding-left:0.2rem;">← 填入開始日期後自動預覽</div>
     </div>
-    <div class="field-group">
-      <label class="field-label">副標題 Subtitle</label>
-      <input class="field-input" id="f-sub" type="text" placeholder="例：嵐山・祇園・伏見稻荷">
-    </div>
+
     <div class="field-row">
       <div class="field-group">
         <label class="field-label">開始日期</label>
@@ -762,7 +759,7 @@ const TEMPLATE_FALLBACK_NAME = '202610_Kobe.html';
 
 async function createTrip() {
   const dest    = document.getElementById('f-dest').value.trim();
-  const sub     = document.getElementById('f-sub').value.trim();
+  const sub     = ''; // 副標題欄位已移除
   const start   = document.getElementById('f-start').value;
   const end     = document.getElementById('f-end').value;
   const country = document.getElementById('f-country').value.trim() || '日本';
