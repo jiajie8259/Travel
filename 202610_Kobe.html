@@ -1458,8 +1458,8 @@
     <button onclick="hotelSave()" style="margin-left:auto;font-family:'DM Mono',monospace;font-size:0.72rem;padding:0.4rem 0.9rem;background:#27ae60;color:white;border:none;border-radius:4px;cursor:pointer;">💾 儲存</button>
   </div>
 
-  <div style="overflow-x:auto;-webkit-overflow-scrolling:touch;border-radius:6px;border:1px solid #e0d8cc;width:100%;">
-    <table id="hotel-main-table" style="width:100%;min-width:1000px;border-collapse:collapse;font-size:0.8rem;background:white;table-layout:auto;">
+  <div style="overflow-x:auto;border-radius:6px;border:1px solid #e0d8cc;width:100%;">
+    <table id="hotel-main-table" style="width:100%;border-collapse:collapse;font-size:0.8rem;background:white;table-layout:fixed;">
       <colgroup>
         <col style="width:2.8rem">  <!-- 選定 -->
         <col style="width:3rem">    <!-- 區域 -->
@@ -1713,41 +1713,63 @@
   <p style="font-size:0.78rem;color:var(--muted);margin-bottom:1.5rem;">ICOCA / PiTaPa 感應為主要交通方式　｜　在「乗換案内」查好路線後填入下方表格</p>
 
   <!-- 航班資訊 -->
-  <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-bottom:1.5rem;">
+  <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:0.6rem;">
+    <span style="font-family:'DM Mono',monospace;font-size:0.65rem;letter-spacing:0.12em;text-transform:uppercase;color:var(--muted);">✈ 航班資訊</span>
+    <button id="flight-edit-btn" onclick="flightToggleEdit()" style="font-family:'DM Mono',monospace;font-size:0.72rem;letter-spacing:0.06em;text-transform:uppercase;padding:0.45rem 1rem;border:1.5px solid var(--ink);border-radius:4px;background:transparent;cursor:pointer;color:var(--ink);transition:all 0.15s;">✏ 編輯</button>
+  </div>
+  <div id="flight-display" style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-bottom:1.5rem;">
     <div style="background:var(--ink);color:var(--paper);border-radius:8px;padding:1.1rem 1.3rem;">
       <div style="font-family:'DM Mono',monospace;font-size:0.6rem;letter-spacing:0.15em;text-transform:uppercase;color:#f0c040;margin-bottom:0.5rem;">去程 · OUTBOUND</div>
-      <div style="font-size:1.3rem;font-weight:900;letter-spacing:0.05em;margin-bottom:0.3rem;">JX834</div>
+      <div id="f-out-num" style="font-size:1.3rem;font-weight:900;letter-spacing:0.05em;margin-bottom:0.3rem;">JX834</div>
       <div style="display:flex;align-items:center;gap:0.5rem;margin-bottom:0.5rem;">
-        <span style="font-size:1rem;font-family:'DM Mono',monospace;font-weight:700;">06:20</span>
-        <span style="color:#aaa;font-size:0.8rem;">TPE</span>
+        <span id="f-out-dep" style="font-size:1rem;font-family:'DM Mono',monospace;font-weight:700;">06:20</span>
+        <span id="f-out-dep-ap" style="color:#aaa;font-size:0.8rem;">TPE</span>
         <span style="color:#555;font-size:0.7rem;">━━✈━━</span>
-        <span style="font-size:1rem;font-family:'DM Mono',monospace;font-weight:700;">10:00</span>
-        <span style="color:#aaa;font-size:0.8rem;">UKB</span>
+        <span id="f-out-arr" style="font-size:1rem;font-family:'DM Mono',monospace;font-weight:700;">10:00</span>
+        <span id="f-out-arr-ap" style="color:#aaa;font-size:0.8rem;">UKB</span>
       </div>
-      <div style="font-size:0.72rem;color:rgba(255,255,255,0.5);line-height:1.7;">
-        2026/10/22　星宇航空<br>A350　飛行約 3小時40分<br>桃園第一航廈 → 神戶機場（UKB）
-      </div>
+      <div id="f-out-info" style="font-size:0.72rem;color:rgba(255,255,255,0.5);line-height:1.7;">2026/10/22　星宇航空<br>A350　飛行約 3小時40分<br>桃園第一航廈 → 神戶機場（UKB）</div>
     </div>
     <div style="background:var(--ink);color:var(--paper);border-radius:8px;padding:1.1rem 1.3rem;">
       <div style="font-family:'DM Mono',monospace;font-size:0.6rem;letter-spacing:0.15em;text-transform:uppercase;color:#f0c040;margin-bottom:0.5rem;">回程 · RETURN</div>
-      <div style="font-size:1.3rem;font-weight:900;letter-spacing:0.05em;margin-bottom:0.3rem;">JX823</div>
+      <div id="f-ret-num" style="font-size:1.3rem;font-weight:900;letter-spacing:0.05em;margin-bottom:0.3rem;">JX823</div>
       <div style="display:flex;align-items:center;gap:0.5rem;margin-bottom:0.5rem;">
-        <span style="font-size:1rem;font-family:'DM Mono',monospace;font-weight:700;">15:10</span>
-        <span style="color:#aaa;font-size:0.8rem;">KIX</span>
+        <span id="f-ret-dep" style="font-size:1rem;font-family:'DM Mono',monospace;font-weight:700;">15:10</span>
+        <span id="f-ret-dep-ap" style="color:#aaa;font-size:0.8rem;">KIX</span>
         <span style="color:#555;font-size:0.7rem;">━━✈━━</span>
-        <span style="font-size:1rem;font-family:'DM Mono',monospace;font-weight:700;">17:05</span>
-        <span style="color:#aaa;font-size:0.8rem;">TPE</span>
+        <span id="f-ret-arr" style="font-size:1rem;font-family:'DM Mono',monospace;font-weight:700;">17:05</span>
+        <span id="f-ret-arr-ap" style="color:#aaa;font-size:0.8rem;">TPE</span>
       </div>
-      <div style="font-size:0.72rem;color:rgba(255,255,255,0.5);line-height:1.7;">
-        2026/10/26　星宇航空<br>A350　飛行約 2小時55分<br>關西國際機場（KIX）→ 桃園第一航廈
-      </div>
+      <div id="f-ret-info" style="font-size:0.72rem;color:rgba(255,255,255,0.5);line-height:1.7;">2026/10/26　星宇航空<br>A350　飛行約 2小時55分<br>關西國際機場（KIX）→ 桃園第一航廈</div>
     </div>
   </div>
 
-  <!-- 注意事項 -->
-  <div style="background:#fff8e8;border:1.5px solid var(--gold);border-radius:6px;padding:1rem 1.25rem;margin-bottom:1.5rem;font-size:0.82rem;line-height:1.8;">
-    🚄 關西地區建議購買 <strong>ICOCA 交通卡</strong>，可用於 JR・阪急・阪神・地下鐵等各路線感應搭乘。<br>
-    ✈️ 機場↔市區交通方式待確認（JR 特急 はるか / 南海電鐵 ラピート / 利木津巴士）
+  <!-- 航班編輯面板 -->
+  <div id="flight-edit-panel" style="display:none;background:var(--cream);border:1.5px solid #d0c8bc;border-radius:8px;padding:1.2rem 1.4rem;margin-bottom:1.5rem;">
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:1.5rem;">
+      <div>
+        <div style="font-family:'DM Mono',monospace;font-size:0.62rem;letter-spacing:0.12em;text-transform:uppercase;color:var(--muted);margin-bottom:0.75rem;border-bottom:1px solid #ccc;padding-bottom:0.3rem;">去程 OUTBOUND</div>
+        <div style="display:grid;gap:0.5rem;">
+          <div style="display:grid;grid-template-columns:3rem 1fr;align-items:center;gap:0.5rem;"><label style="font-family:'DM Mono',monospace;font-size:0.65rem;color:var(--muted);">航班號</label><input id="ei-out-num" type="text" placeholder="JX834" style="font-family:'DM Mono',monospace;font-size:0.85rem;font-weight:700;padding:0.3rem 0.5rem;border:1px solid #d0c8bc;border-radius:4px;background:white;width:100%;"></div>
+          <div style="display:grid;grid-template-columns:2rem 1fr 2.5rem 1fr;align-items:center;gap:0.4rem;"><label style="font-family:'DM Mono',monospace;font-size:0.62rem;color:var(--muted);">去</label><input id="ei-out-dep" type="text" placeholder="06:20" style="font-family:'DM Mono',monospace;padding:0.3rem 0.5rem;border:1px solid #d0c8bc;border-radius:4px;background:white;width:100%;"><label style="font-family:'DM Mono',monospace;font-size:0.62rem;color:var(--muted);">機場</label><input id="ei-out-dep-ap" type="text" placeholder="TPE" style="font-family:'DM Mono',monospace;padding:0.3rem 0.5rem;border:1px solid #d0c8bc;border-radius:4px;background:white;width:100%;text-transform:uppercase;"></div>
+          <div style="display:grid;grid-template-columns:2rem 1fr 2.5rem 1fr;align-items:center;gap:0.4rem;"><label style="font-family:'DM Mono',monospace;font-size:0.62rem;color:var(--muted);">抵</label><input id="ei-out-arr" type="text" placeholder="10:00" style="font-family:'DM Mono',monospace;padding:0.3rem 0.5rem;border:1px solid #d0c8bc;border-radius:4px;background:white;width:100%;"><label style="font-family:'DM Mono',monospace;font-size:0.62rem;color:var(--muted);">機場</label><input id="ei-out-arr-ap" type="text" placeholder="UKB" style="font-family:'DM Mono',monospace;padding:0.3rem 0.5rem;border:1px solid #d0c8bc;border-radius:4px;background:white;width:100%;text-transform:uppercase;"></div>
+          <div style="display:grid;grid-template-columns:3rem 1fr;align-items:start;gap:0.5rem;"><label style="font-family:'DM Mono',monospace;font-size:0.62rem;color:var(--muted);padding-top:0.4rem;">說明</label><textarea id="ei-out-info" rows="3" placeholder="2026/10/22　星宇航空&#10;A350　飛行約 3小時40分" style="font-family:'DM Mono',monospace;font-size:0.7rem;padding:0.3rem 0.5rem;border:1px solid #d0c8bc;border-radius:4px;background:white;resize:vertical;line-height:1.6;width:100%;"></textarea></div>
+        </div>
+      </div>
+      <div>
+        <div style="font-family:'DM Mono',monospace;font-size:0.62rem;letter-spacing:0.12em;text-transform:uppercase;color:var(--muted);margin-bottom:0.75rem;border-bottom:1px solid #ccc;padding-bottom:0.3rem;">回程 RETURN</div>
+        <div style="display:grid;gap:0.5rem;">
+          <div style="display:grid;grid-template-columns:3rem 1fr;align-items:center;gap:0.5rem;"><label style="font-family:'DM Mono',monospace;font-size:0.65rem;color:var(--muted);">航班號</label><input id="ei-ret-num" type="text" placeholder="JX823" style="font-family:'DM Mono',monospace;font-size:0.85rem;font-weight:700;padding:0.3rem 0.5rem;border:1px solid #d0c8bc;border-radius:4px;background:white;width:100%;"></div>
+          <div style="display:grid;grid-template-columns:2rem 1fr 2.5rem 1fr;align-items:center;gap:0.4rem;"><label style="font-family:'DM Mono',monospace;font-size:0.62rem;color:var(--muted);">去</label><input id="ei-ret-dep" type="text" placeholder="15:10" style="font-family:'DM Mono',monospace;padding:0.3rem 0.5rem;border:1px solid #d0c8bc;border-radius:4px;background:white;width:100%;"><label style="font-family:'DM Mono',monospace;font-size:0.62rem;color:var(--muted);">機場</label><input id="ei-ret-dep-ap" type="text" placeholder="KIX" style="font-family:'DM Mono',monospace;padding:0.3rem 0.5rem;border:1px solid #d0c8bc;border-radius:4px;background:white;width:100%;text-transform:uppercase;"></div>
+          <div style="display:grid;grid-template-columns:2rem 1fr 2.5rem 1fr;align-items:center;gap:0.4rem;"><label style="font-family:'DM Mono',monospace;font-size:0.62rem;color:var(--muted);">抵</label><input id="ei-ret-arr" type="text" placeholder="17:05" style="font-family:'DM Mono',monospace;padding:0.3rem 0.5rem;border:1px solid #d0c8bc;border-radius:4px;background:white;width:100%;"><label style="font-family:'DM Mono',monospace;font-size:0.62rem;color:var(--muted);">機場</label><input id="ei-ret-arr-ap" type="text" placeholder="TPE" style="font-family:'DM Mono',monospace;padding:0.3rem 0.5rem;border:1px solid #d0c8bc;border-radius:4px;background:white;width:100%;text-transform:uppercase;"></div>
+          <div style="display:grid;grid-template-columns:3rem 1fr;align-items:start;gap:0.5rem;"><label style="font-family:'DM Mono',monospace;font-size:0.62rem;color:var(--muted);padding-top:0.4rem;">說明</label><textarea id="ei-ret-info" rows="3" placeholder="2026/10/26　星宇航空&#10;A350　飛行約 2小時55分" style="font-family:'DM Mono',monospace;font-size:0.7rem;padding:0.3rem 0.5rem;border:1px solid #d0c8bc;border-radius:4px;background:white;resize:vertical;line-height:1.6;width:100%;"></textarea></div>
+        </div>
+      </div>
+    </div>
+    <div style="display:flex;justify-content:flex-end;gap:0.6rem;margin-top:1rem;padding-top:0.75rem;border-top:1px solid #d0c8bc;">
+      <button onclick="flightToggleEdit()" style="font-family:'DM Mono',monospace;font-size:0.72rem;padding:0.45rem 1rem;border:1.5px solid #ccc;border-radius:4px;background:white;cursor:pointer;color:var(--muted);">取消</button>
+      <button onclick="flightSave()" style="font-family:'DM Mono',monospace;font-size:0.72rem;padding:0.45rem 1rem;background:#27ae60;color:white;border:none;border-radius:4px;cursor:pointer;font-weight:700;">💾 儲存</button>
+    </div>
   </div>
 
   <!-- 編輯模式工具列 -->
@@ -1758,8 +1780,8 @@
   </div>
 
   <!-- 交通表格 -->
-  <div style="overflow-x:auto;-webkit-overflow-scrolling:touch;border-radius:6px;border:1px solid #e0d8cc;width:100%;">
-    <table id="trans-main-table" style="width:100%;min-width:630px;border-collapse:collapse;font-size:0.8rem;background:white;table-layout:auto;">
+  <div style="overflow-x:auto;border-radius:6px;border:1px solid #e0d8cc;width:100%;">
+    <table id="trans-main-table" style="width:100%;border-collapse:collapse;font-size:0.8rem;background:white;table-layout:fixed;">
       <colgroup>
         <col style="width:3rem">    <!-- D -->
         <col style="width:9%">      <!-- 目的地 -->
@@ -2175,6 +2197,87 @@ function transSetStatus(msg, color) {
   if (el) { el.textContent = msg; el.style.color = color || 'var(--muted)'; }
 }
 
+// ── 航班資訊編輯 ──────────────────────────────────────────
+let flightEditMode = false;
+
+function flightToggleEdit() {
+  flightEditMode = !flightEditMode;
+  const panel   = document.getElementById('flight-edit-panel');
+  const display = document.getElementById('flight-display');
+  const btn     = document.getElementById('flight-edit-btn');
+  if (flightEditMode) {
+    document.getElementById('ei-out-num').value    = document.getElementById('f-out-num').textContent.trim();
+    document.getElementById('ei-out-dep').value    = document.getElementById('f-out-dep').textContent.trim();
+    document.getElementById('ei-out-dep-ap').value = document.getElementById('f-out-dep-ap').textContent.trim();
+    document.getElementById('ei-out-arr').value    = document.getElementById('f-out-arr').textContent.trim();
+    document.getElementById('ei-out-arr-ap').value = document.getElementById('f-out-arr-ap').textContent.trim();
+    document.getElementById('ei-out-info').value   = document.getElementById('f-out-info').innerHTML.replace(/<br>/g, '\n').trim();
+    document.getElementById('ei-ret-num').value    = document.getElementById('f-ret-num').textContent.trim();
+    document.getElementById('ei-ret-dep').value    = document.getElementById('f-ret-dep').textContent.trim();
+    document.getElementById('ei-ret-dep-ap').value = document.getElementById('f-ret-dep-ap').textContent.trim();
+    document.getElementById('ei-ret-arr').value    = document.getElementById('f-ret-arr').textContent.trim();
+    document.getElementById('ei-ret-arr-ap').value = document.getElementById('f-ret-arr-ap').textContent.trim();
+    document.getElementById('ei-ret-info').value   = document.getElementById('f-ret-info').innerHTML.replace(/<br>/g, '\n').trim();
+    panel.style.display = 'block'; display.style.display = 'none';
+    btn.textContent = '✕ 取消'; btn.style.color = 'var(--red)'; btn.style.borderColor = 'var(--red)';
+  } else {
+    panel.style.display = 'none'; display.style.display = 'grid';
+    btn.textContent = '✏ 編輯'; btn.style.color = 'var(--ink)'; btn.style.borderColor = 'var(--ink)';
+  }
+}
+
+function flightSave() {
+  document.getElementById('f-out-num').textContent    = document.getElementById('ei-out-num').value.trim() || '—';
+  document.getElementById('f-out-dep').textContent    = document.getElementById('ei-out-dep').value.trim() || '—';
+  document.getElementById('f-out-dep-ap').textContent = document.getElementById('ei-out-dep-ap').value.trim().toUpperCase() || '—';
+  document.getElementById('f-out-arr').textContent    = document.getElementById('ei-out-arr').value.trim() || '—';
+  document.getElementById('f-out-arr-ap').textContent = document.getElementById('ei-out-arr-ap').value.trim().toUpperCase() || '—';
+  document.getElementById('f-out-info').innerHTML     = document.getElementById('ei-out-info').value.trim().replace(/\n/g, '<br>');
+  document.getElementById('f-ret-num').textContent    = document.getElementById('ei-ret-num').value.trim() || '—';
+  document.getElementById('f-ret-dep').textContent    = document.getElementById('ei-ret-dep').value.trim() || '—';
+  document.getElementById('f-ret-dep-ap').textContent = document.getElementById('ei-ret-dep-ap').value.trim().toUpperCase() || '—';
+  document.getElementById('f-ret-arr').textContent    = document.getElementById('ei-ret-arr').value.trim() || '—';
+  document.getElementById('f-ret-arr-ap').textContent = document.getElementById('ei-ret-arr-ap').value.trim().toUpperCase() || '—';
+  document.getElementById('f-ret-info').innerHTML     = document.getElementById('ei-ret-info').value.trim().replace(/\n/g, '<br>');
+  var data = {
+    outNum: document.getElementById('f-out-num').textContent,
+    outDep: document.getElementById('f-out-dep').textContent,
+    outDepAp: document.getElementById('f-out-dep-ap').textContent,
+    outArr: document.getElementById('f-out-arr').textContent,
+    outArrAp: document.getElementById('f-out-arr-ap').textContent,
+    outInfo: document.getElementById('f-out-info').innerHTML,
+    retNum: document.getElementById('f-ret-num').textContent,
+    retDep: document.getElementById('f-ret-dep').textContent,
+    retDepAp: document.getElementById('f-ret-dep-ap').textContent,
+    retArr: document.getElementById('f-ret-arr').textContent,
+    retArrAp: document.getElementById('f-ret-arr-ap').textContent,
+    retInfo: document.getElementById('f-ret-info').innerHTML,
+  };
+  try { localStorage.setItem('kobe26_flight', JSON.stringify(data)); } catch(e) {}
+  flightEditMode = true;
+  flightToggleEdit();
+}
+
+function flightLoad() {
+  try {
+    var saved = localStorage.getItem('kobe26_flight');
+    if (!saved) return;
+    var d = JSON.parse(saved);
+    if (d.outNum)   document.getElementById('f-out-num').textContent    = d.outNum;
+    if (d.outDep)   document.getElementById('f-out-dep').textContent    = d.outDep;
+    if (d.outDepAp) document.getElementById('f-out-dep-ap').textContent = d.outDepAp;
+    if (d.outArr)   document.getElementById('f-out-arr').textContent    = d.outArr;
+    if (d.outArrAp) document.getElementById('f-out-arr-ap').textContent = d.outArrAp;
+    if (d.outInfo)  document.getElementById('f-out-info').innerHTML     = d.outInfo;
+    if (d.retNum)   document.getElementById('f-ret-num').textContent    = d.retNum;
+    if (d.retDep)   document.getElementById('f-ret-dep').textContent    = d.retDep;
+    if (d.retDepAp) document.getElementById('f-ret-dep-ap').textContent = d.retDepAp;
+    if (d.retArr)   document.getElementById('f-ret-arr').textContent    = d.retArr;
+    if (d.retArrAp) document.getElementById('f-ret-arr-ap').textContent = d.retArrAp;
+    if (d.retInfo)  document.getElementById('f-ret-info').innerHTML     = d.retInfo;
+  } catch(e) {}
+}
+
 async function transLoad() {
   if (!db || !TRANS_DOC) return;
   transSetStatus('⏳ 同步中…', '#b8860b');
@@ -2347,7 +2450,7 @@ async function transToggleEdit() {
   transRender();
 }
 
-document.addEventListener('DOMContentLoaded', transLoad);
+document.addEventListener('DOMContentLoaded', function() { flightLoad(); transLoad(); });
 </script>
 
 <script>
@@ -2893,8 +2996,8 @@ document.addEventListener('DOMContentLoaded', notesLoad);
     <button onclick="spotsSave()" style="margin-left:auto;font-family:'DM Mono',monospace;font-size:0.72rem;padding:0.4rem 0.9rem;background:#27ae60;color:white;border:none;border-radius:4px;cursor:pointer;">💾 儲存</button>
   </div>
 
-  <div style="overflow-x:auto;-webkit-overflow-scrolling:touch;border-radius:6px;border:1px solid #e0d8cc;width:100%;">
-    <table id="spots-main-table" style="width:100%;min-width:880px;border-collapse:collapse;font-size:0.8rem;background:white;table-layout:auto;">
+  <div style="overflow-x:auto;border-radius:6px;border:1px solid #e0d8cc;width:100%;">
+    <table id="spots-main-table" style="width:100%;border-collapse:collapse;font-size:0.8rem;background:white;table-layout:fixed;">
       <colgroup>
         <col style="width:2.5rem">  <!-- D -->
         <col style="width:13%">     <!-- 景點名稱 -->
