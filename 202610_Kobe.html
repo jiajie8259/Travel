@@ -2611,11 +2611,15 @@ const TRACKER_SPOTS = {
   'd5-airport-tax':  { name: '關西機場免稅',  primary: 'eco',  fallback: 'rich' },
 };
 
-let trackerUsed = { kuma: 0, eco: 0, pay: 0, rich: 0 };
-let trackerLogs = {};
-let trackerPendingSpot = null;
-let trackerActive = false;
-let trackerSelectedPay = null; // 使用者手動選取的支付方式（null = 跟隨推薦）
+// 讓 TRIP_CONFIG 指向本行程的 tracker 設定（tracker.js 透過 TC() 讀取）
+TRIP_CONFIG.TRACKER_CAPS  = TRACKER_CAPS;
+TRIP_CONFIG.TRACKER_SPOTS = TRACKER_SPOTS;
+
+// [已移至 tracker.js] let trackerUsed = { kuma: 0, eco: 0, pay: 0, rich: 0 };
+// [已移至 tracker.js] let trackerLogs = {};
+// [已移至 tracker.js] let trackerPendingSpot = null;
+// [已移至 tracker.js] let trackerActive = false;
+// [已移至 tracker.js] let trackerSelectedPay = null; // 使用者手動選取的支付方式（null = 跟隨推薦）
 
 // 取得目前 modal 中選取的支付方式 key
 function trackerGetSelectedPayKey() {
@@ -2652,7 +2656,7 @@ function trackerSelectPay(key) {
   trackerRenderPaySelector(eff.pay);
   trackerUpdatePreview();
 }
-let TRACKER_JPY_TWD_LIVE = 0.201; // 備援預設值（¥100 = NT$20.10）
+// [已移至 tracker.js] let TRACKER_JPY_TWD_LIVE = 0.201; // 備援預設值（¥100 = NT$20.10）
 
 // ── 即時匯率：多來源備援，無需 API Key ──
 async function fetchBOTRate() {
@@ -3226,7 +3230,7 @@ function exportXLSX() {
 }
 
 // ── 行程略過標記 ──────────────────────────────────────
-let skipState = {}; // { spotRowId: true/false }
+// [已移至 tracker.js] let skipState = {}; // { spotRowId: true/false }
 
 function skipSave() {
   try { localStorage.setItem('kobe26_skip', JSON.stringify(skipState)); } catch(e) {}
@@ -3498,9 +3502,9 @@ function ledgerDeleteEntry(spotId, idx) {
 
 // ── 自由記帳 ──────────────────────────────────────────
 // 儲存結構：freeLogs[day] = [{ name, jpy, twd, rebate, payUsed }, ...]
-let freeLogs = {};
-let freePendingDay = null;
-let freeSelectedPay = 'eco';
+// [已移至 tracker.js] let freeLogs = {};
+// [已移至 tracker.js] let freePendingDay = null;
+// [已移至 tracker.js] let freeSelectedPay = 'eco';
 
 function freeLogsSave() {
   try { localStorage.setItem('kobe26_free_logs', JSON.stringify(freeLogs)); } catch(e) {}
