@@ -3711,6 +3711,21 @@ window.addEventListener('load', () => {
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
 
+<!-- ── Firebase 初始化 ── -->
+<script>
+const firebaseConfig = {
+  apiKey:            "AIzaSyA_KFwm7pE8YqSP64OKsFFEU3lKMuF-wjI",
+  authDomain:        "travel-c9ab0.firebaseapp.com",
+  projectId:         "travel-c9ab0",
+  storageBucket:     "travel-c9ab0.firebasestorage.app",
+  messagingSenderId: "179782530206",
+  appId:             "1:179782530206:web:93d42650009b01ad56778f",
+  measurementId:     "G-30P0GGS1YE"
+};
+if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
+const db = firebase.firestore();
+</script>
+
 <!-- ── 共用 JS（順序重要）── -->
 <script src="js/firebase-editor.js"></script>
 <script src="js/tracker.js"></script>
