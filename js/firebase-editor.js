@@ -26,22 +26,10 @@
 /* ══════════════════════════════════════════════════════════════
    0. Firebase 初始化（共用，只初始化一次）
    ══════════════════════════════════════════════════════════════ */
-(function initFirebase() {
-  const cfg = {
-    apiKey:            'AIzaSyA_KFwm7pE8YqSP64OKsFFEU3lKMuF-wjI',
-    authDomain:        'travel-c9ab0.firebaseapp.com',
-    projectId:         'travel-c9ab0',
-    storageBucket:     'travel-c9ab0.firebasestorage.app',
-    messagingSenderId: '179782530206',
-    appId:             '1:179782530206:web:93d42650009b01ad56778f',
-    measurementId:     'G-30P0GGS1YE',
-  };
-  if (typeof firebase !== 'undefined' && !firebase.apps.length) {
-    firebase.initializeApp(cfg);
-  }
-})();
-
-const db = (typeof firebase !== 'undefined') ? firebase.firestore() : null;
+// firebase-editor.js 不自行初始化 Firebase
+// db 由行程 HTML 的 Firebase init script 提供（在本檔案載入之前執行）
+// 行程 HTML 需在本檔案前載入 Firebase CDN + 執行 firebase.initializeApp()
+// 並宣告 const db = firebase.firestore();
 
 /* ══════════════════════════════════════════════════════════════
    0b. 從 TRIP_CONFIG 取得 editor 設定
