@@ -44,7 +44,7 @@ function EC() {
     sk,
     days:  opt.days  || ['D1','D2','D3','D4','D5','—'],
     areas: opt.areas || ['—'],
-    doc: (name) => (db && col) ? db.collection(col).doc(name) : null,
+    doc: (name) => (window.db && col) ? window.db.collection(col).doc(name) : null,
     lsKey: (name) => sk + '_' + name,
   };
 }
