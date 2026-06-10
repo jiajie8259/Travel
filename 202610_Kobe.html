@@ -3727,7 +3727,7 @@ const firebaseConfig = {
   measurementId:     "G-30P0GGS1YE"
 };
 if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
-const db = firebase.firestore();
+var db = firebase.firestore(); // var 確保掛到 window，供 firebase-editor.js 使用
 </script>
 
 <!-- ── 共用 JS（順序重要）── -->
