@@ -109,9 +109,9 @@ function dayOrderSort(rows, dayArr) {
 /* ══════════════════════════════════════════════════════════════
    1. 美食清單
    ══════════════════════════════════════════════════════════════ */
-let foodRows = [];
-let foodEditMode = false;
-let foodSyncing  = false;
+var foodRows = [];
+var foodEditMode = false;
+var foodSyncing = false;
 
 const PAY_OPTIONS = ['信用卡','行動支付','只收現金','Suica/ICOCA','不限'];
 
@@ -273,9 +273,9 @@ async function foodToggleEdit() {
 /* ══════════════════════════════════════════════════════════════
    2. 交通清單
    ══════════════════════════════════════════════════════════════ */
-let transRows = [];
-let transEditMode = false;
-let transSyncing  = false;
+var transRows = [];
+var transEditMode = false;
+var transSyncing = false;
 
 async function transLoad() {
   const e = EC();
@@ -415,10 +415,10 @@ async function transToggleEdit() {
 /* ══════════════════════════════════════════════════════════════
    3. 飯店詢價
    ══════════════════════════════════════════════════════════════ */
-let hotelRows = [];
-let hotelEditMode = false;
-let hotelSyncing  = false;
-let _jpyRate = null, _jpyRateTime = 0;
+var hotelRows = [];
+var hotelEditMode = false;
+var hotelSyncing = false;
+var _jpyRate = null, _jpyRateTime = 0;
 
 async function hotelLoad() {
   const e = EC();
@@ -592,8 +592,8 @@ async function hotelToggleEdit() {
 /* ══════════════════════════════════════════════════════════════
    4. 小筆記
    ══════════════════════════════════════════════════════════════ */
-let notesData = [];
-let notesEditIdx = -1;
+var notesData = [];
+var notesEditIdx = -1;
 
 const NOTE_COLORS = {
   '行程': { bg:'#fffde7', border:'#f9a825', icon:'🗓' },
@@ -777,10 +777,10 @@ async function notesDelete(idx) {
 /* ══════════════════════════════════════════════════════════════
    5. 景點清單（含拖拉排序）
    ══════════════════════════════════════════════════════════════ */
-let spotsRows = [];
-let spotsEditMode = false;
-let spotsSyncing  = false;
-let _dragSrcIdx = null, _dragSrcDay = null, _dragTargetTr = null;
+var spotsRows = [];
+var spotsEditMode = false;
+var spotsSyncing = false;
+var _dragSrcIdx = null, _dragSrcDay = null, _dragTargetTr = null;
 
 const SPOTS_PRIO_OPTIONS = ['✅ 必去','⭐ 推薦','□ 備選'];
 
@@ -968,7 +968,7 @@ async function spotsToggleEdit() {
 /* ══════════════════════════════════════════════════════════════
    6. 航班資訊
    ══════════════════════════════════════════════════════════════ */
-let flightEditMode = false;
+var flightEditMode = false;
 
 function flightToggleEdit() {
   flightEditMode = !flightEditMode;
