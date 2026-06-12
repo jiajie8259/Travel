@@ -123,6 +123,7 @@ async function foodLoad() {
   try {
     const snap = await doc.get();
     foodRows = (snap.exists && Array.isArray(snap.data().rows)) ? snap.data().rows : [];
+    console.log('[firebase-editor] foodLoad: snap.exists=', snap.exists, 'rows=', foodRows.length);
     setStatus('food-sync-status', '✓ 已同步', '#27ae60');
   } catch(_) {
     setStatus('food-sync-status', '📭 暫無資料', '#c0392b');
@@ -151,6 +152,7 @@ function foodCalcTotal() {
 }
 
 function foodRender() {
+  console.log('[firebase-editor] foodRender called, foodRows.length=', foodRows.length);
   const tbody = document.getElementById('food-tbody');
   if (!tbody) return;
   const e = EC();
