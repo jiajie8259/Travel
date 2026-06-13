@@ -1919,15 +1919,15 @@
   <div style="overflow-x:auto;border-radius:6px;border:1px solid #e0d8cc;width:100%;">
     <table id="spots-main-table" style="width:100%;border-collapse:collapse;font-size:0.8rem;background:white;table-layout:fixed;">
       <colgroup>
-        <col style="width:1.8rem">  <!-- handle -->
+        <col id="spots-handle-col-width" style="display:none;width:1.8rem">  <!-- handle -->
         <col style="width:2.5rem">  <!-- D -->
-        <col style="width:13%">     <!-- 景點名稱 -->
+        <col style="width:18%">     <!-- 景點名稱 -->
         <col style="width:3rem">    <!-- 官網 -->
         <col style="width:5rem">    <!-- 優先度 -->
         <col style="width:6.5rem">  <!-- 開放時間 -->
-        <col style="width:3.5rem">  <!-- 費用(¥) -->
-        <col style="width:22%">     <!-- 備註 -->
-        <col style="width:18%">     <!-- 地址 -->
+        <col style="width:4.5rem">  <!-- 費用(¥) -->
+        <col style="width:20%">     <!-- 備註 -->
+        <col style="width:24%">     <!-- 地址 -->
         <col style="width:3rem">    <!-- MAP -->
         <col style="width:1.8rem">  <!-- 刪除 -->
       </colgroup>
@@ -3739,13 +3739,16 @@ var db = firebase.firestore(); // var 確保掛到 window，供 firebase-editor.
 <script src="js/tabs.js"></script>
 
 <script>
-// 同步 spots-handle-col 的顯示狀態，跟隨 spots-del-col
+// 同步 spots-handle-col（th + col）的顯示狀態，跟隨 spots-del-col
 (function() {
   function syncHandleCol() {
     const delCol = document.getElementById('spots-del-col');
-    const handleCol = document.getElementById('spots-handle-col');
-    if (!delCol || !handleCol) return;
-    handleCol.style.display = delCol.style.display;
+    const handleTh  = document.getElementById('spots-handle-col');
+    const handleCol = document.getElementById('spots-handle-col-width');
+    if (!delCol) return;
+    const disp = delCol.style.display; // '' (visible) or 'none'
+    if (handleTh)  handleTh.style.display  = disp;
+    if (handleCol) handleCol.style.display = disp;
   }
   window.addEventListener('load', function() {
     const delCol = document.getElementById('spots-del-col');
