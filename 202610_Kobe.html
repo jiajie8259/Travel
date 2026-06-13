@@ -1933,7 +1933,7 @@
       </colgroup>
       <thead>
         <tr style="background:var(--ink);color:var(--paper);">
-          <th style="width:1.8rem;padding:0;"></th>
+          <th id="spots-handle-col" style="display:none;width:1.8rem;padding:0;"></th>
           <th style="padding:0.6rem 0.5rem;font-family:'DM Mono',monospace;font-size:0.72rem;letter-spacing:0.08em;font-weight:600;text-align:left;white-space:nowrap;">D</th>
           <th style="padding:0.6rem 0.5rem;font-family:'DM Mono',monospace;font-size:0.72rem;letter-spacing:0.08em;font-weight:600;text-align:left;white-space:nowrap;">景點名稱</th>
           <th style="padding:0.6rem 0.5rem;font-family:'DM Mono',monospace;font-size:0.72rem;letter-spacing:0.08em;font-weight:600;text-align:center;white-space:nowrap;">官網</th>
@@ -3737,5 +3737,25 @@ var db = firebase.firestore(); // var 確保掛到 window，供 firebase-editor.
 <script src="js/tracker.js"></script>
 <script src="js/export.js"></script>
 <script src="js/tabs.js"></script>
+
+<script>
+// 同步 spots-handle-col 的顯示狀態，跟隨 spots-del-col
+(function() {
+  function syncHandleCol() {
+    const delCol = document.getElementById('spots-del-col');
+    const handleCol = document.getElementById('spots-handle-col');
+    if (!delCol || !handleCol) return;
+    handleCol.style.display = delCol.style.display;
+  }
+  window.addEventListener('load', function() {
+    const delCol = document.getElementById('spots-del-col');
+    if (!delCol) return;
+    syncHandleCol();
+    new MutationObserver(syncHandleCol).observe(delCol, {
+      attributes: true, attributeFilter: ['style']
+    });
+  });
+})();
+</script>
 </body>
 </html>
