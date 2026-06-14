@@ -968,7 +968,231 @@ async function spotsToggleEdit() {
 }
 
 /* ══════════════════════════════════════════════════════════════
-   6. 航班資訊
+   6. 行程總覽（Firebase 驅動）
+   ══════════════════════════════════════════════════════════════ */
+var itineraryData = [];   // [ { day, sub, periods: [ { title, events: [ { type, name, note } ] } ] } ]
+var itineraryEditMode = false;
+var itinerarySyncing  = false;
+
+const ITIN_TYPES = ['交通','景點','餐飲','住宿','其他'];
+const ITIN_TYPE_CLASS = { '交通':'tag-transport','景點':'tag-spot','餐飲':'tag-meal','住宿':'tag-hotel','其他':'tag-other' };
+
+/* ── 從靜態 HTML 掃描初始資料（首次載入、Firebase 無資料時使用） ── */
+function itineraryReadStatic() {
+  const days = [];
+  document.querySelectorAll('#itinerary-static-data .day-block[data-static]').forEach(block => {
+    const day = block.querySelector('.day-label')?.textContent?.trim() || '';
+    const sub = block.querySelector('.day-sub')?.textContent?.trim() || '';
+    const periods = [];
+    block.querySelectorAll('.period').forEach(p => {
+      const title = p.querySelector('.period-title')?.textContent?.trim() || '';
+      const events = [];
+      p.querySelectorAll('.event').forEach(ev => {
+        const tagEl = ev.querySelector('.tag');
+        const tagClass = tagEl ? [...tagEl.classList].find(c => c.startsWith('tag-') && c !== 'tag') : '';
+        const type = (Object.entries(ITIN_TYPE_CLASS).find(([k,v]) => v === tagClass) || ['其他'])[0];
+        const name  = ev.querySelector('.event-name')?.textContent?.trim() || '';
+        const note  = ev.querySelector('.event-note')?.textContent?.trim() || '';
+        events.push({ type: type||'其他', name, note });
+      });
+      periods.push({ title, events });
+    });
+    days.push({ day, sub, periods });
+  });
+  return days;
+}
+
+async function itineraryLoad() {
+  const e = EC();
+  const doc = e.doc('itinerary');
+  if (!doc) { itineraryRender(); return; }
+  setStatus('itin-sync-status', '⏳ 同步中…', '#b8860b');
+  try {
+    const snap = await doc.get();
+    if (snap.exists && Array.isArray(snap.data().days) && snap.data().days.length) {
+      itineraryData = snap.data().days;
+      setStatus('itin-sync-status', '✓ 已同步', '#27ae60');
+    } else {
+      // 首次：從靜態 HTML 讀入
+      itineraryData = itineraryReadStatic();
+      setStatus('itin-sync-status', '✓ 已同步', '#27ae60');
+    }
+  } catch(_) {
+    itineraryData = itineraryReadStatic();
+    setStatus('itin-sync-status', '📭 離線模式', '#c0392b');
+  }
+  itineraryRender();
+}
+
+async function itineraryPush() {
+  if (itinerarySyncing) return; itinerarySyncing = true;
+  const e = EC();
+  const doc = e.doc('itinerary');
+  if (!doc) { itinerarySyncing = false; return; }
+  await pushToFirebase(doc, { days: itineraryData }, 'itin-sync-status', e.lsKey('itinerary'));
+  itinerarySyncing = false;
+}
+
+function itineraryRender() {
+  const container = document.getElementById('itinerary-main');
+  if (!container) return;
+
+  if (!itineraryData.length) {
+    container.innerHTML = `<div style="text-align:center;padding:3rem;color:var(--muted);font-style:italic;">— 行程待補充 —</div>`;
+    return;
+  }
+
+  container.innerHTML = itineraryData.map((day, di) => {
+    const periods = (day.periods || []).map((p, pi) => {
+      const events = (p.events || []).map((ev, ei) => {
+        const tagClass = ITIN_TYPE_CLASS[ev.type] || 'tag-other';
+        if (itineraryEditMode) {
+          const typeOpts = ITIN_TYPES.map(t => `<option value="${t}" ${ev.type===t?'selected':''}>${t}</option>`).join('');
+          return `<div class="event" data-di="${di}" data-pi="${pi}" data-ei="${ei}" style="display:flex;gap:0.6rem;align-items:flex-start;padding:0.5rem 0;border-bottom:1px dashed #eee;">
+            <div class="event-type" style="flex-shrink:0;padding-top:0.1rem;">
+              <select onchange="itinEdit(${di},${pi},${ei},'type',this.value)"
+                style="font-size:0.72rem;border:1px solid #ddd;border-radius:3px;padding:0.15rem;background:white;">
+                ${typeOpts}
+              </select>
+            </div>
+            <div class="event-body" style="flex:1;display:flex;flex-direction:column;gap:0.3rem;">
+              <input value="${(ev.name||'').replace(/"/g,'&quot;')}"
+                onchange="itinEdit(${di},${pi},${ei},'name',this.value)"
+                placeholder="事件名稱"
+                style="width:100%;font-size:0.82rem;font-weight:600;border:1px solid #ddd;border-radius:3px;padding:0.25rem 0.4rem;box-sizing:border-box;">
+              <input value="${(ev.note||'').replace(/"/g,'&quot;')}"
+                onchange="itinEdit(${di},${pi},${ei},'note',this.value)"
+                placeholder="補充說明（可留空）"
+                style="width:100%;font-size:0.76rem;border:1px solid #ddd;border-radius:3px;padding:0.2rem 0.4rem;box-sizing:border-box;color:#666;">
+            </div>
+            <button onclick="itinDeleteEvent(${di},${pi},${ei})"
+              style="flex-shrink:0;background:none;border:none;cursor:pointer;font-size:0.9rem;color:#c0392b;padding:0.2rem 0.35rem;margin-top:0.1rem;" title="刪除">✕</button>
+          </div>`;
+        } else {
+          return `<div class="event" style="display:flex;gap:0.6rem;align-items:flex-start;padding:0.45rem 0;">
+            <div class="event-type"><span class="tag ${tagClass}">${ev.type}</span></div>
+            <div class="event-body">
+              <div class="event-name">${ev.name||''}</div>
+              ${ev.note ? `<div class="event-note">${ev.note}</div>` : ''}
+            </div>
+          </div>`;
+        }
+      }).join('');
+
+      const addEventBtn = itineraryEditMode
+        ? `<button onclick="itinAddEvent(${di},${pi})"
+            style="margin-top:0.4rem;font-size:0.72rem;font-family:'DM Mono',monospace;background:transparent;border:1px dashed #bbb;border-radius:3px;padding:0.2rem 0.6rem;cursor:pointer;color:var(--muted);">＋ 新增事件</button>`
+        : '';
+
+      const periodTitle = itineraryEditMode
+        ? `<div style="display:flex;align-items:center;gap:0.5rem;margin-bottom:0.4rem;">
+            <input value="${(p.title||'').replace(/"/g,'&quot;')}"
+              onchange="itinEditPeriod(${di},${pi},'title',this.value)"
+              style="font-size:0.78rem;font-weight:700;color:var(--muted);border:1px solid #ddd;border-radius:3px;padding:0.2rem 0.4rem;background:white;">
+            <button onclick="itinDeletePeriod(${di},${pi})"
+              style="background:none;border:none;cursor:pointer;font-size:0.8rem;color:#c0392b;" title="刪除時段">✕</button>
+          </div>`
+        : `<div class="period-title">${p.title||''}</div>`;
+
+      return `<div class="period" data-di="${di}" data-pi="${pi}">
+        ${periodTitle}
+        ${events}
+        ${addEventBtn}
+      </div>`;
+    }).join('');
+
+    const addPeriodBtn = itineraryEditMode
+      ? `<button onclick="itinAddPeriod(${di})"
+          style="margin-top:0.5rem;font-size:0.72rem;font-family:'DM Mono',monospace;background:transparent;border:1px dashed #bbb;border-radius:4px;padding:0.25rem 0.8rem;cursor:pointer;color:var(--muted);">＋ 新增時段</button>`
+      : '';
+
+    const dayHeader = itineraryEditMode
+      ? `<div class="day-header" style="display:flex;align-items:center;gap:0.6rem;flex-wrap:wrap;">
+          <input value="${(day.day||'').replace(/"/g,'&quot;')}"
+            onchange="itinEditDay(${di},'day',this.value)"
+            style="font-family:'DM Mono',monospace;font-size:0.9rem;font-weight:700;width:3.5rem;border:1px solid #ddd;border-radius:3px;padding:0.2rem 0.4rem;text-align:center;">
+          <input value="${(day.sub||'').replace(/"/g,'&quot;')}"
+            onchange="itinEditDay(${di},'sub',this.value)"
+            style="font-size:0.82rem;flex:1;min-width:12rem;border:1px solid #ddd;border-radius:3px;padding:0.2rem 0.4rem;color:#555;">
+          <button onclick="itinDeleteDay(${di})"
+            style="background:none;border:1px solid #c0392b;border-radius:3px;cursor:pointer;font-size:0.75rem;color:#c0392b;padding:0.15rem 0.5rem;" title="刪除此天">✕ 刪除整天</button>
+        </div>`
+      : `<div class="day-header">
+          <div class="day-label">${day.day||''}</div>
+          <div class="day-sub">${day.sub||''}</div>
+        </div>`;
+
+    return `<div class="day-block" data-di="${di}">
+      ${dayHeader}
+      ${periods}
+      ${addPeriodBtn}
+    </div>`;
+  }).join('');
+}
+
+/* ── 資料操作 ── */
+function itinEdit(di, pi, ei, field, value) {
+  if (itineraryData[di]?.periods[pi]?.events[ei]) {
+    itineraryData[di].periods[pi].events[ei][field] = value;
+  }
+}
+function itinEditPeriod(di, pi, field, value) {
+  if (itineraryData[di]?.periods[pi]) itineraryData[di].periods[pi][field] = value;
+}
+function itinEditDay(di, field, value) {
+  if (itineraryData[di]) itineraryData[di][field] = value;
+}
+
+function itinAddEvent(di, pi) {
+  itineraryData[di]?.periods[pi]?.events.push({ type:'景點', name:'', note:'' });
+  itineraryRender();
+}
+function itinDeleteEvent(di, pi, ei) {
+  itineraryData[di]?.periods[pi]?.events.splice(ei, 1);
+  itineraryRender();
+}
+function itinAddPeriod(di) {
+  itineraryData[di]?.periods.push({ title:'新時段', events:[{ type:'景點', name:'', note:'' }] });
+  itineraryRender();
+}
+function itinDeletePeriod(di, pi) {
+  if (!confirm('確定刪除此時段及其所有事件？')) return;
+  itineraryData[di]?.periods.splice(pi, 1);
+  itineraryRender();
+}
+function itinAddDay() {
+  itineraryData.push({ day:`D${itineraryData.length+1}`, sub:'', periods:[{ title:'全日', events:[{ type:'景點', name:'', note:'' }] }] });
+  itineraryRender();
+  document.querySelector('#itinerary-main .day-block:last-child')?.scrollIntoView({ behavior:'smooth', block:'start' });
+}
+function itinDeleteDay(di) {
+  if (!confirm(`確定刪除「${itineraryData[di]?.day||'此天'}」的所有行程？`)) return;
+  itineraryData.splice(di, 1);
+  itineraryRender();
+}
+
+async function itinerarySave() {
+  await itineraryPush();
+  savedBtnFeedback('itin-edit-btn');
+}
+
+async function itineraryToggleEdit() {
+  itineraryEditMode = !itineraryEditMode;
+  const btn     = document.getElementById('itin-edit-btn');
+  const toolbar = document.getElementById('itin-edit-toolbar');
+  if (itineraryEditMode) {
+    if (btn)     { btn.textContent = '✓ 完成'; btn.style.background = 'var(--ink)'; btn.style.color = '#f0c040'; }
+    if (toolbar) toolbar.style.display = 'flex';
+  } else {
+    await itineraryPush();
+    if (btn)     { btn.textContent = '✏ 編輯'; btn.style.background = 'transparent'; btn.style.color = 'var(--ink)'; }
+    if (toolbar) toolbar.style.display = 'none';
+  }
+  itineraryRender();
+}
+
+/* ══════════════════════════════════════════════════════════════
+   7. 航班資訊
    ══════════════════════════════════════════════════════════════ */
 var flightEditMode = false;
 
@@ -1054,4 +1278,5 @@ document.addEventListener('DOMContentLoaded', function() {
   hotelLoad();
   notesLoad();
   spotsLoad();
+  itineraryLoad();
 });
