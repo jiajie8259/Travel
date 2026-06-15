@@ -153,8 +153,6 @@
     font-weight: 500;
   }
   .tag-transport { background: #e0e0e0; color: #555; }
-  .tag-hotel     { background: #dce8f5; color: #1a4a7a; }
-  .tag-other     { background: #ede8f5; color: #4a3a7a; }
   .tag-walk      { background: #d4e9f0; color: #2c5d70; }
   .tag-spot      { background: #dde8d8; color: #3d5c33; }
   .tag-meal      { background: #f5ddd8; color: #8b2c22; }
@@ -1283,72 +1281,152 @@
 <div id="itinerary" class="tab-panel active">
 <main>
 
-  <!-- 行程總覽標頭 -->
-  <div style="display:flex;align-items:center;justify-content:space-between;border-bottom:2px solid var(--ink);padding-bottom:0.5rem;margin-bottom:1rem;">
-    <h2 style="font-size:1.1rem;font-weight:700;letter-spacing:0.1em;">🗓 行程總覽</h2>
-    <div style="display:flex;align-items:center;gap:0.75rem;">
-      <span id="itin-sync-status" style="font-family:'DM Mono',monospace;font-size:0.68rem;color:var(--muted);"></span>
-      <button id="itin-edit-btn" onclick="itineraryToggleEdit()" style="font-family:'DM Mono',monospace;font-size:0.72rem;letter-spacing:0.06em;text-transform:uppercase;padding:0.45rem 1rem;border:1.5px solid var(--ink);border-radius:4px;background:transparent;cursor:pointer;color:var(--ink);transition:all 0.15s;">✏ 編輯</button>
+  <!-- D1 -->
+  <div class="day-block">
+    <div class="day-header">
+      <div class="day-label">D1</div>
+      <div class="day-sub">10/22 (四) 出發日 · 抵達神戶</div>
+    </div>
+    <div class="period">
+      <div class="period-title">早上・出發</div>
+      <div class="event">
+        <div class="event-type"><span class="tag tag-transport">交通</span></div>
+        <div class="event-body">
+          <div class="event-name">✈ JX834　桃園（TPE）06:20 → 神戶（UKB）10:00</div>
+          <div class="event-note">星宇航空　AIRBUS A350　桃園第一航廈出發　｜　飛行約 3小時40分</div>
+        </div>
+      </div>
+    </div>
+    <div class="period">
+      <div class="period-title">下午・抵達</div>
+      <div class="event">
+        <div class="event-type"><span class="tag tag-transport">交通</span></div>
+        <div class="event-body">
+          <div class="event-name">關西國際機場 → 神戶市區</div>
+          <div class="event-note">（交通方式待確認：港灣航線 / 利木津巴士 / 電車）</div>
+        </div>
+      </div>
+      <div class="event">
+        <div class="event-type"><span class="tag tag-spot">景點</span></div>
+        <div class="event-body">
+          <div class="event-name">神戶舊外國人居留地・南京町</div>
+          <div class="event-note">待補充</div>
+        </div>
+      </div>
+    </div>
+    <div class="period">
+      <div class="period-title">晚上</div>
+      <div class="event">
+        <div class="event-type"><span class="tag tag-meal">餐飲</span></div>
+        <div class="event-body">
+          <div class="event-name">晚餐（待安排）</div>
+          <div class="event-note">神戶牛燒肉 / 三宮居酒屋</div>
+        </div>
+      </div>
     </div>
   </div>
 
-  <!-- 編輯模式工具列 -->
-  <div id="itin-edit-toolbar" style="display:none;background:#fff8e8;border:1.5px solid var(--gold);border-radius:6px;padding:0.75rem 1rem;margin-bottom:1.25rem;align-items:center;gap:0.75rem;flex-wrap:wrap;">
-    <button onclick="itinAddDay()" style="font-family:'DM Mono',monospace;font-size:0.72rem;padding:0.4rem 0.9rem;background:var(--ink);color:#f0c040;border:none;border-radius:4px;cursor:pointer;">＋ 新增一天</button>
-    <span style="font-size:0.75rem;color:var(--muted);">點擊文字直接編輯　｜　每個區塊右側有刪除按鈕</span>
-    <button onclick="itinerarySave()" style="margin-left:auto;font-family:'DM Mono',monospace;font-size:0.72rem;padding:0.4rem 0.9rem;background:#27ae60;color:white;border:none;border-radius:4px;cursor:pointer;">💾 儲存</button>
+  <!-- D2 -->
+  <div class="day-block">
+    <div class="day-header">
+      <div class="day-label">D2</div>
+      <div class="day-sub">10/23 (五) 神戶市區</div>
+    </div>
+    <div class="period">
+      <div class="period-title">上午</div>
+      <div class="event">
+        <div class="event-type"><span class="tag tag-spot">景點</span></div>
+        <div class="event-body">
+          <div class="event-name">待補充</div>
+        </div>
+      </div>
+    </div>
+    <div class="period">
+      <div class="period-title">下午</div>
+      <div class="event">
+        <div class="event-type"><span class="tag tag-spot">景點</span></div>
+        <div class="event-body">
+          <div class="event-name">待補充</div>
+        </div>
+      </div>
+    </div>
+    <div class="period">
+      <div class="period-title">晚上</div>
+      <div class="event">
+        <div class="event-type"><span class="tag tag-meal">餐飲</span></div>
+        <div class="event-body">
+          <div class="event-name">待補充</div>
+        </div>
+      </div>
+    </div>
   </div>
 
-  <!-- 動態行程容器（由 itineraryRender() 填入） -->
-  <div id="itinerary-main"></div>
+  <!-- D3 -->
+  <div class="day-block">
+    <div class="day-header">
+      <div class="day-label">D3</div>
+      <div class="day-sub">10/24 (六) 待確認</div>
+    </div>
+    <div class="period">
+      <div class="period-title">全日</div>
+      <div class="event">
+        <div class="event-type"><span class="tag tag-spot">景點</span></div>
+        <div class="event-body">
+          <div class="event-name">待補充</div>
+          <div class="event-note">有馬温泉 / 大阪市區 等</div>
+        </div>
+      </div>
+    </div>
+  </div>
 
-  <!-- 靜態初始資料（供 JS 首次讀取用，之後由 Firebase 接管） -->
-  <div id="itinerary-static-data" style="display:none;">
-    <div class="day-block" data-static>
-      <div class="day-header"><div class="day-label">D1</div><div class="day-sub">10/22 (四) 出發日 · 抵達神戶</div></div>
-      <div class="period"><div class="period-title">早上・出發</div>
-        <div class="event"><div class="event-type"><span class="tag tag-transport">交通</span></div><div class="event-body"><div class="event-name">✈ JX834　桃園（TPE）06:20 → 神戶（UKB）10:00</div><div class="event-note">星宇航空　AIRBUS A350　桃園第一航廈出發　｜　飛行約 3小時40分</div></div></div>
-      </div>
-      <div class="period"><div class="period-title">下午・抵達</div>
-        <div class="event"><div class="event-type"><span class="tag tag-transport">交通</span></div><div class="event-body"><div class="event-name">關西國際機場 → 神戶市區</div><div class="event-note">（交通方式待確認：港灣航線 / 利木津巴士 / 電車）</div></div></div>
-        <div class="event"><div class="event-type"><span class="tag tag-spot">景點</span></div><div class="event-body"><div class="event-name">神戶舊外國人居留地・南京町</div><div class="event-note">待補充</div></div></div>
-      </div>
-      <div class="period"><div class="period-title">晚上</div>
-        <div class="event"><div class="event-type"><span class="tag tag-meal">餐飲</span></div><div class="event-body"><div class="event-name">晚餐（待安排）</div><div class="event-note">神戶牛燒肉 / 三宮居酒屋</div></div></div>
+  <!-- D4 -->
+  <div class="day-block">
+    <div class="day-header">
+      <div class="day-label">D4</div>
+      <div class="day-sub">10/25 (日) 大阪</div>
+    </div>
+    <div class="period">
+      <div class="period-title">全日</div>
+      <div class="event">
+        <div class="event-type"><span class="tag tag-spot">景點</span></div>
+        <div class="event-body">
+          <div class="event-name">待補充</div>
+          <div class="event-note">道頓堀 / 心齋橋 / 難波 等</div>
+        </div>
       </div>
     </div>
-    <div class="day-block" data-static>
-      <div class="day-header"><div class="day-label">D2</div><div class="day-sub">10/23 (五) 神戶市區</div></div>
-      <div class="period"><div class="period-title">上午</div>
-        <div class="event"><div class="event-type"><span class="tag tag-spot">景點</span></div><div class="event-body"><div class="event-name">待補充</div></div></div>
-      </div>
-      <div class="period"><div class="period-title">下午</div>
-        <div class="event"><div class="event-type"><span class="tag tag-spot">景點</span></div><div class="event-body"><div class="event-name">待補充</div></div></div>
-      </div>
-      <div class="period"><div class="period-title">晚上</div>
-        <div class="event"><div class="event-type"><span class="tag tag-meal">餐飲</span></div><div class="event-body"><div class="event-name">待補充</div></div></div>
+  </div>
+
+  <!-- D5 -->
+  <div class="day-block">
+    <div class="day-header">
+      <div class="day-label">D5</div>
+      <div class="day-sub">10/26 (一) 返程日</div>
+    </div>
+    <div class="period">
+      <div class="period-title">早上</div>
+      <div class="event">
+        <div class="event-type"><span class="tag tag-spot">景點</span></div>
+        <div class="event-body">
+          <div class="event-name">待補充（返程前行程）</div>
+        </div>
       </div>
     </div>
-    <div class="day-block" data-static>
-      <div class="day-header"><div class="day-label">D3</div><div class="day-sub">10/24 (六) 待確認</div></div>
-      <div class="period"><div class="period-title">全日</div>
-        <div class="event"><div class="event-type"><span class="tag tag-spot">景點</span></div><div class="event-body"><div class="event-name">待補充</div><div class="event-note">有馬温泉 / 大阪市區 等</div></div></div>
+    <div class="period">
+      <div class="period-title">返程</div>
+      <div class="event">
+        <div class="event-type"><span class="tag tag-transport">交通</span></div>
+        <div class="event-body">
+          <div class="event-name">大阪市區 → 關西國際機場</div>
+          <div class="event-note">（交通方式待確認）</div>
+        </div>
       </div>
-    </div>
-    <div class="day-block" data-static>
-      <div class="day-header"><div class="day-label">D4</div><div class="day-sub">10/25 (日) 大阪</div></div>
-      <div class="period"><div class="period-title">全日</div>
-        <div class="event"><div class="event-type"><span class="tag tag-spot">景點</span></div><div class="event-body"><div class="event-name">待補充</div><div class="event-note">道頓堀 / 心齋橋 / 難波 等</div></div></div>
-      </div>
-    </div>
-    <div class="day-block" data-static>
-      <div class="day-header"><div class="day-label">D5</div><div class="day-sub">10/26 (一) 返程日</div></div>
-      <div class="period"><div class="period-title">早上</div>
-        <div class="event"><div class="event-type"><span class="tag tag-spot">景點</span></div><div class="event-body"><div class="event-name">待補充（返程前行程）</div></div></div>
-      </div>
-      <div class="period"><div class="period-title">返程</div>
-        <div class="event"><div class="event-type"><span class="tag tag-transport">交通</span></div><div class="event-body"><div class="event-name">大阪市區 → 關西國際機場</div><div class="event-note">（交通方式待確認）</div></div></div>
-        <div class="event"><div class="event-type"><span class="tag tag-transport">交通</span></div><div class="event-body"><div class="event-name">✈ JX823　關西（KIX）15:10 → 桃園（TPE）17:05</div><div class="event-note">星宇航空　AIRBUS A350　桃園第一航廈出發　｜　飛行約 3小時40分</div></div></div>
+      <div class="event">
+        <div class="event-type"><span class="tag tag-transport">交通</span></div>
+        <div class="event-body">
+          <div class="event-name">✈ JX823　關西（KIX）15:10 → 桃園（TPE）17:05</div>
+          <div class="event-note">星宇航空　AIRBUS A350　桃園第一航廈出發　｜　飛行約 3小時40分</div>
+        </div>
       </div>
     </div>
   </div>
@@ -1760,13 +1838,14 @@
   <!-- ── 編輯模式工具列 ── -->
   <div id="food-edit-toolbar" style="display:none;background:#fff8e8;border:1.5px solid var(--gold);border-radius:6px;padding:0.75rem 1rem;margin-bottom:1rem;display:none;align-items:center;gap:0.75rem;flex-wrap:wrap;">
     <button onclick="foodAddRow()" style="font-family:'DM Mono',monospace;font-size:0.72rem;padding:0.4rem 0.9rem;background:var(--ink);color:#f0c040;border:none;border-radius:4px;cursor:pointer;">＋ 新增一列</button>
-    <span style="font-size:0.75rem;color:var(--muted);">點擊儲存格可直接編輯　｜　每列右側有刪除按鈕</span>
+    <span style="font-size:0.75rem;color:var(--muted);">點擊儲存格可直接編輯　｜　拖拉 ⠿ 調整同天內順序　｜　每列右側有刪除按鈕</span>
     <button onclick="foodSave()" style="margin-left:auto;font-family:'DM Mono',monospace;font-size:0.72rem;padding:0.4rem 0.9rem;background:#27ae60;color:white;border:none;border-radius:4px;cursor:pointer;">💾 儲存</button>
   </div>
 
   <div class="food-table-wrap">
     <table class="food-table" id="food-main-table">
       <colgroup>
+        <col id="food-drag-col-width" style="display:none;width:1.8rem">  <!-- drag handle -->
         <col style="width:2.5rem">  <!-- D -->
         <col style="width:12%">     <!-- 店名 -->
         <col style="width:5.5rem">  <!-- 時間 -->
@@ -1785,6 +1864,7 @@
       </colgroup>
       <thead>
         <tr>
+          <th id="food-drag-col" style="display:none;width:1.8rem;padding:0;"></th>
           <th style="white-space:nowrap;font-size:0.78rem;text-align:center;">D</th>
           <th style="font-size:0.78rem;text-align:center;">店名</th>
           <th style="font-size:0.78rem;text-align:center;">時間</th>
@@ -1806,6 +1886,7 @@
       </tbody>
       <tfoot>
         <tr>
+          <td id="food-drag-col-foot" style="display:none;background:#fff8f8;"></td>
           <td colspan="13" style="text-align:right;padding:0.75rem 1rem;font-size:0.8rem;color:var(--muted);font-family:'DM Mono',monospace;letter-spacing:0.05em;">餐食小計</td>
           <td class="col-price" id="food-total" style="padding:0.75rem 0.5rem;font-weight:900;font-size:1rem;color:var(--red);font-family:'DM Mono',monospace;background:#fff8f8;text-align:right;">—</td>
           <td style="background:#fff8f8;"></td>
@@ -3661,24 +3742,42 @@ var db = firebase.firestore(); // var 確保掛到 window，供 firebase-editor.
 <script src="js/tabs.js"></script>
 
 <script>
-// 同步 spots-handle-col（th + col）的顯示狀態，跟隨 spots-del-col
+// 同步 handle/drag col 的顯示狀態，跟隨各自的 del-col
 (function() {
-  function syncHandleCol() {
-    const delCol    = document.getElementById('spots-del-col');
-    const handleTh  = document.getElementById('spots-handle-col');
-    const handleCol = document.getElementById('spots-handle-col-width');
-    if (!delCol) return;
-    const disp = delCol.style.display;
-    if (handleTh)  handleTh.style.display  = disp;
-    if (handleCol) handleCol.style.display = disp;
+  function syncCol(delId, thId, colId) {
+    const del = document.getElementById(delId);
+    const th  = document.getElementById(thId);
+    const col = document.getElementById(colId);
+    if (!del) return;
+    const d = del.style.display;
+    if (th)  th.style.display  = d;
+    if (col) col.style.display = d;
   }
   window.addEventListener('load', function() {
-    const delCol = document.getElementById('spots-del-col');
-    if (!delCol) return;
-    syncHandleCol();
-    new MutationObserver(syncHandleCol).observe(delCol, {
-      attributes: true, attributeFilter: ['style']
-    });
+    // spots
+    const spotsDel = document.getElementById('spots-del-col');
+    if (spotsDel) {
+      syncCol('spots-del-col','spots-handle-col','spots-handle-col-width');
+      new MutationObserver(() => syncCol('spots-del-col','spots-handle-col','spots-handle-col-width'))
+        .observe(spotsDel, { attributes:true, attributeFilter:['style'] });
+    }
+    // food
+    const foodDel = document.getElementById('food-del-col');
+    if (foodDel) {
+      syncCol('food-del-col','food-drag-col','food-drag-col-width');
+      new MutationObserver(() => syncCol('food-del-col','food-drag-col','food-drag-col-width'))
+        .observe(foodDel, { attributes:true, attributeFilter:['style'] });
+      // food-drag-col-foot 同步
+      const foodDelFoot = document.getElementById('food-del-col-foot');
+      if (foodDelFoot) {
+        const syncFoot = () => {
+          const f = document.getElementById('food-drag-col-foot');
+          if (f) f.style.display = foodDelFoot.style.display;
+        };
+        syncFoot();
+        new MutationObserver(syncFoot).observe(foodDelFoot, { attributes:true, attributeFilter:['style'] });
+      }
+    }
   });
 })();
 </script>
