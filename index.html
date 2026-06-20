@@ -1,0 +1,1408 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>旅遊記錄 · Travel Log</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@400;600;900&amp;family=DM+Mono:wght@400;500&amp;family=Cormorant+Garamond:ital,wght@0,400;0,600;1,400&amp;display=swap" rel="stylesheet">
+<style>
+  :root {
+    --ink:        #0e0c09;
+    --paper:      #f7f3ec;
+    --cream:      #ede7d9;
+    --gold:       #b5922a;
+    --gold-light: #e8d5a0;
+    --muted:      #7a7168;
+    --red:        #b03a2e;
+    --sage:       #5a6e52;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'Noto Serif TC', serif;
+    background: var(--paper);
+    color: var(--ink);
+    min-height: 100vh;
+  }
+
+  /* ── HERO（縮短版）── */
+  .hero {
+    position: relative;
+    background: var(--ink);
+    color: var(--paper);
+    padding: 2rem 2rem 1.75rem;   /* 原本 5rem 4rem，縮短約 55% */
+    overflow: hidden;
+    text-align: center;
+  }
+  .hero-bg-text {
+    position: absolute;
+    font-size: clamp(5rem, 14vw, 14rem);   /* 縮小背景字 */
+    font-weight: 900;
+    opacity: 0.04;
+    top: 50%; left: 50%;
+    transform: translate(-50%, -50%);
+    white-space: nowrap;
+    pointer-events: none;
+    letter-spacing: -0.02em;
+    font-family: 'Cormorant Garamond', serif;
+  }
+  .hero-eyebrow {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.65rem;
+    letter-spacing: 0.3em;
+    text-transform: uppercase;
+    color: var(--gold-light);
+    margin-bottom: 0.6rem;        /* 原本 1.25rem */
+  }
+  .hero h1 {
+    font-size: clamp(1.8rem, 5vw, 3.5rem); /* 原本 2.5–5rem，縮小 */
+    font-weight: 900;
+    letter-spacing: 0.05em;
+    line-height: 1;
+    margin-bottom: 0.35rem;
+  }
+  .hero-sub {
+    font-family: 'Cormorant Garamond', serif;
+    font-style: italic;
+    font-size: clamp(0.85rem, 1.5vw, 1.1rem); /* 縮小 */
+    color: #aaa;
+    margin-bottom: 1.25rem;       /* 原本 2.5rem */
+  }
+  .hero-stats { display: flex; justify-content: center; gap: 2rem; flex-wrap: wrap; }
+  .stat { text-align: center; }
+  .stat-num {
+    font-size: 1.5rem; font-weight: 900;  /* 原本 2rem */
+    color: var(--gold-light);
+    font-family: 'DM Mono', monospace;
+    line-height: 1;
+  }
+  .stat-label {
+    font-size: 0.62rem; letter-spacing: 0.15em; color: #888;
+    margin-top: 0.2rem; text-transform: uppercase;
+  }
+
+  /* ── DIVIDER ── */
+  .divider {
+    height: 3px;
+    background: linear-gradient(90deg, var(--gold) 0%, var(--gold-light) 50%, var(--gold) 100%);
+  }
+
+  /* ── MAIN ── */
+  main { max-width: 1000px; margin: 0 auto; padding: 2rem 1.5rem 5rem; }
+
+  /* ── README BOX（可收合）── */
+  .readme-box {
+    background: var(--ink); color: var(--paper);
+    border-radius: 8px; margin-bottom: 2.5rem;
+    font-family: 'DM Mono', monospace; font-size: 0.8rem; line-height: 1.8;
+    overflow: hidden;
+  }
+  .readme-toggle {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 0.9rem 1.5rem;
+    cursor: pointer;
+    user-select: none;
+    transition: background 0.15s;
+  }
+  .readme-toggle:hover { background: rgba(255,255,255,0.05); }
+  .readme-toggle-left {
+    display: flex; align-items: center; gap: 0.6rem;
+  }
+  .readme-toggle-title {
+    font-size: 0.68rem; letter-spacing: 0.2em; text-transform: uppercase;
+    color: var(--gold-light);
+  }
+  .readme-toggle-count {
+    font-size: 0.58rem; color: #555;
+    background: rgba(255,255,255,0.07);
+    padding: 0.1em 0.55em; border-radius: 20px;
+  }
+  .readme-chevron {
+    font-size: 0.65rem; color: #555;
+    transition: transform 0.25s ease;
+  }
+  .readme-box.open .readme-chevron { transform: rotate(180deg); }
+  .readme-content {
+    display: none;
+    padding: 0 1.5rem 1.2rem;
+    border-top: 1px solid rgba(255,255,255,0.07);
+  }
+  .readme-box.open .readme-content { display: block; }
+  .readme-box .dir     { color: var(--gold-light); }
+  .readme-box .file    { color: #88c9a0; }
+  .readme-box .comment { color: #555; }
+
+  /* ── YEAR GROUP ── */
+  .year-group { margin-bottom: 3rem; }
+  .year-header { display: flex; align-items: center; gap: 1rem; margin-bottom: 1.5rem; }
+  .year-label {
+    font-family: 'DM Mono', monospace; font-size: 0.7rem;
+    letter-spacing: 0.2em; color: var(--muted); text-transform: uppercase; white-space: nowrap;
+  }
+  .year-num { font-size: 2.8rem; font-weight: 900; line-height: 1; color: var(--ink); }
+  .year-line { flex: 1; height: 1px; background: var(--cream); border-top: 1px solid #d0c8bc; }
+
+  /* ── TRIP GRID ── */
+  .trip-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 1.25rem;
+  }
+
+  /* ── TRIP CARD ── */
+  .trip-card {
+    background: white; border: 1px solid #ddd5c8; border-radius: 8px;
+    overflow: hidden; text-decoration: none; color: inherit; display: block;
+    transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+  }
+  .trip-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 12px 32px rgba(0,0,0,0.1);
+    border-color: var(--gold);
+  }
+  .trip-card-banner { height: 8px; }
+  .trip-card-body   { padding: 1.25rem 1.25rem 1rem; }
+  .trip-meta { display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.75rem; }
+  .trip-flag  { font-size: 1.4rem; line-height: 1; }
+  .trip-dates { font-family: 'DM Mono', monospace; font-size: 0.68rem; color: var(--muted); letter-spacing: 0.02em; white-space: nowrap; }
+  .trip-title { font-size: 1.3rem; font-weight: 900; letter-spacing: 0.03em; line-height: 1.2; margin-bottom: 0.4rem; }
+  .trip-subtitle { font-size: 0.8rem; color: var(--muted); line-height: 1.5; margin-bottom: 1rem; }
+  .trip-tags { display: flex; flex-wrap: wrap; gap: 0.35rem; }
+  .trip-tag {
+    font-size: 0.65rem; font-family: 'DM Mono', monospace;
+    padding: 0.2em 0.6em; border-radius: 2px; letter-spacing: 0.05em;
+    background: var(--cream); color: var(--muted);
+  }
+  .trip-card-footer {
+    padding: 0.75rem 1.25rem; border-top: 1px solid #f0e8dc;
+    display: flex; align-items: center; justify-content: space-between;
+    font-size: 0.75rem; color: var(--muted);
+  }
+  .trip-days  { font-family: 'DM Mono', monospace; font-size: 0.68rem; }
+  .trip-arrow { font-size: 1rem; color: var(--gold); transition: transform 0.2s; }
+  .trip-card:hover .trip-arrow { transform: translateX(4px); }
+
+  /* ── ADD CARD ── */
+  .trip-card.add-card {
+    border-style: dashed; border-color: #ccc;
+    display: flex; align-items: center; justify-content: center;
+    min-height: 160px; color: var(--muted); font-size: 0.85rem;
+    letter-spacing: 0.05em; cursor: pointer;
+  }
+  .trip-card.add-card:hover {
+    transform: none; box-shadow: none;
+    border-color: var(--gold); color: var(--gold);
+  }
+  .add-inner { text-align: center; }
+  .add-plus  { font-size: 2rem; line-height: 1; margin-bottom: 0.5rem; display: block; }
+
+  /* ── UPCOMING BADGE ── */
+  .badge-upcoming {
+    display: inline-block; font-family: 'DM Mono', monospace;
+    font-size: 0.58rem; letter-spacing: 0.12em; text-transform: uppercase;
+    background: #f0c040; color: #5a4000;
+    padding: 0.15em 0.55em; border-radius: 2px;
+    vertical-align: middle; margin-left: 0.4rem;
+  }
+
+  /* ── 編輯模式 ── */
+  /* 頂部編輯列 */
+  .edit-bar {
+    display: none;
+    background: #1a1209;
+    color: #f0c040;
+    padding: 0.55rem 1.5rem;
+    font-family: 'DM Mono', monospace;
+    font-size: 0.72rem;
+    letter-spacing: 0.08em;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.3);
+  }
+  .edit-bar.active { display: flex; }
+  .edit-bar-label { display: flex; align-items: center; gap: 0.5rem; }
+  .edit-bar-dot {
+    width: 8px; height: 8px; border-radius: 50%;
+    background: #f0c040; animation: editPulse 1.5s infinite;
+  }
+  @keyframes editPulse {
+    0%,100% { opacity: 1; } 50% { opacity: 0.3; }
+  }
+  .edit-bar-actions { display: flex; gap: 0.6rem; }
+  .edit-bar-btn {
+    background: none; border: 1px solid rgba(255,255,255,0.25);
+    color: var(--paper); font-family: 'DM Mono', monospace;
+    font-size: 0.68rem; letter-spacing: 0.05em;
+    padding: 0.3rem 0.8rem; border-radius: 4px;
+    cursor: pointer; transition: all 0.15s;
+  }
+  .edit-bar-btn:hover { background: rgba(255,255,255,0.1); }
+  .edit-bar-btn.save-btn {
+    background: #f0c040; color: #1a1209;
+    border-color: #f0c040; font-weight: 700;
+  }
+  .edit-bar-btn.save-btn:hover { background: #e8b830; }
+
+  /* 卡片刪除按鈕（預設隱藏，編輯模式顯示）*/
+  .card-delete-btn {
+    display: none;
+    position: absolute;
+    top: 0.5rem; right: 0.5rem;
+    width: 24px; height: 24px;
+    background: rgba(192,57,43,0.9);
+    color: white;
+    border: none;
+    border-radius: 50%;
+    font-size: 0.75rem;
+    line-height: 24px;
+    text-align: center;
+    cursor: pointer;
+    z-index: 10;
+    transition: background 0.15s, transform 0.15s;
+  }
+  .card-delete-btn:hover { background: #a93226; transform: scale(1.15); }
+
+  /* 卡片編輯按鈕（與刪除按鈕並排，編輯模式顯示）*/
+  .card-edit-btn {
+    display: none;
+    position: absolute;
+    top: 0.5rem; right: 2.35rem;
+    width: 24px; height: 24px;
+    background: rgba(181,146,42,0.95);
+    color: white;
+    border: none;
+    border-radius: 50%;
+    font-size: 0.72rem;
+    line-height: 24px;
+    text-align: center;
+    cursor: pointer;
+    z-index: 10;
+    transition: background 0.15s, transform 0.15s;
+  }
+  .card-edit-btn:hover { background: #8a6f1f; transform: scale(1.15); }
+  body.edit-mode .card-edit-btn { display: block; }
+
+  /* 編輯模式下的卡片樣式 */
+  body.edit-mode .trip-card:not(.add-card) {
+    position: relative;
+    outline: 2px dashed rgba(184,134,11,0.4);
+    outline-offset: 2px;
+  }
+  body.edit-mode .trip-card:not(.add-card):hover {
+    outline-color: var(--red);
+  }
+  body.edit-mode .card-delete-btn { display: block; }
+
+  /* 年份區塊刪除按鈕 */
+  .year-delete-btn {
+    display: none;
+    background: none;
+    border: 1px dashed #ccc;
+    color: var(--muted);
+    font-family: 'DM Mono', monospace;
+    font-size: 0.6rem;
+    padding: 0.2rem 0.6rem;
+    border-radius: 3px;
+    cursor: pointer;
+    margin-left: 0.75rem;
+    transition: all 0.15s;
+  }
+  .year-delete-btn:hover { border-color: var(--red); color: var(--red); }
+  body.edit-mode .year-delete-btn { display: inline-block; }
+
+  /* ── FOOTER ── */
+  footer {
+    text-align: center; padding: 2rem; font-size: 0.75rem;
+    color: var(--muted); font-family: 'DM Mono', monospace;
+    border-top: 1px solid var(--cream); letter-spacing: 0.1em;
+  }
+
+  /* ── ANIMATIONS ── */
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(8px); }
+    to   { opacity: 1; transform: none; }
+  }
+  .trip-grid .trip-card:nth-child(1) { animation: fadeUp 0.5s 0.05s ease both; }
+  .trip-grid .trip-card:nth-child(2) { animation: fadeUp 0.5s 0.10s ease both; }
+  .trip-grid .trip-card:nth-child(3) { animation: fadeUp 0.5s 0.15s ease both; }
+
+  /* ── MODAL OVERLAY ── */
+  .modal-overlay {
+    display: none; position: fixed; inset: 0;
+    background: rgba(14,12,9,0.7); backdrop-filter: blur(4px);
+    z-index: 1000; align-items: center; justify-content: center;
+  }
+  .modal-overlay.open { display: flex; }
+  @keyframes modalIn {
+    from { opacity: 0; transform: translateY(20px) scale(0.97); }
+    to   { opacity: 1; transform: none; }
+  }
+  .modal-inner {
+    background: var(--paper); border-radius: 12px; padding: 1.75rem 2rem;
+    max-width: 480px; width: calc(100% - 2rem);
+    max-height: 92vh; overflow-y: auto;
+    box-shadow: 0 24px 64px rgba(0,0,0,0.3);
+    position: relative; animation: modalIn 0.25s ease;
+  }
+  .modal-title { font-size: 1.5rem; font-weight: 900; margin-bottom: 0.25rem; }
+  .modal-sub {
+    font-family: 'DM Mono', monospace; font-size: 0.7rem;
+    color: var(--muted); letter-spacing: 0.15em;
+    text-transform: uppercase; margin-bottom: 1.75rem;
+  }
+  .modal-close {
+    position: absolute; top: 1rem; right: 1rem;
+    background: none; border: none; font-size: 1.2rem;
+    cursor: pointer; color: var(--muted); line-height: 1; padding: 0.25rem;
+  }
+  .field-group { margin-bottom: 1.25rem; }
+  .field-label {
+    font-family: 'DM Mono', monospace; font-size: 0.68rem;
+    letter-spacing: 0.12em; text-transform: uppercase;
+    color: var(--muted); margin-bottom: 0.4rem; display: block;
+  }
+  .field-input {
+    width: 100%; padding: 0.6rem 0.8rem;
+    border: 1px solid #d0c8bc; border-radius: 6px;
+    font-family: 'Noto Serif TC', serif; font-size: 0.9rem;
+    background: white; color: var(--ink); outline: none; transition: border-color 0.2s;
+  }
+  .field-input:focus { border-color: var(--gold); }
+  .field-row { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+  .modal-actions { display: flex; gap: 0.75rem; margin-top: 1.75rem; }
+  .btn-cancel {
+    flex: 1; padding: 0.7rem; border: 1px solid #d0c8bc; border-radius: 6px;
+    background: white; font-family: 'DM Mono', monospace; font-size: 0.75rem;
+    letter-spacing: 0.08em; cursor: pointer; color: var(--muted); transition: border-color 0.2s;
+  }
+  .btn-cancel:hover { border-color: var(--gold); color: var(--ink); }
+  .btn-create {
+    flex: 2; padding: 0.7rem; border: none; border-radius: 6px;
+    background: var(--ink); color: var(--paper);
+    font-family: 'DM Mono', monospace; font-size: 0.75rem;
+    letter-spacing: 0.08em; cursor: pointer; transition: background 0.2s;
+  }
+  .btn-create:hover { background: #2a2520; }
+  .color-swatches { display: flex; gap: 0.5rem; flex-wrap: wrap; }
+  .swatch {
+    width: 28px; height: 28px; border-radius: 4px;
+    cursor: pointer; border: 2px solid transparent; transition: border-color 0.15s;
+  }
+  .swatch.selected { border-color: var(--ink); }
+
+  /* ── RWD ── */
+  @media (max-width: 600px) {
+    .hero { padding: 1.5rem 1.25rem 1.25rem; }
+    .hero-stats { gap: 1.5rem; }
+    main { padding: 1.5rem 1rem 4rem; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ── 編輯列（編輯模式顯示）── -->
+<div class="edit-bar" id="editBar">
+  <div class="edit-bar-label">
+    <div class="edit-bar-dot"></div>
+    <span>編輯模式 — 點 ✎ 修改卡片內容，點 ✕ 可刪除</span>
+  </div>
+  <div class="edit-bar-actions">
+    <button class="edit-bar-btn" onclick="toggleEditMode()">✕ 離開編輯</button>
+    <button class="edit-bar-btn save-btn" onclick="saveIndex()">⬇ 儲存 index.html</button>
+  </div>
+</div>
+
+<!-- ── HERO（縮短版）── -->
+<div class="hero">
+  <div class="hero-bg-text">TRAVEL</div>
+  <div class="hero-eyebrow">Personal Travel Archive</div>
+  <h1>旅遊記錄</h1>
+  <p class="hero-sub">Every journey, remembered.</p>
+  <div class="hero-stats">
+    <div class="stat">
+      <div class="stat-num">2</div>
+      <div class="stat-label">旅程</div>
+    </div>
+    <div class="stat">
+      <div class="stat-num">1</div>
+      <div class="stat-label">國家</div>
+    </div>
+    <div class="stat">
+      <div class="stat-num">9</div>
+      <div class="stat-label">天數</div>
+    </div>
+  </div>
+</div>
+<div class="divider"></div>
+
+<main>
+
+  <!-- ── 資料結構說明（點擊展開）── -->
+  <div class="readme-box" id="readmeBox">
+    <div class="readme-toggle" onclick="toggleReadme()">
+      <div class="readme-toggle-left">
+        <span style="font-size:0.85rem;">📁</span>
+        <span class="readme-toggle-title">Repository Structure</span>
+        <span class="readme-toggle-count">3 files · 4 shared</span>
+      </div>
+      <span class="readme-chevron">▼</span>
+    </div>
+    <div class="readme-content">
+      <div style="padding-top:0.75rem;">
+        <span class="dir">Travel/</span><br>
+        &nbsp;&nbsp;<span class="file">index.html</span> &nbsp;&nbsp;<span class="comment">← 你現在看的這頁（旅遊首頁）</span><br>
+        &nbsp;&nbsp;<span class="file">2026_tokyo.html</span> &nbsp;&nbsp;<span class="comment">← 2026 東京四日遊行程</span><br>
+        &nbsp;&nbsp;<span class="file">202610_Kobe.html</span> &nbsp;&nbsp;<span class="comment">← 2026 神戶大阪五日遊行程</span><br>
+        &nbsp;&nbsp;<span class="dir">css/</span><br>
+        &nbsp;&nbsp;&nbsp;&nbsp;<span class="file">base.css</span> &nbsp;<span class="comment">← CSS 變數、Reset、全域排版</span><br>
+        &nbsp;&nbsp;&nbsp;&nbsp;<span class="file">trip-page.css</span> &nbsp;<span class="comment">← 行程頁共用版面</span><br>
+        &nbsp;&nbsp;&nbsp;&nbsp;<span class="file">tracker.css</span> &nbsp;<span class="comment">← 消費追蹤器樣式</span><br>
+        &nbsp;&nbsp;<span class="dir">js/</span><br>
+        &nbsp;&nbsp;&nbsp;&nbsp;<span class="file">tabs.js</span> &nbsp;<span class="comment">← Tab 切換（共用）</span><br>
+        &nbsp;&nbsp;&nbsp;&nbsp;<span class="file">tracker.js</span> &nbsp;<span class="comment">← 消費追蹤器引擎（共用）</span><br>
+        &nbsp;&nbsp;&nbsp;&nbsp;<span class="file">export.js</span> &nbsp;<span class="comment">← Excel 匯出（共用）</span><br>
+        &nbsp;&nbsp;<span class="comment">2027_xxx.html &nbsp;&nbsp;← 未來旅程放這裡</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── 2026 ── -->
+  <div class="year-group">
+    <div class="year-header">
+      <div style="display:flex;align-items:baseline;gap:0.5rem;">
+        <div class="year-label">Year</div>
+        <div class="year-num">2026</div>
+        <button class="year-delete-btn" onclick="deleteYearGroup(event, this)">✕ 刪除此年份區塊</button>
+      </div>
+      <div class="year-line"></div>
+    </div>
+
+    <div class="trip-grid" id="grid-2026">
+
+      <!-- 東京 -->
+      <a class="trip-card" href="2026_tokyo.html">
+        <button class="card-edit-btn" onclick="editCard(event, this)" title="編輯此行程卡片">✎</button>
+        <button class="card-delete-btn" onclick="deleteCard(event, this)" title="刪除此行程卡片">✕</button>
+        <div class="trip-card-banner" style="background: linear-gradient(90deg, #c0392b, #e67e22);"></div>
+        <div class="trip-card-body">
+          <div class="trip-meta">
+            <span class="trip-flag">🇯🇵</span>
+            <span class="trip-dates">2026 / 04 / 16 – 04 / 19</span>
+          </div>
+          <div class="trip-title">東京四日遊</div>
+          <div class="trip-subtitle">新宿・澀谷・品川・代代木・天王洲</div>
+          <div class="trip-tags">
+            <span class="trip-tag">日本</span>
+            <span class="trip-tag">東京</span>
+            <span class="trip-tag">購物</span>
+            <span class="trip-tag">賞櫻</span>
+            <span class="trip-tag">美食</span>
+          </div>
+        </div>
+        <div class="trip-card-footer">
+          <span class="trip-days">4 天 3 夜</span>
+          <span class="trip-arrow">→</span>
+        </div>
+      </a>
+
+      <!-- 神戶大阪 -->
+      <a class="trip-card" href="202610_Kobe.html">
+        <button class="card-edit-btn" onclick="editCard(event, this)" title="編輯此行程卡片">✎</button>
+        <button class="card-delete-btn" onclick="deleteCard(event, this)" title="刪除此行程卡片">✕</button>
+        <div class="trip-card-banner" style="background: linear-gradient(90deg, #2c3e7a, #6a5acd);"></div>
+        <div class="trip-card-body">
+          <div class="trip-meta">
+            <span class="trip-flag">🇯🇵</span>
+            <span class="trip-dates">2026 / 10 / 22 – 10 / 26</span>
+            <span class="badge-upcoming">upcoming</span>
+          </div>
+          <div class="trip-title">神戶大阪五日遊</div>
+          <div class="trip-subtitle">神戶三宮・南京町・道頓堀・心齋橋・難波</div>
+          <div class="trip-tags">
+            <span class="trip-tag">日本</span>
+            <span class="trip-tag">神戶</span>
+            <span class="trip-tag">大阪</span>
+            <span class="trip-tag">美食</span>
+            <span class="trip-tag">關西</span>
+          </div>
+        </div>
+        <div class="trip-card-footer">
+          <span class="trip-days">5 天 4 夜</span>
+          <span class="trip-arrow">→</span>
+        </div>
+      </a>
+
+      <!-- INJECT:2026 -->
+      <!-- 新增下一趟 -->
+      <a class="trip-card" href="202612_TOKYO.html" style="animation:fadeUp 0.5s ease both;">
+  <button class="card-edit-btn" onclick="editCard(event, this)" title="編輯此行程卡片">✎</button>
+  <button class="card-delete-btn" onclick="deleteCard(event, this)" title="刪除此行程卡片">✕</button>
+  <div class="trip-card-banner" style="background:linear-gradient(90deg,#1a5a7a,#5aaccd);"></div>
+  <div class="trip-card-body">
+    <div class="trip-meta">
+      <span class="trip-flag">🌍</span>
+      <span class="trip-dates">2026/12/17 – 12/20</span>
+      <span class="badge-upcoming">upcoming</span>
+    </div>
+    <div class="trip-title">東京聖誕</div>
+    <div class="trip-subtitle"></div>
+    <div class="trip-tags"><span class="trip-tag">六本木</span> <span class="trip-tag">聖誕燈飾</span></div>
+  </div>
+  <div class="trip-card-footer">
+    <span class="trip-days">4 天 3 夜</span>
+    <span class="trip-arrow">→</span>
+  </div>
+</a><div id="add-card-2026" class="trip-card add-card" onclick="openModal()">
+        <div class="add-inner">
+          <span class="add-plus">＋</span>
+          下一趟旅程
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- INJECT:NEW_YEAR -->
+  <!-- ── 2027（預留）── -->
+  <div class="year-group" id="year-group-2027">
+    <div class="year-header">
+      <div style="display:flex;align-items:baseline;gap:0.5rem;">
+        <div class="year-label">Year</div>
+        <div class="year-num" style="color:#ccc;">2027</div>
+        <button class="year-delete-btn" onclick="deleteYearGroup(event, this)">✕ 刪除此年份區塊</button>
+      </div>
+      <div class="year-line"></div>
+    </div>
+    <div class="trip-grid" id="grid-2027">
+      <a class="trip-card" href="202703_kyoto.html" style="animation:fadeUp 0.5s ease both;">
+  <button class="card-edit-btn" onclick="editCard(event, this)" title="編輯此行程卡片">✎</button>
+  <button class="card-delete-btn" onclick="deleteCard(event, this)" title="刪除此行程卡片">✕</button>
+  <div class="trip-card-banner" style="background:linear-gradient(90deg,#7a1a4a,#cd5a8a);"></div>
+  <div class="trip-card-body">
+    <div class="trip-meta">
+      <span class="trip-flag">🌍</span>
+      <span class="trip-dates">2027/03/25 – 03/28</span>
+      <span class="badge-upcoming">upcoming</span>
+    </div>
+    <div class="trip-title">京都名古屋</div>
+    <div class="trip-subtitle"></div>
+    <div class="trip-tags"><span class="trip-tag">京都</span> <span class="trip-tag">名古屋</span> <span class="trip-tag">櫻花</span></div>
+  </div>
+  <div class="trip-card-footer">
+    <span class="trip-days">4 天 3 夜</span>
+    <span class="trip-arrow">→</span>
+  </div>
+</a><div class="trip-card add-card" onclick="openModal()">
+        <div class="add-inner">
+          <span class="add-plus">＋</span>
+          新增 2027 旅程
+        </div>
+      </div>
+    </div>
+  </div>
+
+</main>
+
+<!-- ── 編輯版面按鈕 ── -->
+<div style="text-align:center;padding:0.75rem 0 0.25rem;">
+  <button onclick="toggleEditMode()" id="editModeBtn" style="background:none;border:1px dashed #ccc;color:var(--muted);
+           font-family:'DM Mono',monospace;font-size:0.68rem;letter-spacing:0.08em;
+           padding:0.4rem 1.1rem;border-radius:4px;cursor:pointer;
+           transition:all 0.15s;">
+    ✏️ 編輯版面
+  </button>
+</div>
+
+<footer>
+  Travel / index.html &nbsp;·&nbsp; Personal Travel Archive &nbsp;·&nbsp; Updated 2026
+</footer>
+
+<!-- ── 新增旅程 MODAL ── -->
+<div id="tripModal" class="modal-overlay">
+  <div class="modal-inner">
+    <button class="modal-close" onclick="closeModal()">✕</button>
+    <div class="modal-title">新增旅程</div>
+    <div class="field-group">
+      <label class="field-label">目的地名稱 Destination</label>
+      <input class="field-input" id="f-dest" type="text" placeholder="例：京都五日遊">
+    </div>
+    <div class="field-group">
+      <label class="field-label">英文檔名 Filename <span style="font-weight:400;opacity:0.6;">（英數字，自動加年月前綴）</span></label>
+      <input class="field-input" id="f-slug" type="text" placeholder="例：Kyoto" style="font-family:'DM Mono',monospace;">
+      <div id="fname-preview" style="font-family: &quot;DM Mono&quot;, monospace; font-size: 0.65rem; color: var(--ink); margin-top: 0.3rem; padding-left: 0.2rem;">→ 檔名：202612_TOKYO.html</div>
+    </div>
+
+    <div class="field-row">
+      <div class="field-group">
+        <label class="field-label">開始日期</label>
+        <input class="field-input" id="f-start" type="date">
+      </div>
+      <div class="field-group">
+        <label class="field-label">結束日期</label>
+        <input class="field-input" id="f-end" type="date">
+      </div>
+    </div>
+    <div class="field-group">
+      <label class="field-label">國家</label>
+      <input class="field-input" id="f-country" type="text" placeholder="例：日本">
+    </div>
+    <div class="field-group">
+      <label class="field-label">標籤（逗號分隔）</label>
+      <input class="field-input" id="f-tags" type="text" placeholder="日本, 京都, 美食, 文化">
+    </div>
+    <div class="field-group">
+      <label class="field-label">卡片配色</label>
+      <div class="color-swatches" id="swatches">
+        <div class="swatch" data-grad="linear-gradient(90deg,#c0392b,#e67e22)" style="background:linear-gradient(90deg,#c0392b,#e67e22)"></div>
+        <div class="swatch" data-grad="linear-gradient(90deg,#2c3e7a,#6a5acd)" style="background:linear-gradient(90deg,#2c3e7a,#6a5acd)"></div>
+        <div class="swatch" data-grad="linear-gradient(90deg,#1a7a4a,#52c07a)" style="background:linear-gradient(90deg,#1a7a4a,#52c07a)"></div>
+        <div class="swatch" data-grad="linear-gradient(90deg,#7a1a4a,#cd5a8a)" style="background:linear-gradient(90deg,#7a1a4a,#cd5a8a)"></div>
+        <div class="swatch" data-grad="linear-gradient(90deg,#b5922a,#e8d5a0)" style="background:linear-gradient(90deg,#b5922a,#e8d5a0)"></div>
+        <div class="swatch selected" data-grad="linear-gradient(90deg,#1a5a7a,#5aaccd)" style="background:linear-gradient(90deg,#1a5a7a,#5aaccd)"></div>
+      </div>
+    </div>
+
+
+    <div class="modal-actions">
+      <button class="btn-cancel" onclick="closeModal()">取消 Cancel</button>
+      <button class="btn-create" onclick="createTrip()">產生旅程檔案 →</button>
+    </div>
+
+    <!-- 網路失敗時的備用說明（預設隱藏）-->
+    <div id="fallback-guide" style="display:none;"></div>
+  </div>
+</div>
+
+<!-- ── 編輯旅程卡片 MODAL ── -->
+<div id="editModal" class="modal-overlay">
+  <div class="modal-inner">
+    <button class="modal-close" onclick="closeEditModal()">✕</button>
+    <div class="modal-title">編輯旅程</div>
+    <div class="modal-sub">修改卡片內容（不會更動行程詳細頁面）</div>
+
+    <div class="field-group">
+      <label class="field-label">目的地名稱 Destination</label>
+      <input class="field-input" id="e-dest" type="text">
+    </div>
+    <div class="field-group">
+      <label class="field-label">副標題 Subtitle</label>
+      <input class="field-input" id="e-sub" type="text" placeholder="（選填）">
+    </div>
+    <div class="field-row">
+      <div class="field-group">
+        <label class="field-label">開始日期</label>
+        <input class="field-input" id="e-start" type="date">
+      </div>
+      <div class="field-group">
+        <label class="field-label">結束日期</label>
+        <input class="field-input" id="e-end" type="date">
+      </div>
+    </div>
+    <div class="field-row">
+      <div class="field-group">
+        <label class="field-label">國旗 Emoji</label>
+        <input class="field-input" id="e-flag" type="text" maxlength="4" placeholder="🌍">
+      </div>
+      <div class="field-group">
+        <label class="field-label">是否標記 Upcoming</label>
+        <input type="checkbox" id="e-upcoming" style="width:20px;height:20px;margin-top:0.5rem;">
+      </div>
+    </div>
+    <div class="field-group">
+      <label class="field-label">標籤（逗號分隔）</label>
+      <input class="field-input" id="e-tags" type="text" placeholder="日本, 京都, 美食">
+    </div>
+    <div class="field-group">
+      <label class="field-label">卡片配色</label>
+      <div class="color-swatches" id="e-swatches">
+        <div class="swatch" data-grad="linear-gradient(90deg,#c0392b,#e67e22)" style="background:linear-gradient(90deg,#c0392b,#e67e22)"></div>
+        <div class="swatch" data-grad="linear-gradient(90deg,#2c3e7a,#6a5acd)" style="background:linear-gradient(90deg,#2c3e7a,#6a5acd)"></div>
+        <div class="swatch" data-grad="linear-gradient(90deg,#1a7a4a,#52c07a)" style="background:linear-gradient(90deg,#1a7a4a,#52c07a)"></div>
+        <div class="swatch" data-grad="linear-gradient(90deg,#7a1a4a,#cd5a8a)" style="background:linear-gradient(90deg,#7a1a4a,#cd5a8a)"></div>
+        <div class="swatch" data-grad="linear-gradient(90deg,#b5922a,#e8d5a0)" style="background:linear-gradient(90deg,#b5922a,#e8d5a0)"></div>
+        <div class="swatch" data-grad="linear-gradient(90deg,#1a5a7a,#5aaccd)" style="background:linear-gradient(90deg,#1a5a7a,#5aaccd)"></div>
+      </div>
+    </div>
+
+    <div class="modal-actions">
+      <button class="btn-cancel" onclick="closeEditModal()">取消 Cancel</button>
+      <button class="btn-create" onclick="saveCardEdit()">儲存變更 →</button>
+    </div>
+  </div>
+</div>
+
+<script>
+/* ── Repository Structure 展開/收合 ── */
+function toggleReadme() {
+  document.getElementById('readmeBox').classList.toggle('open');
+}
+
+/* ══════════════════════════════════════════
+   編輯模式
+   ══════════════════════════════════════════ */
+let editMode = false;
+
+function toggleEditMode() {
+  editMode = !editMode;
+  document.body.classList.toggle('edit-mode', editMode);
+  document.getElementById('editBar').classList.toggle('active', editMode);
+  const btn = document.getElementById('editModeBtn');
+  if (btn) btn.style.display = editMode ? 'none' : '';
+}
+
+/* 刪除單張旅程卡片 */
+function deleteCard(e, btn) {
+  e.preventDefault();
+  e.stopPropagation();
+  const card = btn.closest('.trip-card');
+  const title = card.querySelector('.trip-title')?.textContent || '此行程';
+  if (!confirm('確定要從版面移除 [' + title + '] 嗎?\n(只移除首頁卡片，不會刪除行程 HTML 檔案)')) return;
+  card.style.transition = 'opacity 0.25s, transform 0.25s';
+  card.style.opacity = '0';
+  card.style.transform = 'scale(0.92)';
+  setTimeout(() => card.remove(), 260);
+}
+
+/* ══════════════════════════════════════════
+   編輯旅程卡片內容
+   ══════════════════════════════════════════ */
+let currentEditCard = null;
+
+/* 把 "2026 / 10 / 22 – 10 / 26" 或 "2027/03/25 – 03/28" 這類字串
+   拆回 start(YYYY-MM-DD) / end(YYYY-MM-DD)，盡量容錯 */
+function parseTripDates(text) {
+  if (!text) return { start: '', end: '' };
+  // 移除 upcoming 文字等雜訊，只留日期部分
+  const cleaned = text.replace(/upcoming/i, '').trim();
+  const parts = cleaned.split('–').map(s => s.trim());
+  if (parts.length < 1) return { start: '', end: '' };
+
+  const left = parts[0].replace(/\s+/g, '');           // 2026/10/22
+  const leftNums = left.split('/').filter(Boolean);
+  if (leftNums.length < 3) return { start: '', end: '' };
+  const [y, m, d] = leftNums;
+  const start = y + '-' + m.padStart(2,'0') + '-' + d.padStart(2,'0');
+
+  let end = '';
+  if (parts[1]) {
+    const right = parts[1].replace(/\s+/g, '');         // 10/26 或 2027/03/28
+    const rightNums = right.split('/').filter(Boolean);
+    if (rightNums.length === 3) {
+      end = rightNums[0] + '-' + rightNums[1].padStart(2,'0') + '-' + rightNums[2].padStart(2,'0');
+    } else if (rightNums.length === 2) {
+      end = y + '-' + rightNums[0].padStart(2,'0') + '-' + rightNums[1].padStart(2,'0');
+    }
+  }
+  return { start, end };
+}
+
+/* 開啟編輯視窗，並把卡片現有資料帶入欄位 */
+function editCard(e, btn) {
+  e.preventDefault();
+  e.stopPropagation();
+  const card = btn.closest('.trip-card');
+  currentEditCard = card;
+
+  const dest    = card.querySelector('.trip-title')?.textContent.trim() || '';
+  const sub     = card.querySelector('.trip-subtitle')?.textContent.trim() || '';
+  const flag    = card.querySelector('.trip-flag')?.textContent.trim() || '🌍';
+  const dateTxt = card.querySelector('.trip-dates')?.textContent.trim() || '';
+  const hasUpcoming = !!card.querySelector('.badge-upcoming');
+  const tags    = Array.from(card.querySelectorAll('.trip-tag')).map(t => t.textContent.trim());
+  const banner  = card.querySelector('.trip-card-banner');
+  const currentGrad = banner ? banner.style.background : '';
+
+  const { start, end } = parseTripDates(dateTxt);
+
+  document.getElementById('e-dest').value     = dest;
+  document.getElementById('e-sub').value      = sub;
+  document.getElementById('e-flag').value     = flag;
+  document.getElementById('e-start').value    = start;
+  document.getElementById('e-end').value      = end;
+  document.getElementById('e-upcoming').checked = hasUpcoming;
+  document.getElementById('e-tags').value     = tags.join(', ');
+
+  // 選色：找最接近的 swatch（用字串比對，找不到就不選）
+  const eSwatches = document.querySelectorAll('#e-swatches .swatch');
+  eSwatches.forEach(s => s.classList.remove('selected'));
+  let matched = false;
+  eSwatches.forEach(s => {
+    if (currentGrad && s.dataset.grad.replace(/\s/g,'') === currentGrad.replace(/\s/g,'')) {
+      s.classList.add('selected');
+      matched = true;
+    }
+  });
+  if (!matched && eSwatches.length) eSwatches[0].classList.add('selected');
+
+  document.getElementById('editModal').classList.add('open');
+}
+
+function closeEditModal() {
+  document.getElementById('editModal').classList.remove('open');
+  currentEditCard = null;
+}
+document.getElementById('editModal').addEventListener('click', function(e) {
+  if (e.target === this) closeEditModal();
+});
+
+/* Swatch 選色（編輯視窗用）*/
+document.getElementById('e-swatches').addEventListener('click', function(e) {
+  const sw = e.target.closest('.swatch');
+  if (!sw) return;
+  this.querySelectorAll('.swatch').forEach(s => s.classList.remove('selected'));
+  sw.classList.add('selected');
+});
+
+/* 將編輯視窗的輸入值寫回卡片 DOM */
+function saveCardEdit() {
+  if (!currentEditCard) return;
+  const card = currentEditCard;
+
+  const dest    = document.getElementById('e-dest').value.trim();
+  const sub     = document.getElementById('e-sub').value.trim();
+  const flag    = document.getElementById('e-flag').value.trim() || '🌍';
+  const start   = document.getElementById('e-start').value;
+  const end     = document.getElementById('e-end').value;
+  const upcoming = document.getElementById('e-upcoming').checked;
+  const tagsRaw = document.getElementById('e-tags').value.trim();
+  const grad    = document.querySelector('#e-swatches .swatch.selected')?.dataset.grad;
+
+  if (!dest) { alert('請填寫目的地名稱'); return; }
+
+  // 標題 / 副標題
+  const titleEl = card.querySelector('.trip-title');
+  if (titleEl) titleEl.textContent = dest;
+  const subEl = card.querySelector('.trip-subtitle');
+  if (subEl) subEl.textContent = sub;
+
+  // 國旗
+  const flagEl = card.querySelector('.trip-flag');
+  if (flagEl) flagEl.textContent = flag;
+
+  // 日期顯示（盡量沿用原本「YYYY / MM / DD – MM / DD」格式）
+  const datesEl = card.querySelector('.trip-dates');
+  if (datesEl && start) {
+    const [sy, sm, sd] = start.split('-');
+    let display = sy + ' / ' + sm + ' / ' + sd;
+    if (end) {
+      const [ey, em, ed] = end.split('-');
+      display += ey === sy ? (' – ' + em + ' / ' + ed) : (' – ' + ey + ' / ' + em + ' / ' + ed);
+    }
+    datesEl.textContent = display;
+  }
+
+  // upcoming 徽章
+  const meta = card.querySelector('.trip-meta');
+  let badge = card.querySelector('.badge-upcoming');
+  if (upcoming && !badge) {
+    badge = document.createElement('span');
+    badge.className = 'badge-upcoming';
+    badge.textContent = 'upcoming';
+    meta.appendChild(badge);
+  } else if (!upcoming && badge) {
+    badge.remove();
+  }
+
+  // 標籤
+  const tagsContainer = card.querySelector('.trip-tags');
+  if (tagsContainer) {
+    tagsContainer.innerHTML = '';
+    const tags = tagsRaw ? tagsRaw.split(/[,，]/).map(t => t.trim()).filter(Boolean) : [];
+    tags.forEach(t => {
+      const span = document.createElement('span');
+      span.className = 'trip-tag';
+      span.textContent = t;
+      tagsContainer.appendChild(span);
+    });
+  }
+
+  // 天數／夜數（依日期重新計算，若兩者都有填）
+  if (start && end) {
+    const nights = Math.round((new Date(end) - new Date(start)) / 86400000);
+    const days = nights + 1;
+    const daysEl = card.querySelector('.trip-days');
+    if (daysEl && nights >= 0) daysEl.textContent = days + ' 天 ' + nights + ' 夜';
+  }
+
+  // 配色
+  if (grad) {
+    const banner = card.querySelector('.trip-card-banner');
+    if (banner) banner.style.background = grad;
+  }
+
+  closeEditModal();
+}
+
+/* 刪除整個年份區塊（只在沒有旅程卡片時，或使用者確認後）*/
+function deleteYearGroup(e, btn) {
+  e.preventDefault();
+  e.stopPropagation();
+  const group = btn.closest('.year-group');
+  const yearNum = group.querySelector('.year-num')?.textContent || '此年份';
+  const cards = group.querySelectorAll('.trip-card:not(.add-card)');
+  const msg = cards.length > 0
+    ? '確定要移除 ' + yearNum + ' 整個年份區塊 (含 ' + cards.length + ' 筆旅程卡片)？'
+    : '確定要移除空的 ' + yearNum + ' 年份區塊？';
+  if (!confirm(msg)) return;
+  group.style.transition = 'opacity 0.3s';
+  group.style.opacity = '0';
+  setTimeout(() => group.remove(), 310);
+}
+
+/* 儲存（下載）更新後的 index.html */
+function saveIndex() {
+  // 序列化前先清除所有暫態 class，避免存入 edit-mode / active 狀態
+  document.body.classList.remove('edit-mode');
+  document.getElementById('editBar').classList.remove('active');
+  const editBtn = document.getElementById('editModeBtn');
+  if (editBtn) editBtn.style.display = '';
+  editMode = false;
+
+  const updatedHTML = '<!DOCTYPE html>\n<html lang="zh-TW">\n'
+    + document.head.outerHTML + '\n'
+    + document.body.outerHTML + '\n</html>';
+  const blob = new Blob([updatedHTML], { type: 'text/html;charset=utf-8' });
+  const url  = URL.createObjectURL(blob);
+  const a    = Object.assign(document.createElement('a'), { href: url, download: 'index.html' });
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+  // 儲存後離開編輯模式
+  setTimeout(() => { toggleEditMode(); }, 300);
+}
+
+/* ── Modal ── */
+function openModal() {
+  document.getElementById('tripModal').classList.add('open');
+}
+function closeModal() {
+  document.getElementById('tripModal').classList.remove('open');
+}
+document.getElementById('tripModal').addEventListener('click', function(e) {
+  if (e.target === this) closeModal();
+});
+document.addEventListener('keydown', e => { if (e.key === 'Escape') closeModal(); });
+
+/* ── Swatch 選色 ── */
+document.getElementById('swatches').addEventListener('click', function(e) {
+  const sw = e.target.closest('.swatch');
+  if (!sw) return;
+  this.querySelectorAll('.swatch').forEach(s => s.classList.remove('selected'));
+  sw.classList.add('selected');
+});
+
+/* ── 即時預覽檔名 ── */
+function updateFnamePreview() {
+  const start = document.getElementById('f-start').value;
+  const slug  = document.getElementById('f-slug').value.trim().replace(/[^a-zA-Z0-9_-]/g, '') || 'NewTrip';
+  const preview = document.getElementById('fname-preview');
+  if (!preview) return;
+  if (start) {
+    const y = start.split('-')[0];
+    const m = start.split('-')[1];
+    preview.textContent = `→ 檔名：${y}${m}_${slug}.html`;
+    preview.style.color = 'var(--ink)';
+  } else {
+    preview.textContent = '← 填入開始日期後自動預覽';
+    preview.style.color = 'var(--muted)';
+  }
+}
+document.getElementById('f-start').addEventListener('change', updateFnamePreview);
+document.getElementById('f-slug').addEventListener('input', updateFnamePreview);
+
+/* ── 工具函式 ── */
+function formatDate(d) {
+  if (!d) return '';
+  const [y, m, day] = d.split('-');
+  return `${y} / ${m} / ${day}`;
+}
+function calcNights(start, end) {
+  if (!start || !end) return { days: '?', nights: '?' };
+  const diff = (new Date(end) - new Date(start)) / 86400000;
+  return { days: diff + 1, nights: diff };
+}
+
+/* ════════════════════════════════════════════════════════
+   產生新旅程 HTML — 方案 B：從 GitHub Pages 抓最新範本
+   範本來源：TEMPLATE_URL 指定的最新行程頁
+   替換規則：只動 header 資訊、title、TRIP_CONFIG 識別欄位，
+             其餘所有功能、CSS、JS 完整繼承。
+   ════════════════════════════════════════════════════════ */
+
+// ── 範本設定（未來換新基準行程時只改這一行）──
+// 相對路徑：本機 file:// 和 GitHub Pages 都能正常讀取
+const TEMPLATE_RELATIVE = './202610_Kobe.html';
+// 絕對路徑：僅作備用（線上環境）
+const TEMPLATE_URL = 'https://jiajie8259.github.io/202610_Kobe.html';
+const TEMPLATE_FALLBACK_NAME = '202610_Kobe.html';
+
+async function createTrip() {
+  const dest    = document.getElementById('f-dest').value.trim();
+  const sub     = ''; // 副標題欄位已移除
+  const start   = document.getElementById('f-start').value;
+  const end     = document.getElementById('f-end').value;
+  const country = document.getElementById('f-country').value.trim() || '日本';
+  const flag    = '🌍'; // 統一使用預設地球圖示，不再讓使用者手動輸入
+  const tagsRaw = document.getElementById('f-tags').value.trim();
+  const slug    = document.getElementById('f-slug').value.trim().replace(/[^a-zA-Z0-9_-]/g, '') || 'NewTrip';
+  const grad    = document.querySelector('#swatches .swatch.selected')?.dataset.grad
+                  || 'linear-gradient(90deg,#c0392b,#e67e22)';
+
+  if (!dest)  { alert('請填寫目的地名稱'); return; }
+  if (!start) { alert('請填寫開始日期'); return; }
+
+  const tags    = tagsRaw ? tagsRaw.split(/[,，]/).map(t => t.trim()).filter(Boolean) : [country];
+  const year    = start.split('-')[0];
+  const month   = start.split('-')[1];
+  const fname   = year + month + '_' + slug + '.html';
+  const dateDsp = (start && end)
+    ? formatDate(start) + ' – ' + (end.slice(5).replace('-', '/'))
+    : '待定';
+  const nights  = (start && end)
+    ? Math.round((new Date(end) - new Date(start)) / 86400000) : '?';
+  const days    = nights === '?' ? '?' : nights + 1;
+  const tagsHtml = tags.map(t => '<span class="trip-tag">' + t + '</span>').join(' ');
+  const storageKey = 'trip_' + year + month + '_' + slug.slice(0, 10);
+
+  // ── 顯示讀取中 ──
+  const btn = document.querySelector('.btn-create');
+  const origText = btn.textContent;
+  btn.textContent = '⏳ 抓取範本中…';
+  btn.disabled = true;
+
+  // ── 步驟 1：抓取最新行程作為範本 ──
+  let html = null;
+  for (const url of ['./202610_Kobe.html', 'https://jiajie8259.github.io/202610_Kobe.html']) {
+    try {
+      const res = await fetch(url, { cache: 'no-cache' });
+      if (res.ok) {
+        const txt = await res.text();
+        if (txt.includes('<!DOCTYPE')) { html = txt; break; }
+      }
+    } catch(e) { continue; }
+  }
+
+  btn.textContent = origText;
+  btn.disabled = false;
+
+  if (!html) {
+    showFallbackGuide(fname, dest, sub, country, flag, dateDsp, grad, tagsHtml);
+    return;
+  }
+
+  // ── 步驟 2：替換範本欄位 ──
+  // title
+  html = html.replace(/<title>[^<]*<\/title>/, '<title>' + dest + ' · 旅遊記錄</title>');
+
+  // header date-tag
+  html = html.replace(/(<div class="date-tag">)[^<]*/, '$1' + flag + ' ' + country + ' · ' + dateDsp);
+
+  // header h1
+  html = html.replace(/(<div class="date-tag">[^<]*<\/div>\s*<h1>)[^<]*/, '$1' + dest);
+
+  // header p
+  html = html.replace(/(<\/h1>\s*<p>)[^<]*(<\/p>)/, '$1' + (sub || '行程記錄') + '$2');
+
+  // header::before background text
+  html = html.replace(/(header::before[\s\S]{0,100}content:\s*')[^']*'/, "$1" + dest.slice(0,2) + "'");
+
+  // header::after gradient
+  html = html.replace(/(header::after[\s\S]{0,200}background:\s*)[^;]+;/, '$1' + grad + '; opacity: 0.15;');
+
+  // TRIP_CONFIG storageKey
+  html = html.replace(/(storageKey:\s*')[^']*'/, "$1" + storageKey + "'");
+
+  // TRIP_CONFIG exportName
+  html = html.replace(/(exportName:\s*')[^']*'/, "$1" + dest + "記帳'");
+
+  // footer
+  html = html.replace(/<footer>[^<]*<\/footer>/, '<footer>Travel / ' + fname + ' &nbsp;·&nbsp; ' + dest + ' &nbsp;·&nbsp; ' + year + '</footer>');
+
+  // Firebase collection path
+  html = html.replace(/db\.collection\('[^']+'\)/g, "db.collection('" + storageKey + "')");
+
+  // localStorage key：把所有 'kobe26_xxx' 換成新的 storageKey
+  // 這樣新行程不會讀到神戶舊資料，各行程的資料完全獨立
+  html = html.replace(/'kobe26_food_rows'/g,    "'" + storageKey + "_food_rows'");
+  html = html.replace(/'kobe26_trans_rows'/g,   "'" + storageKey + "_trans_rows'");
+  html = html.replace(/'kobe26_hotel_rows'/g,   "'" + storageKey + "_hotel_rows'");
+  html = html.replace(/'kobe26_spots_rows'/g,   "'" + storageKey + "_spots_rows'");
+  html = html.replace(/'kobe26_notes'/g,        "'" + storageKey + "_notes'");
+  html = html.replace(/'kobe26_tracker_used'/g, "'" + storageKey + "_tracker_used'");
+  html = html.replace(/'kobe26_tracker_logs'/g, "'" + storageKey + "_tracker_logs'");
+  html = html.replace(/'kobe26_free_logs'/g,    "'" + storageKey + "_free_logs'");
+  html = html.replace(/'kobe26_skip'/g,         "'" + storageKey + "_skip'");
+  html = html.replace(/'kobe26_flight'/g,       "'" + storageKey + "_flight'");
+
+  // 「讀取失敗」→「暫無資料」（空集合不是錯誤，是正常的新行程狀態）
+  html = html.replace(/⚠ 讀取失敗（離線模式）/g, '📭 暫無資料');
+  html = html.replace(/⚠ 讀取失敗/g,             '📭 暫無資料');
+  html = html.replace(/△ 讀取失敗/g,             '📭 暫無資料');
+
+  // ── 清空各頁籤的舊行程資料，只保留功能架構 ──
+
+  // 1. cards 頁籤：清空 mini-card 內容，根據天數自動生成空白小卡
+  //    做法：抓整個 card-grid 的內容並替換成空白骨架
+  (function() {
+    // 計算天數（已在上面算好）
+    const startD2 = new Date(start);
+    const endD2   = new Date(end);
+    const nDays   = (start && end) ? Math.round((endD2 - startD2) / 86400000) + 1 : 5;
+    const weekdays = ['日','一','二','三','四','五','六'];
+
+    let blankCards = '';
+    for (let d = 0; d < nDays; d++) {
+      const date = new Date(startD2);
+      date.setDate(startD2.getDate() + d);
+      const mo   = date.getMonth() + 1;
+      const dy   = date.getDate();
+      const wday = weekdays[date.getDay()];
+      const dNum = d + 1;
+      const isLast = (d === nDays - 1);
+      blankCards += [
+        '    <!-- D' + dNum + ' -->',
+        '    <div class="mini-card">',
+        '      <div class="mini-card-header">',
+        '        <div class="day-big">D' + dNum + '</div>',
+        '        <div class="day-info">',
+        '          <div>' + mo + '/' + dy + ' (' + wday + ')&nbsp;&nbsp;' + (isLast ? '返程日' : '待補充') + '</div>',
+        '          <div style="opacity:0.6;font-size:0.65rem;">' + (isLast ? '返程' : '行程待確認') + '</div>',
+        '        </div>',
+        '      </div>',
+        '      <div class="mini-card-body">',
+        '        <div class="mini-card-period">早上</div>',
+        '        <div class="item"><div class="item-dot" style="background:#aaa"></div><div class="item-text">（待補充）</div></div>',
+        '        <div class="mini-card-period">下午</div>',
+        '        <div class="item"><div class="item-dot" style="background:#6b7c5e"></div><div class="item-text">景點待補充</div></div>',
+        '        <div class="mini-card-period">晚上</div>',
+        '        <div class="item"><div class="item-dot" style="background:#c0392b"></div><div class="item-text">餐飲待補充</div></div>',
+        '      </div>',
+        '    </div>',
+        ''
+      ].join('\n');
+    }
+
+    const countNote = '<p style="font-size:0.75rem;color:#aaa;margin-top:1.5rem;text-align:center;">共 ' + nDays + ' 張 · 列印後剪開，每天帶當天那張即可</p>';
+    html = html.replace(
+      /(<div class="card-grid">)[\s\S]*?(<\/div>)\s*(<p style[^>]*>.*?<\/p>)/,
+      '$1\n' + blankCards + '  $2\n  $3'
+    );
+    // 同時替換 countNote（天數）
+    html = html.replace(
+      /<p style="font-size:0\.75rem[^"]*">[^<]*張[^<]*<\/p>/,
+      countNote
+    );
+  })();
+
+  // 2. TRACKER_SPOTS 清空（Kobe 格式是 const TRACKER_SPOTS = {...};）
+  html = html.replace(
+    /const TRACKER_SPOTS = \{[\s\S]*?\};/,
+    'const TRACKER_SPOTS = {};'
+
+  );
+  // 2b. 航班資訊清空（新行程預設 '—'，等確認航班後再填入）
+  var flightIds = ['f-out-num','f-out-dep','f-out-dep-ap','f-out-arr','f-out-arr-ap',
+                   'f-ret-num','f-ret-dep','f-ret-dep-ap','f-ret-arr','f-ret-arr-ap'];
+  flightIds.forEach(function(fid) {
+    var re = new RegExp('(<[a-z]+[^>]+id="' + fid + '"[^>]*>)[^<]*(<\/[a-z]+>)');
+    html = html.replace(re, '$1—$2');
+  });
+  html = html.replace(
+    /(<div id="f-out-info"[^>]*>)[\s\S]*?(<\/div>)/,
+    '$1待確認$2'
+  );
+  html = html.replace(
+    /(<div id="f-ret-info"[^>]*>)[\s\S]*?(<\/div>)/,
+    '$1待確認$2'
+  );
+
+  // 3. pay-panel-itinerary：清空 itin-day 區塊和警示，留「開始追蹤」按鈕
+  html = html.replace(
+    /(<div id="pay-panel-itinerary"[\s\S]*?開始追蹤[\s\S]*?<\/button>\s*<\/div>)[\s\S]*?(<div id="pay-panel-advisor")/,
+    '$1\n\n    <div class="empty-notice" style="margin-top:1.5rem;">\n      📍 行程支付對照待補充<br>\n      <span style="font-size:0.75rem;opacity:0.7;">確認行程據點後，在 TRIP_CONFIG 的 TRACKER_SPOTS 填入各景點設定</span>\n    </div>\n\n  $2'
+  );
+
+  // 4. dayLabels / dayOrder / freeDays：根據輸入日期自動生成
+  if (start && end) {
+    const startD = new Date(start);
+    const endD   = new Date(end);
+    const totalDays = Math.round((endD - startD) / 86400000) + 1;
+    const weekdays  = ['日','一','二','三','四','五','六'];
+
+    // 建立各天的資料
+    const dayEntries = [];
+    for (let d = 0; d < totalDays; d++) {
+      const date = new Date(startD);
+      date.setDate(startD.getDate() + d);
+      const mo   = date.getMonth() + 1;
+      const dy   = date.getDate();
+      const wday = weekdays[date.getDay()];
+      dayEntries.push({
+        key:   'd' + (d + 1),
+        label: 'D' + (d + 1) + ' · ' + mo + '/' + dy + '（' + wday + '）'
+      });
+    }
+
+    // 替換 dayLabels
+    let labelsStr = '';
+    dayEntries.forEach(function(e) { labelsStr += '    ' + e.key + ': ' + "'" + e.label + "'" + ',\n'; });
+    html = html.replace(
+      /dayLabels:\s*\{[\s\S]*?\},/,
+      'dayLabels: {\n' + labelsStr + '  },'
+    );
+
+    // 替換 dayOrder
+    let orderStr = '';
+    dayEntries.forEach(function(e) { orderStr += "    '" + e.label + "',\n"; });
+    orderStr += "    '" + '其他' + "',\n";
+    html = html.replace(
+      /dayOrder:\s*\[[\s\S]*?\],/,
+      'dayOrder: [\n' + orderStr + '  ],'
+    );
+
+    // 替換 freeDays
+    const freeDaysArr = dayEntries.map(function(e) { return "'" + e.key + "'"; }).join(',');
+    html = html.replace(
+      /freeDays:\s*\[[^\]]*\]/,
+      'freeDays: [' + freeDaysArr + ']'
+    );
+
+  }
+  // itinerary content - 清空舊行程，留 D1 骨架
+  const itinNew = [
+    '<a href="index.html" style="display:inline-flex;align-items:center;gap:0.4rem;',
+    'font-family:\'DM Mono\',monospace;font-size:0.7rem;letter-spacing:0.1em;',
+    'color:var(--gold);text-decoration:none;margin-bottom:2rem;opacity:0.8;">← 返回旅遊首頁</a>',
+    '<div style="display:flex;flex-wrap:wrap;gap:0.4rem;margin-bottom:2rem;">' + tagsHtml + '</div>',
+    '<div class="day-block">',
+    '  <div class="day-header">',
+    '    <div class="day-label">D1</div>',
+    '    <div class="day-sub">' + (start ? formatDate(start) : '第一天') + ' · 出發</div>',
+    '  </div>',
+    '  <div class="period">',
+    '    <div class="period-title">早上・出發</div>',
+    '    <div class="event">',
+    '      <div class="event-type"><span class="tag tag-transport">交通</span></div>',
+    '      <div class="event-body">',
+    '        <div class="event-name">✈ 出發</div>',
+    '        <div class="event-note">從台灣出發，前往' + country + '。</div>',
+    '      </div>',
+    '    </div>',
+    '  </div>',
+    '</div>'
+  ].join('\n  ');
+  html = html.replace(
+    /(<div id="itinerary"[^>]*>\s*<main>)[\s\S]*?(<\/main>\s*<\/div>)/,
+    '$1\n  ' + itinNew + '\n$2'
+  );
+
+  // ── 步驟 3：下載新行程 HTML ──
+  const tripBlob = new Blob([html], { type: 'text/html;charset=utf-8' });
+  const tripUrl  = URL.createObjectURL(tripBlob);
+  const tripA    = Object.assign(document.createElement('a'), { href: tripUrl, download: fname });
+  document.body.appendChild(tripA);
+  tripA.click();
+  document.body.removeChild(tripA);
+  URL.revokeObjectURL(tripUrl);
+
+  // ── 步驟 4：把新卡片插入 DOM，再下載更新後的 index.html ──
+  const cardHTML = [
+    '<a class="trip-card" href="' + fname + '" style="animation:fadeUp 0.5s ease both;">',
+    '  <button class="card-edit-btn" onclick="editCard(event, this)" title="編輯此行程卡片">✎</button>',
+    '  <button class="card-delete-btn" onclick="deleteCard(event, this)" title="刪除此行程卡片">✕</button>',
+    '  <div class="trip-card-banner" style="background:' + grad + ';"></div>',
+    '  <div class="trip-card-body">',
+    '    <div class="trip-meta">',
+    '      <span class="trip-flag">' + flag + '</span>',
+    '      <span class="trip-dates">' + start.replace(/-/g,'/') + ' – ' + (end ? end.slice(5).replace('-','/') : '') + '</span>',
+    '      <span class="badge-upcoming">upcoming</span>',
+    '    </div>',
+    '    <div class="trip-title">' + dest + '</div>',
+    '    <div class="trip-subtitle">' + (sub||'') + '</div>',
+    '    <div class="trip-tags">' + tagsHtml + '</div>',
+    '  </div>',
+    '  <div class="trip-card-footer">',
+    '    <span class="trip-days">' + days + ' 天 ' + nights + ' 夜</span>',
+    '    <span class="trip-arrow">→</span>',
+    '  </div>',
+    '</a>'
+  ].join('\n');
+
+  // 防止重複：如果同檔名的卡片已存在就跳過 DOM 插入
+  const alreadyExists = document.querySelector('a.trip-card[href="' + fname + '"]');
+
+  const gridId = 'grid-' + year;
+  let grid = document.getElementById(gridId);
+  if (!grid) {
+    const nyg = document.createElement('div');
+    nyg.className = 'year-group';
+    nyg.innerHTML =
+      '<div class="year-header">' +
+        '<div><div class="year-label">Year</div><div class="year-num">' + year + '</div></div>' +
+        '<div class="year-line"></div>' +
+      '</div>' +
+      '<div class="trip-grid" id="' + gridId + '">' +
+        '<div class="trip-card add-card" onclick="openModal()">' +
+          '<div class="add-inner"><span class="add-plus">＋</span>下一趟旅程</div>' +
+        '</div>' +
+      '</div>';
+    document.querySelector('footer').before(nyg);
+    grid = document.getElementById(gridId);
+  }
+  if (!alreadyExists) {
+    grid.querySelector('.add-card').insertAdjacentHTML('beforebegin', cardHTML);
+  }
+
+  // 先關 modal、清除所有暫態 class，再序列化
+  closeModal();
+  document.body.classList.remove('edit-mode');
+  document.getElementById('editBar').classList.remove('active');
+  const editBtn = document.getElementById('editModeBtn');
+  if (editBtn) editBtn.style.display = '';
+
+  await new Promise(r => setTimeout(r, 400)); // 等動畫完成
+
+  const updatedHTML = '<!DOCTYPE html>\n<html lang="zh-TW">\n'
+    + document.head.outerHTML + '\n'
+    + document.body.outerHTML + '\n</html>';
+  const idxBlob = new Blob([updatedHTML], { type: 'text/html;charset=utf-8' });
+  const idxUrl  = URL.createObjectURL(idxBlob);
+  const idxA    = Object.assign(document.createElement('a'), { href: idxUrl, download: 'index.html' });
+  document.body.appendChild(idxA);
+  idxA.click();
+  document.body.removeChild(idxA);
+  URL.revokeObjectURL(idxUrl);
+
+  alert('✅ 完成！已下載兩個檔案：\n\n📄 ' + fname + '（新行程）\n📄 index.html（已加入新旅程卡片）\n\n請將兩個檔案放入 Travel/ 資料夾取代舊版即可。');
+}
+
+/* ── 網路失敗時的備用說明 ── */
+function showFallbackGuide(fname, dest, sub, country, flag, dateDsp, grad, tagsHtml) {
+  const guide = document.getElementById('fallback-guide');
+  guide.innerHTML = `
+    <div style="background:#fff3cd;border:1.5px solid #e8c040;border-radius:8px;padding:1.1rem 1.3rem;margin-top:1rem;font-size:0.82rem;line-height:1.8;">
+      <div style="font-weight:900;margin-bottom:0.5rem;">⚠️ 無法連線至 GitHub，請手動複製範本</div>
+      <div style="font-family:'DM Mono',monospace;font-size:0.75rem;color:#555;">
+        1. 複製 <strong>${TEMPLATE_FALLBACK_NAME}</strong> → 重新命名為 <strong>${fname}</strong><br>
+        2. 用文字編輯器開啟，找到以下區段修改：<br>
+        &nbsp;&nbsp;• <code>&lt;title&gt;</code> → <strong>${dest} · 旅遊記錄</strong><br>
+        &nbsp;&nbsp;• <code>date-tag</code> → <strong>${flag} ${country} · ${dateDsp}</strong><br>
+        &nbsp;&nbsp;• <code>&lt;h1&gt;</code> → <strong>${dest}</strong><br>
+        &nbsp;&nbsp;• <code>storageKey</code> → 新的唯一字串<br>
+        &nbsp;&nbsp;• <code>header::before content</code> → <strong>'${dest.slice(0,2)}'</strong>
+      </div>
+    </div>`;
+  guide.style.display = 'block';
+}
+</script>
+
+
+
+</body>
+</html>
