@@ -402,6 +402,24 @@
     main { padding: 1.5rem 1rem 4rem; }
   }
 </style>
+
+<!-- ── Firebase SDK ── -->
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
+<!-- ── Firebase 初始化 ── -->
+<script>
+const firebaseConfig = {
+  apiKey:            "AIzaSyA_KFwm7pE8YqSP64OKsFFEU3lKMuF-wjI",
+  authDomain:        "travel-c9ab0.firebaseapp.com",
+  projectId:         "travel-c9ab0",
+  storageBucket:     "travel-c9ab0.firebasestorage.app",
+  messagingSenderId: "179782530206",
+  appId:             "1:179782530206:web:93d42650009b01ad56778f",
+  measurementId:     "G-30P0GGS1YE"
+};
+if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
+var db = firebase.firestore();
+</script>
 </head>
 <body>
 
@@ -471,139 +489,9 @@
     </div>
   </div>
 
-  <!-- ── 2026 ── -->
-  <div class="year-group">
-    <div class="year-header">
-      <div style="display:flex;align-items:baseline;gap:0.5rem;">
-        <div class="year-label">Year</div>
-        <div class="year-num">2026</div>
-        <button class="year-delete-btn" onclick="deleteYearGroup(event, this)">✕ 刪除此年份區塊</button>
-      </div>
-      <div class="year-line"></div>
-    </div>
-
-    <div class="trip-grid" id="grid-2026">
-
-      <!-- 東京 -->
-      <a class="trip-card" href="2026_tokyo.html">
-        <button class="card-edit-btn" onclick="editCard(event, this)" title="編輯此行程卡片">✎</button>
-        <button class="card-delete-btn" onclick="deleteCard(event, this)" title="刪除此行程卡片">✕</button>
-        <div class="trip-card-banner" style="background: linear-gradient(90deg, #c0392b, #e67e22);"></div>
-        <div class="trip-card-body">
-          <div class="trip-meta">
-            <span class="trip-flag">🇯🇵</span>
-            <span class="trip-dates">2026 / 04 / 16 – 04 / 19</span>
-          </div>
-          <div class="trip-title">東京四日遊</div>
-          <div class="trip-subtitle">新宿・澀谷・品川・代代木・天王洲</div>
-          <div class="trip-tags">
-            <span class="trip-tag">日本</span>
-            <span class="trip-tag">東京</span>
-            <span class="trip-tag">購物</span>
-            <span class="trip-tag">賞櫻</span>
-            <span class="trip-tag">美食</span>
-          </div>
-        </div>
-        <div class="trip-card-footer">
-          <span class="trip-days">4 天 3 夜</span>
-          <span class="trip-arrow">→</span>
-        </div>
-      </a>
-
-      <!-- 神戶大阪 -->
-      <a class="trip-card" href="202610_Kobe.html">
-        <button class="card-edit-btn" onclick="editCard(event, this)" title="編輯此行程卡片">✎</button>
-        <button class="card-delete-btn" onclick="deleteCard(event, this)" title="刪除此行程卡片">✕</button>
-        <div class="trip-card-banner" style="background: linear-gradient(90deg, #2c3e7a, #6a5acd);"></div>
-        <div class="trip-card-body">
-          <div class="trip-meta">
-            <span class="trip-flag">🇯🇵</span>
-            <span class="trip-dates">2026 / 10 / 22 – 10 / 26</span>
-            <span class="badge-upcoming">upcoming</span>
-          </div>
-          <div class="trip-title">神戶大阪五日遊</div>
-          <div class="trip-subtitle">神戶三宮・南京町・道頓堀・心齋橋・難波</div>
-          <div class="trip-tags">
-            <span class="trip-tag">日本</span>
-            <span class="trip-tag">神戶</span>
-            <span class="trip-tag">大阪</span>
-            <span class="trip-tag">美食</span>
-            <span class="trip-tag">關西</span>
-          </div>
-        </div>
-        <div class="trip-card-footer">
-          <span class="trip-days">5 天 4 夜</span>
-          <span class="trip-arrow">→</span>
-        </div>
-      </a>
-
-      <!-- INJECT:2026 -->
-      <!-- 新增下一趟 -->
-      <a class="trip-card" href="202612_TOKYO.html" style="animation:fadeUp 0.5s ease both;">
-  <button class="card-edit-btn" onclick="editCard(event, this)" title="編輯此行程卡片">✎</button>
-  <button class="card-delete-btn" onclick="deleteCard(event, this)" title="刪除此行程卡片">✕</button>
-  <div class="trip-card-banner" style="background:linear-gradient(90deg,#1a5a7a,#5aaccd);"></div>
-  <div class="trip-card-body">
-    <div class="trip-meta">
-      <span class="trip-flag">🌍</span>
-      <span class="trip-dates">2026/12/17 – 12/20</span>
-      <span class="badge-upcoming">upcoming</span>
-    </div>
-    <div class="trip-title">東京聖誕</div>
-    <div class="trip-subtitle"></div>
-    <div class="trip-tags"><span class="trip-tag">六本木</span> <span class="trip-tag">聖誕燈飾</span></div>
-  </div>
-  <div class="trip-card-footer">
-    <span class="trip-days">4 天 3 夜</span>
-    <span class="trip-arrow">→</span>
-  </div>
-</a><div id="add-card-2026" class="trip-card add-card" onclick="openModal()">
-        <div class="add-inner">
-          <span class="add-plus">＋</span>
-          下一趟旅程
-        </div>
-      </div>
-
-    </div>
-  </div>
-
-  <!-- INJECT:NEW_YEAR -->
-  <!-- ── 2027（預留）── -->
-  <div class="year-group" id="year-group-2027">
-    <div class="year-header">
-      <div style="display:flex;align-items:baseline;gap:0.5rem;">
-        <div class="year-label">Year</div>
-        <div class="year-num" style="color:#ccc;">2027</div>
-        <button class="year-delete-btn" onclick="deleteYearGroup(event, this)">✕ 刪除此年份區塊</button>
-      </div>
-      <div class="year-line"></div>
-    </div>
-    <div class="trip-grid" id="grid-2027">
-      <a class="trip-card" href="202703_kyoto.html" style="animation:fadeUp 0.5s ease both;">
-  <button class="card-edit-btn" onclick="editCard(event, this)" title="編輯此行程卡片">✎</button>
-  <button class="card-delete-btn" onclick="deleteCard(event, this)" title="刪除此行程卡片">✕</button>
-  <div class="trip-card-banner" style="background:linear-gradient(90deg,#7a1a4a,#cd5a8a);"></div>
-  <div class="trip-card-body">
-    <div class="trip-meta">
-      <span class="trip-flag">🌍</span>
-      <span class="trip-dates">2027/03/25 – 03/28</span>
-      <span class="badge-upcoming">upcoming</span>
-    </div>
-    <div class="trip-title">京都名古屋</div>
-    <div class="trip-subtitle"></div>
-    <div class="trip-tags"><span class="trip-tag">京都</span> <span class="trip-tag">名古屋</span> <span class="trip-tag">櫻花</span></div>
-  </div>
-  <div class="trip-card-footer">
-    <span class="trip-days">4 天 3 夜</span>
-    <span class="trip-arrow">→</span>
-  </div>
-</a><div class="trip-card add-card" onclick="openModal()">
-        <div class="add-inner">
-          <span class="add-plus">＋</span>
-          新增 2027 旅程
-        </div>
-      </div>
-    </div>
+  <!-- ── 旅程卡片區（從 Firebase 動態載入）── -->
+  <div id="trip-container">
+    <p id="trip-loading" style="text-align:center;color:var(--muted);font-family:'DM Mono',monospace;font-size:0.8rem;padding:2rem;">⏳ 載入旅程資料中…</p>
   </div>
 
 </main>
@@ -742,9 +630,210 @@ function toggleReadme() {
   document.getElementById('readmeBox').classList.toggle('open');
 }
 
-/* ══════════════════════════════════════════
-   編輯模式
-   ══════════════════════════════════════════ */
+/* ══════════════════════════════════════════════════════════════
+   0. Firebase 存取設定（首頁卡片清單獨立 collection：trips_index）
+   ══════════════════════════════════════════════════════════════ */
+const INDEX_DOC = db.collection('trips_index').doc('cards');
+
+/* 種子資料：第一次連上 Firestore、collection 還是空的時候使用，
+   內容等同原本寫死在 HTML 裡的 4 張卡片。寫入一次之後，
+   之後永遠以 Firestore 內容為準，這份種子資料不會再被使用。 */
+const SEED_TRIPS = [
+  {
+    id: 't_2026_tokyo', year: '2026', href: '2026_tokyo.html',
+    flag: '🇯🇵', start: '2026-04-16', end: '2026-04-19', upcoming: false,
+    dest: '東京四日遊', sub: '新宿・澀谷・品川・代代木・天王洲',
+    tags: ['日本','東京','購物','賞櫻','美食'],
+    grad: 'linear-gradient(90deg, #c0392b, #e67e22)'
+  },
+  {
+    id: 't_202610_kobe', year: '2026', href: '202610_Kobe.html',
+    flag: '🇯🇵', start: '2026-10-22', end: '2026-10-26', upcoming: true,
+    dest: '神戶大阪五日遊', sub: '神戶三宮・南京町・道頓堀・心齋橋・難波',
+    tags: ['日本','神戶','大阪','美食','關西'],
+    grad: 'linear-gradient(90deg, #2c3e7a, #6a5acd)'
+  },
+  {
+    id: 't_202612_tokyo', year: '2026', href: '202612_TOKYO.html',
+    flag: '🌍', start: '2026-12-17', end: '2026-12-20', upcoming: true,
+    dest: '東京聖誕', sub: '',
+    tags: ['六本木','聖誕燈飾'],
+    grad: 'linear-gradient(90deg,#1a5a7a,#5aaccd)'
+  },
+  {
+    id: 't_202703_kyoto', year: '2027', href: '202703_kyoto.html',
+    flag: '🌍', start: '2027-03-25', end: '2027-03-28', upcoming: true,
+    dest: '京都名古屋', sub: '',
+    tags: ['京都','名古屋','櫻花'],
+    grad: 'linear-gradient(90deg,#7a1a4a,#cd5a8a)'
+  }
+];
+
+/* 記憶體中的卡片資料（從 Firestore 載入後存在這裡，所有編輯都先改這裡再 render） */
+let tripsData = [];
+
+/* ══════════════════════════════════════════════════════════════
+   1. 載入 / 儲存
+   ══════════════════════════════════════════════════════════════ */
+async function cardsLoad() {
+  const container = document.getElementById('trip-container');
+  try {
+    const snap = await INDEX_DOC.get();
+    if (snap.exists && Array.isArray(snap.data().trips)) {
+      tripsData = snap.data().trips;
+    } else {
+      // Firestore 是空的 → 用種子資料初始化，並立即寫回去（之後就不會再走這條路）
+      tripsData = SEED_TRIPS.slice();
+      await cardsPushToFirebase();
+    }
+  } catch (err) {
+    console.error('[cardsLoad] Firestore 讀取失敗，改用本機備份', err);
+    try {
+      const s = localStorage.getItem('trips_index_cards');
+      tripsData = s ? JSON.parse(s) : SEED_TRIPS.slice();
+    } catch (_) {
+      tripsData = SEED_TRIPS.slice();
+    }
+  }
+  cardsRender();
+}
+
+async function cardsPushToFirebase() {
+  try {
+    await INDEX_DOC.set({
+      trips: tripsData,
+      updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+    });
+    try { localStorage.setItem('trips_index_cards', JSON.stringify(tripsData)); } catch(_) {}
+    return true;
+  } catch (err) {
+    console.error('[cardsPushToFirebase] 寫入失敗，改存本機', err);
+    try { localStorage.setItem('trips_index_cards', JSON.stringify(tripsData)); } catch(_) {}
+    return false;
+  }
+}
+
+/* ══════════════════════════════════════════════════════════════
+   2. 渲染
+   ══════════════════════════════════════════════════════════════ */
+function formatTripDates(t) {
+  if (!t.start) return '待定';
+  const [sy, sm, sd] = t.start.split('-');
+  let out = sy + ' / ' + sm + ' / ' + sd;
+  if (t.end) {
+    const [ey, em, ed] = t.end.split('-');
+    out += (ey === sy) ? (' – ' + em + ' / ' + ed) : (' – ' + ey + ' / ' + em + ' / ' + ed);
+  }
+  return out;
+}
+
+function tripDaysNights(t) {
+  if (!t.start || !t.end) return '— 天 — 夜';
+  const nights = Math.round((new Date(t.end) - new Date(t.start)) / 86400000);
+  if (nights < 0 || isNaN(nights)) return '— 天 — 夜';
+  return (nights + 1) + ' 天 ' + nights + ' 夜';
+}
+
+function cardHTMLFor(t) {
+  const tagsHtml = (t.tags || []).map(tag => '<span class="trip-tag">' + tag + '</span>').join('');
+  const upcomingBadge = t.upcoming ? '<span class="badge-upcoming">upcoming</span>' : '';
+  return [
+    '<a class="trip-card" href="' + (t.href || '#') + '" data-id="' + t.id + '">',
+    '  <button class="card-edit-btn" onclick="editCard(event, this)" title="編輯此行程卡片">✎</button>',
+    '  <button class="card-delete-btn" onclick="deleteCard(event, this)" title="刪除此行程卡片">✕</button>',
+    '  <div class="trip-card-banner" style="background:' + (t.grad || 'linear-gradient(90deg,#c0392b,#e67e22)') + ';"></div>',
+    '  <div class="trip-card-body">',
+    '    <div class="trip-meta">',
+    '      <span class="trip-flag">' + (t.flag || '🌍') + '</span>',
+    '      <span class="trip-dates">' + formatTripDates(t) + '</span>',
+    '      ' + upcomingBadge,
+    '    </div>',
+    '    <div class="trip-title">' + (t.dest || '') + '</div>',
+    '    <div class="trip-subtitle">' + (t.sub || '') + '</div>',
+    '    <div class="trip-tags">' + tagsHtml + '</div>',
+    '  </div>',
+    '  <div class="trip-card-footer">',
+    '    <span class="trip-days">' + tripDaysNights(t) + '</span>',
+    '    <span class="trip-arrow">→</span>',
+    '  </div>',
+    '</a>'
+  ].join('\n');
+}
+
+function cardsRender() {
+  const container = document.getElementById('trip-container');
+  if (!container) return;
+
+  // 依年份分組
+  const byYear = {};
+  tripsData.forEach(t => {
+    const y = t.year || '未分類';
+    if (!byYear[y]) byYear[y] = [];
+    byYear[y].push(t);
+  });
+  const years = Object.keys(byYear).sort();
+
+  if (!years.length) {
+    container.innerHTML = `
+      <div class="year-group">
+        <div class="year-header">
+          <div><div class="year-label">Year</div><div class="year-num">—</div></div>
+          <div class="year-line"></div>
+        </div>
+        <div class="trip-grid">
+          <div class="trip-card add-card" onclick="openModal()">
+            <div class="add-inner"><span class="add-plus">＋</span>新增第一趟旅程</div>
+          </div>
+        </div>
+      </div>`;
+    updateHeroStats();
+    return;
+  }
+
+  container.innerHTML = years.map(year => {
+    const cardsHtml = byYear[year]
+      .sort((a, b) => (a.start || '').localeCompare(b.start || ''))
+      .map(cardHTMLFor).join('\n');
+    return `
+      <div class="year-group" data-year="${year}">
+        <div class="year-header">
+          <div style="display:flex;align-items:baseline;gap:0.5rem;">
+            <div class="year-label">Year</div>
+            <div class="year-num">${year}</div>
+            <button class="year-delete-btn" onclick="deleteYearGroup(event, this)">✕ 刪除此年份區塊</button>
+          </div>
+          <div class="year-line"></div>
+        </div>
+        <div class="trip-grid">
+          ${cardsHtml}
+          <div class="trip-card add-card" onclick="openModal('${year}')">
+            <div class="add-inner"><span class="add-plus">＋</span>下一趟旅程</div>
+          </div>
+        </div>
+      </div>`;
+  }).join('\n');
+
+  updateHeroStats();
+}
+
+function updateHeroStats() {
+  const statEls = document.querySelectorAll('.hero-stats .stat-num');
+  if (statEls.length < 3) return;
+  const tripCount = tripsData.length;
+  const countryCount = new Set(tripsData.map(t => (t.tags||[])[0]).filter(Boolean)).size || 1;
+  const totalDays = tripsData.reduce((sum, t) => {
+    if (!t.start || !t.end) return sum;
+    const n = Math.round((new Date(t.end) - new Date(t.start)) / 86400000);
+    return sum + (n >= 0 ? n + 1 : 0);
+  }, 0);
+  statEls[0].textContent = tripCount;
+  statEls[1].textContent = countryCount;
+  statEls[2].textContent = totalDays;
+}
+
+/* ══════════════════════════════════════════════════════════════
+   3. 編輯模式（刪除 / 編輯卡片，即時寫回 Firestore）
+   ══════════════════════════════════════════════════════════════ */
 let editMode = false;
 
 function toggleEditMode() {
@@ -755,84 +844,69 @@ function toggleEditMode() {
   if (btn) btn.style.display = editMode ? 'none' : '';
 }
 
-/* 刪除單張旅程卡片 */
-function deleteCard(e, btn) {
+/* 刪除單張旅程卡片：更新記憶體陣列 → 重新渲染 → 寫回 Firestore */
+async function deleteCard(e, btn) {
   e.preventDefault();
   e.stopPropagation();
   const card = btn.closest('.trip-card');
+  const id = card.dataset.id;
   const title = card.querySelector('.trip-title')?.textContent || '此行程';
-  if (!confirm('確定要從版面移除 [' + title + '] 嗎?\n(只移除首頁卡片，不會刪除行程 HTML 檔案)')) return;
+  if (!confirm('確定要從版面移除 [' + title + '] 嗎?\n(只移除首頁卡片，不會刪除行程 HTML 檔案，會立即同步到資料庫)')) return;
+
   card.style.transition = 'opacity 0.25s, transform 0.25s';
   card.style.opacity = '0';
   card.style.transform = 'scale(0.92)';
-  setTimeout(() => card.remove(), 260);
+
+  tripsData = tripsData.filter(t => t.id !== id);
+  await cardsPushToFirebase();
+
+  setTimeout(() => cardsRender(), 260);
 }
 
-/* ══════════════════════════════════════════
-   編輯旅程卡片內容
-   ══════════════════════════════════════════ */
-let currentEditCard = null;
+/* 刪除整個年份區塊 */
+async function deleteYearGroup(e, btn) {
+  e.preventDefault();
+  e.stopPropagation();
+  const group = btn.closest('.year-group');
+  const year = group.dataset.year;
+  const cardsInYear = tripsData.filter(t => t.year === year);
+  const msg = cardsInYear.length > 0
+    ? '確定要移除 ' + year + ' 整個年份區塊 (含 ' + cardsInYear.length + ' 筆旅程卡片)？'
+    : '確定要移除空的 ' + year + ' 年份區塊？';
+  if (!confirm(msg)) return;
 
-/* 把 "2026 / 10 / 22 – 10 / 26" 或 "2027/03/25 – 03/28" 這類字串
-   拆回 start(YYYY-MM-DD) / end(YYYY-MM-DD)，盡量容錯 */
-function parseTripDates(text) {
-  if (!text) return { start: '', end: '' };
-  // 移除 upcoming 文字等雜訊，只留日期部分
-  const cleaned = text.replace(/upcoming/i, '').trim();
-  const parts = cleaned.split('–').map(s => s.trim());
-  if (parts.length < 1) return { start: '', end: '' };
-
-  const left = parts[0].replace(/\s+/g, '');           // 2026/10/22
-  const leftNums = left.split('/').filter(Boolean);
-  if (leftNums.length < 3) return { start: '', end: '' };
-  const [y, m, d] = leftNums;
-  const start = y + '-' + m.padStart(2,'0') + '-' + d.padStart(2,'0');
-
-  let end = '';
-  if (parts[1]) {
-    const right = parts[1].replace(/\s+/g, '');         // 10/26 或 2027/03/28
-    const rightNums = right.split('/').filter(Boolean);
-    if (rightNums.length === 3) {
-      end = rightNums[0] + '-' + rightNums[1].padStart(2,'0') + '-' + rightNums[2].padStart(2,'0');
-    } else if (rightNums.length === 2) {
-      end = y + '-' + rightNums[0].padStart(2,'0') + '-' + rightNums[1].padStart(2,'0');
-    }
-  }
-  return { start, end };
+  tripsData = tripsData.filter(t => t.year !== year);
+  await cardsPushToFirebase();
+  cardsRender();
 }
 
-/* 開啟編輯視窗，並把卡片現有資料帶入欄位 */
+/* ══════════════════════════════════════════════════════════════
+   4. 編輯旅程卡片內容
+   ══════════════════════════════════════════════════════════════ */
+let currentEditId = null;
+
 function editCard(e, btn) {
   e.preventDefault();
   e.stopPropagation();
   const card = btn.closest('.trip-card');
-  currentEditCard = card;
+  const id = card.dataset.id;
+  const t = tripsData.find(x => x.id === id);
+  if (!t) return;
+  currentEditId = id;
 
-  const dest    = card.querySelector('.trip-title')?.textContent.trim() || '';
-  const sub     = card.querySelector('.trip-subtitle')?.textContent.trim() || '';
-  const flag    = card.querySelector('.trip-flag')?.textContent.trim() || '🌍';
-  const dateTxt = card.querySelector('.trip-dates')?.textContent.trim() || '';
-  const hasUpcoming = !!card.querySelector('.badge-upcoming');
-  const tags    = Array.from(card.querySelectorAll('.trip-tag')).map(t => t.textContent.trim());
-  const banner  = card.querySelector('.trip-card-banner');
-  const currentGrad = banner ? banner.style.background : '';
+  document.getElementById('e-dest').value   = t.dest || '';
+  document.getElementById('e-sub').value    = t.sub || '';
+  document.getElementById('e-flag').value   = t.flag || '🌍';
+  document.getElementById('e-start').value  = t.start || '';
+  document.getElementById('e-end').value    = t.end || '';
+  document.getElementById('e-upcoming').checked = !!t.upcoming;
+  document.getElementById('e-tags').value   = (t.tags || []).join(', ');
 
-  const { start, end } = parseTripDates(dateTxt);
-
-  document.getElementById('e-dest').value     = dest;
-  document.getElementById('e-sub').value      = sub;
-  document.getElementById('e-flag').value     = flag;
-  document.getElementById('e-start').value    = start;
-  document.getElementById('e-end').value      = end;
-  document.getElementById('e-upcoming').checked = hasUpcoming;
-  document.getElementById('e-tags').value     = tags.join(', ');
-
-  // 選色：找最接近的 swatch（用字串比對，找不到就不選）
   const eSwatches = document.querySelectorAll('#e-swatches .swatch');
   eSwatches.forEach(s => s.classList.remove('selected'));
   let matched = false;
   eSwatches.forEach(s => {
-    if (currentGrad && s.dataset.grad.replace(/\s/g,'') === currentGrad.replace(/\s/g,'')) {
+    if (t.grad && s.dataset.grad.replace(/\s/g,'') === t.grad.replace(/\s/g,'')) {
       s.classList.add('selected');
       matched = true;
     }
@@ -844,13 +918,12 @@ function editCard(e, btn) {
 
 function closeEditModal() {
   document.getElementById('editModal').classList.remove('open');
-  currentEditCard = null;
+  currentEditId = null;
 }
 document.getElementById('editModal').addEventListener('click', function(e) {
   if (e.target === this) closeEditModal();
 });
 
-/* Swatch 選色（編輯視窗用）*/
 document.getElementById('e-swatches').addEventListener('click', function(e) {
   const sw = e.target.closest('.swatch');
   if (!sw) return;
@@ -858,127 +931,45 @@ document.getElementById('e-swatches').addEventListener('click', function(e) {
   sw.classList.add('selected');
 });
 
-/* 將編輯視窗的輸入值寫回卡片 DOM */
-function saveCardEdit() {
-  if (!currentEditCard) return;
-  const card = currentEditCard;
+/* 將編輯視窗輸入值寫回記憶體陣列，重新渲染，並同步 Firestore */
+async function saveCardEdit() {
+  if (!currentEditId) return;
+  const t = tripsData.find(x => x.id === currentEditId);
+  if (!t) return;
 
   const dest    = document.getElementById('e-dest').value.trim();
-  const sub     = document.getElementById('e-sub').value.trim();
-  const flag    = document.getElementById('e-flag').value.trim() || '🌍';
-  const start   = document.getElementById('e-start').value;
-  const end     = document.getElementById('e-end').value;
-  const upcoming = document.getElementById('e-upcoming').checked;
-  const tagsRaw = document.getElementById('e-tags').value.trim();
-  const grad    = document.querySelector('#e-swatches .swatch.selected')?.dataset.grad;
-
   if (!dest) { alert('請填寫目的地名稱'); return; }
 
-  // 標題 / 副標題
-  const titleEl = card.querySelector('.trip-title');
-  if (titleEl) titleEl.textContent = dest;
-  const subEl = card.querySelector('.trip-subtitle');
-  if (subEl) subEl.textContent = sub;
-
-  // 國旗
-  const flagEl = card.querySelector('.trip-flag');
-  if (flagEl) flagEl.textContent = flag;
-
-  // 日期顯示（盡量沿用原本「YYYY / MM / DD – MM / DD」格式）
-  const datesEl = card.querySelector('.trip-dates');
-  if (datesEl && start) {
-    const [sy, sm, sd] = start.split('-');
-    let display = sy + ' / ' + sm + ' / ' + sd;
-    if (end) {
-      const [ey, em, ed] = end.split('-');
-      display += ey === sy ? (' – ' + em + ' / ' + ed) : (' – ' + ey + ' / ' + em + ' / ' + ed);
-    }
-    datesEl.textContent = display;
-  }
-
-  // upcoming 徽章
-  const meta = card.querySelector('.trip-meta');
-  let badge = card.querySelector('.badge-upcoming');
-  if (upcoming && !badge) {
-    badge = document.createElement('span');
-    badge.className = 'badge-upcoming';
-    badge.textContent = 'upcoming';
-    meta.appendChild(badge);
-  } else if (!upcoming && badge) {
-    badge.remove();
-  }
-
-  // 標籤
-  const tagsContainer = card.querySelector('.trip-tags');
-  if (tagsContainer) {
-    tagsContainer.innerHTML = '';
-    const tags = tagsRaw ? tagsRaw.split(/[,，]/).map(t => t.trim()).filter(Boolean) : [];
-    tags.forEach(t => {
-      const span = document.createElement('span');
-      span.className = 'trip-tag';
-      span.textContent = t;
-      tagsContainer.appendChild(span);
-    });
-  }
-
-  // 天數／夜數（依日期重新計算，若兩者都有填）
-  if (start && end) {
-    const nights = Math.round((new Date(end) - new Date(start)) / 86400000);
-    const days = nights + 1;
-    const daysEl = card.querySelector('.trip-days');
-    if (daysEl && nights >= 0) daysEl.textContent = days + ' 天 ' + nights + ' 夜';
-  }
-
-  // 配色
-  if (grad) {
-    const banner = card.querySelector('.trip-card-banner');
-    if (banner) banner.style.background = grad;
-  }
+  t.dest     = dest;
+  t.sub      = document.getElementById('e-sub').value.trim();
+  t.flag     = document.getElementById('e-flag').value.trim() || '🌍';
+  t.start    = document.getElementById('e-start').value;
+  t.end      = document.getElementById('e-end').value;
+  t.upcoming = document.getElementById('e-upcoming').checked;
+  const tagsRaw = document.getElementById('e-tags').value.trim();
+  t.tags     = tagsRaw ? tagsRaw.split(/[,，]/).map(s => s.trim()).filter(Boolean) : [];
+  const grad = document.querySelector('#e-swatches .swatch.selected')?.dataset.grad;
+  if (grad) t.grad = grad;
+  // 年份若隨開始日期變動，一併更新分組
+  if (t.start) t.year = t.start.split('-')[0];
 
   closeEditModal();
+  cardsRender();
+  await cardsPushToFirebase();
 }
 
-/* 刪除整個年份區塊（只在沒有旅程卡片時，或使用者確認後）*/
-function deleteYearGroup(e, btn) {
-  e.preventDefault();
-  e.stopPropagation();
-  const group = btn.closest('.year-group');
-  const yearNum = group.querySelector('.year-num')?.textContent || '此年份';
-  const cards = group.querySelectorAll('.trip-card:not(.add-card)');
-  const msg = cards.length > 0
-    ? '確定要移除 ' + yearNum + ' 整個年份區塊 (含 ' + cards.length + ' 筆旅程卡片)？'
-    : '確定要移除空的 ' + yearNum + ' 年份區塊？';
-  if (!confirm(msg)) return;
-  group.style.transition = 'opacity 0.3s';
-  group.style.opacity = '0';
-  setTimeout(() => group.remove(), 310);
+/* 編輯列上的「儲存」按鈕：目前所有變更都即時寫入 Firestore，
+   這顆按鈕保留作為「再次強制同步＋離開編輯模式」使用 */
+async function saveIndex() {
+  await cardsPushToFirebase();
+  toggleEditMode();
 }
 
-/* 儲存（下載）更新後的 index.html */
-function saveIndex() {
-  // 序列化前先清除所有暫態 class，避免存入 edit-mode / active 狀態
-  document.body.classList.remove('edit-mode');
-  document.getElementById('editBar').classList.remove('active');
-  const editBtn = document.getElementById('editModeBtn');
-  if (editBtn) editBtn.style.display = '';
-  editMode = false;
+/* ── 新增旅程 Modal ── */
+let pendingYear = null; // 從哪個年份區塊的「＋」按鈕開啟的，用來預填年份
 
-  const updatedHTML = '<!DOCTYPE html>\n<html lang="zh-TW">\n'
-    + document.head.outerHTML + '\n'
-    + document.body.outerHTML + '\n</html>';
-  const blob = new Blob([updatedHTML], { type: 'text/html;charset=utf-8' });
-  const url  = URL.createObjectURL(blob);
-  const a    = Object.assign(document.createElement('a'), { href: url, download: 'index.html' });
-  document.body.appendChild(a);
-  a.click();
-  document.body.removeChild(a);
-  URL.revokeObjectURL(url);
-  // 儲存後離開編輯模式
-  setTimeout(() => { toggleEditMode(); }, 300);
-}
-
-/* ── Modal ── */
-function openModal() {
+function openModal(year) {
+  pendingYear = year || null;
   document.getElementById('tripModal').classList.add('open');
 }
 function closeModal() {
@@ -987,9 +978,8 @@ function closeModal() {
 document.getElementById('tripModal').addEventListener('click', function(e) {
   if (e.target === this) closeModal();
 });
-document.addEventListener('keydown', e => { if (e.key === 'Escape') closeModal(); });
+document.addEventListener('keydown', e => { if (e.key === 'Escape') { closeModal(); closeEditModal(); } });
 
-/* ── Swatch 選色 ── */
 document.getElementById('swatches').addEventListener('click', function(e) {
   const sw = e.target.closest('.swatch');
   if (!sw) return;
@@ -1029,26 +1019,19 @@ function calcNights(start, end) {
 }
 
 /* ════════════════════════════════════════════════════════
-   產生新旅程 HTML — 方案 B：從 GitHub Pages 抓最新範本
-   範本來源：TEMPLATE_URL 指定的最新行程頁
-   替換規則：只動 header 資訊、title、TRIP_CONFIG 識別欄位，
-             其餘所有功能、CSS、JS 完整繼承。
+   產生新旅程 HTML — 從最新行程頁抓範本，並把卡片資料寫入 Firestore
    ════════════════════════════════════════════════════════ */
-
-// ── 範本設定（未來換新基準行程時只改這一行）──
-// 相對路徑：本機 file:// 和 GitHub Pages 都能正常讀取
 const TEMPLATE_RELATIVE = './202610_Kobe.html';
-// 絕對路徑：僅作備用（線上環境）
 const TEMPLATE_URL = 'https://jiajie8259.github.io/202610_Kobe.html';
 const TEMPLATE_FALLBACK_NAME = '202610_Kobe.html';
 
 async function createTrip() {
   const dest    = document.getElementById('f-dest').value.trim();
-  const sub     = ''; // 副標題欄位已移除
+  const sub     = '';
   const start   = document.getElementById('f-start').value;
   const end     = document.getElementById('f-end').value;
   const country = document.getElementById('f-country').value.trim() || '日本';
-  const flag    = '🌍'; // 統一使用預設地球圖示，不再讓使用者手動輸入
+  const flag    = '🌍';
   const tagsRaw = document.getElementById('f-tags').value.trim();
   const slug    = document.getElementById('f-slug').value.trim().replace(/[^a-zA-Z0-9_-]/g, '') || 'NewTrip';
   const grad    = document.querySelector('#swatches .swatch.selected')?.dataset.grad
@@ -1064,13 +1047,9 @@ async function createTrip() {
   const dateDsp = (start && end)
     ? formatDate(start) + ' – ' + (end.slice(5).replace('-', '/'))
     : '待定';
-  const nights  = (start && end)
-    ? Math.round((new Date(end) - new Date(start)) / 86400000) : '?';
-  const days    = nights === '?' ? '?' : nights + 1;
   const tagsHtml = tags.map(t => '<span class="trip-tag">' + t + '</span>').join(' ');
   const storageKey = 'trip_' + year + month + '_' + slug.slice(0, 10);
 
-  // ── 顯示讀取中 ──
   const btn = document.querySelector('.btn-create');
   const origText = btn.textContent;
   btn.textContent = '⏳ 抓取範本中…';
@@ -1097,38 +1076,17 @@ async function createTrip() {
   }
 
   // ── 步驟 2：替換範本欄位 ──
-  // title
   html = html.replace(/<title>[^<]*<\/title>/, '<title>' + dest + ' · 旅遊記錄</title>');
-
-  // header date-tag
   html = html.replace(/(<div class="date-tag">)[^<]*/, '$1' + flag + ' ' + country + ' · ' + dateDsp);
-
-  // header h1
   html = html.replace(/(<div class="date-tag">[^<]*<\/div>\s*<h1>)[^<]*/, '$1' + dest);
-
-  // header p
   html = html.replace(/(<\/h1>\s*<p>)[^<]*(<\/p>)/, '$1' + (sub || '行程記錄') + '$2');
-
-  // header::before background text
   html = html.replace(/(header::before[\s\S]{0,100}content:\s*')[^']*'/, "$1" + dest.slice(0,2) + "'");
-
-  // header::after gradient
   html = html.replace(/(header::after[\s\S]{0,200}background:\s*)[^;]+;/, '$1' + grad + '; opacity: 0.15;');
-
-  // TRIP_CONFIG storageKey
   html = html.replace(/(storageKey:\s*')[^']*'/, "$1" + storageKey + "'");
-
-  // TRIP_CONFIG exportName
   html = html.replace(/(exportName:\s*')[^']*'/, "$1" + dest + "記帳'");
-
-  // footer
   html = html.replace(/<footer>[^<]*<\/footer>/, '<footer>Travel / ' + fname + ' &nbsp;·&nbsp; ' + dest + ' &nbsp;·&nbsp; ' + year + '</footer>');
-
-  // Firebase collection path
   html = html.replace(/db\.collection\('[^']+'\)/g, "db.collection('" + storageKey + "')");
 
-  // localStorage key：把所有 'kobe26_xxx' 換成新的 storageKey
-  // 這樣新行程不會讀到神戶舊資料，各行程的資料完全獨立
   html = html.replace(/'kobe26_food_rows'/g,    "'" + storageKey + "_food_rows'");
   html = html.replace(/'kobe26_trans_rows'/g,   "'" + storageKey + "_trans_rows'");
   html = html.replace(/'kobe26_hotel_rows'/g,   "'" + storageKey + "_hotel_rows'");
@@ -1140,17 +1098,11 @@ async function createTrip() {
   html = html.replace(/'kobe26_skip'/g,         "'" + storageKey + "_skip'");
   html = html.replace(/'kobe26_flight'/g,       "'" + storageKey + "_flight'");
 
-  // 「讀取失敗」→「暫無資料」（空集合不是錯誤，是正常的新行程狀態）
   html = html.replace(/⚠ 讀取失敗（離線模式）/g, '📭 暫無資料');
   html = html.replace(/⚠ 讀取失敗/g,             '📭 暫無資料');
   html = html.replace(/△ 讀取失敗/g,             '📭 暫無資料');
 
-  // ── 清空各頁籤的舊行程資料，只保留功能架構 ──
-
-  // 1. cards 頁籤：清空 mini-card 內容，根據天數自動生成空白小卡
-  //    做法：抓整個 card-grid 的內容並替換成空白骨架
   (function() {
-    // 計算天數（已在上面算好）
     const startD2 = new Date(start);
     const endD2   = new Date(end);
     const nDays   = (start && end) ? Math.round((endD2 - startD2) / 86400000) + 1 : 5;
@@ -1193,20 +1145,16 @@ async function createTrip() {
       /(<div class="card-grid">)[\s\S]*?(<\/div>)\s*(<p style[^>]*>.*?<\/p>)/,
       '$1\n' + blankCards + '  $2\n  $3'
     );
-    // 同時替換 countNote（天數）
     html = html.replace(
       /<p style="font-size:0\.75rem[^"]*">[^<]*張[^<]*<\/p>/,
       countNote
     );
   })();
 
-  // 2. TRACKER_SPOTS 清空（Kobe 格式是 const TRACKER_SPOTS = {...};）
   html = html.replace(
     /const TRACKER_SPOTS = \{[\s\S]*?\};/,
     'const TRACKER_SPOTS = {};'
-
   );
-  // 2b. 航班資訊清空（新行程預設 '—'，等確認航班後再填入）
   var flightIds = ['f-out-num','f-out-dep','f-out-dep-ap','f-out-arr','f-out-arr-ap',
                    'f-ret-num','f-ret-dep','f-ret-dep-ap','f-ret-arr','f-ret-arr-ap'];
   flightIds.forEach(function(fid) {
@@ -1222,20 +1170,17 @@ async function createTrip() {
     '$1待確認$2'
   );
 
-  // 3. pay-panel-itinerary：清空 itin-day 區塊和警示，留「開始追蹤」按鈕
   html = html.replace(
     /(<div id="pay-panel-itinerary"[\s\S]*?開始追蹤[\s\S]*?<\/button>\s*<\/div>)[\s\S]*?(<div id="pay-panel-advisor")/,
     '$1\n\n    <div class="empty-notice" style="margin-top:1.5rem;">\n      📍 行程支付對照待補充<br>\n      <span style="font-size:0.75rem;opacity:0.7;">確認行程據點後，在 TRIP_CONFIG 的 TRACKER_SPOTS 填入各景點設定</span>\n    </div>\n\n  $2'
   );
 
-  // 4. dayLabels / dayOrder / freeDays：根據輸入日期自動生成
   if (start && end) {
     const startD = new Date(start);
     const endD   = new Date(end);
     const totalDays = Math.round((endD - startD) / 86400000) + 1;
     const weekdays  = ['日','一','二','三','四','五','六'];
 
-    // 建立各天的資料
     const dayEntries = [];
     for (let d = 0; d < totalDays; d++) {
       const date = new Date(startD);
@@ -1249,7 +1194,6 @@ async function createTrip() {
       });
     }
 
-    // 替換 dayLabels
     let labelsStr = '';
     dayEntries.forEach(function(e) { labelsStr += '    ' + e.key + ': ' + "'" + e.label + "'" + ',\n'; });
     html = html.replace(
@@ -1257,7 +1201,6 @@ async function createTrip() {
       'dayLabels: {\n' + labelsStr + '  },'
     );
 
-    // 替換 dayOrder
     let orderStr = '';
     dayEntries.forEach(function(e) { orderStr += "    '" + e.label + "',\n"; });
     orderStr += "    '" + '其他' + "',\n";
@@ -1266,15 +1209,13 @@ async function createTrip() {
       'dayOrder: [\n' + orderStr + '  ],'
     );
 
-    // 替換 freeDays
     const freeDaysArr = dayEntries.map(function(e) { return "'" + e.key + "'"; }).join(',');
     html = html.replace(
       /freeDays:\s*\[[^\]]*\]/,
       'freeDays: [' + freeDaysArr + ']'
     );
-
   }
-  // itinerary content - 清空舊行程，留 D1 骨架
+
   const itinNew = [
     '<a href="index.html" style="display:inline-flex;align-items:center;gap:0.4rem;',
     'font-family:\'DM Mono\',monospace;font-size:0.7rem;letter-spacing:0.1em;',
@@ -1311,75 +1252,22 @@ async function createTrip() {
   document.body.removeChild(tripA);
   URL.revokeObjectURL(tripUrl);
 
-  // ── 步驟 4：把新卡片插入 DOM，再下載更新後的 index.html ──
-  const cardHTML = [
-    '<a class="trip-card" href="' + fname + '" style="animation:fadeUp 0.5s ease both;">',
-    '  <button class="card-edit-btn" onclick="editCard(event, this)" title="編輯此行程卡片">✎</button>',
-    '  <button class="card-delete-btn" onclick="deleteCard(event, this)" title="刪除此行程卡片">✕</button>',
-    '  <div class="trip-card-banner" style="background:' + grad + ';"></div>',
-    '  <div class="trip-card-body">',
-    '    <div class="trip-meta">',
-    '      <span class="trip-flag">' + flag + '</span>',
-    '      <span class="trip-dates">' + start.replace(/-/g,'/') + ' – ' + (end ? end.slice(5).replace('-','/') : '') + '</span>',
-    '      <span class="badge-upcoming">upcoming</span>',
-    '    </div>',
-    '    <div class="trip-title">' + dest + '</div>',
-    '    <div class="trip-subtitle">' + (sub||'') + '</div>',
-    '    <div class="trip-tags">' + tagsHtml + '</div>',
-    '  </div>',
-    '  <div class="trip-card-footer">',
-    '    <span class="trip-days">' + days + ' 天 ' + nights + ' 夜</span>',
-    '    <span class="trip-arrow">→</span>',
-    '  </div>',
-    '</a>'
-  ].join('\n');
+  // ── 步驟 4：把新卡片資料寫入 Firestore（取代過去插入 DOM + 下載 index.html 的做法）──
+  const newCard = {
+    id: 't_' + year + month + '_' + slug.slice(0, 16) + '_' + Date.now().toString(36),
+    year, href: fname, flag, start, end,
+    upcoming: true,
+    dest, sub,
+    tags,
+    grad
+  };
+  tripsData.push(newCard);
 
-  // 防止重複：如果同檔名的卡片已存在就跳過 DOM 插入
-  const alreadyExists = document.querySelector('a.trip-card[href="' + fname + '"]');
-
-  const gridId = 'grid-' + year;
-  let grid = document.getElementById(gridId);
-  if (!grid) {
-    const nyg = document.createElement('div');
-    nyg.className = 'year-group';
-    nyg.innerHTML =
-      '<div class="year-header">' +
-        '<div><div class="year-label">Year</div><div class="year-num">' + year + '</div></div>' +
-        '<div class="year-line"></div>' +
-      '</div>' +
-      '<div class="trip-grid" id="' + gridId + '">' +
-        '<div class="trip-card add-card" onclick="openModal()">' +
-          '<div class="add-inner"><span class="add-plus">＋</span>下一趟旅程</div>' +
-        '</div>' +
-      '</div>';
-    document.querySelector('footer').before(nyg);
-    grid = document.getElementById(gridId);
-  }
-  if (!alreadyExists) {
-    grid.querySelector('.add-card').insertAdjacentHTML('beforebegin', cardHTML);
-  }
-
-  // 先關 modal、清除所有暫態 class，再序列化
   closeModal();
-  document.body.classList.remove('edit-mode');
-  document.getElementById('editBar').classList.remove('active');
-  const editBtn = document.getElementById('editModeBtn');
-  if (editBtn) editBtn.style.display = '';
+  cardsRender();
+  await cardsPushToFirebase();
 
-  await new Promise(r => setTimeout(r, 400)); // 等動畫完成
-
-  const updatedHTML = '<!DOCTYPE html>\n<html lang="zh-TW">\n'
-    + document.head.outerHTML + '\n'
-    + document.body.outerHTML + '\n</html>';
-  const idxBlob = new Blob([updatedHTML], { type: 'text/html;charset=utf-8' });
-  const idxUrl  = URL.createObjectURL(idxBlob);
-  const idxA    = Object.assign(document.createElement('a'), { href: idxUrl, download: 'index.html' });
-  document.body.appendChild(idxA);
-  idxA.click();
-  document.body.removeChild(idxA);
-  URL.revokeObjectURL(idxUrl);
-
-  alert('✅ 完成！已下載兩個檔案：\n\n📄 ' + fname + '（新行程）\n📄 index.html（已加入新旅程卡片）\n\n請將兩個檔案放入 Travel/ 資料夾取代舊版即可。');
+  alert('✅ 已產生 ' + fname + '！\n\n📄 行程 HTML 已下載，請放入 Travel/ 資料夾。\n📌 首頁卡片已自動同步到資料庫，重新整理頁面即可看到（無需再下載 index.html）。');
 }
 
 /* ── 網路失敗時的備用說明 ── */
@@ -1400,7 +1288,13 @@ function showFallbackGuide(fname, dest, sub, country, flag, dateDsp, grad, tagsH
     </div>`;
   guide.style.display = 'block';
 }
+
+/* ══════════════════════════════════════════════════════════════
+   5. 頁面載入：從 Firestore 讀出卡片並渲染
+   ══════════════════════════════════════════════════════════════ */
+document.addEventListener('DOMContentLoaded', cardsLoad);
 </script>
+
 
 
 
