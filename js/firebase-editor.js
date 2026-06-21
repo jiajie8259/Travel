@@ -199,7 +199,7 @@ function foodRender() {
         <td style="padding:0.35rem 0.3rem;text-align:center;color:#bbb;font-size:1rem;cursor:grab;user-select:none;" title="拖拉調整同天內順序">⠿</td>
         <td>${sel('day',dayOpts)}</td>
         <td class="food-name">${inp('name',r.name,'店名')}</td>
-        <td class="food-hours">${inp('hours',r.hours,'13001500')}</td>
+        <td class="food-hours">${inp('hours',r.hours,'輸入8碼數字')}</td>
         <td>${sel('pay',payOpts)}</td>
         <td>${sel('booked',bkOpts)}</td>
         <td style="padding:0.35rem 0.4rem;">${inp('menu',r.menu,'https://')}</td>
@@ -396,7 +396,7 @@ function transRender() {
       const sel = (f, opts) => `<select onchange="transEdit(${i},'${f}',this.value)" style="width:100%;font-size:0.75rem;border:1px solid #ddd;border-radius:3px;padding:0.15rem;box-sizing:border-box;">${opts}</select>`;
       const inp = (f, v, ph) => `<input value="${(v||'').replace(/"/g,'&quot;')}" onchange="transEdit(${i},'${f}',this.value)" placeholder="${ph}" style="width:100%;font-size:0.78rem;border:1px solid #ddd;border-radius:3px;padding:0.2rem 0.3rem;box-sizing:border-box;">`;
       const num = (f, v) => `<input type="number" value="${v||''}" onchange="transEdit(${i},'${f}',this.value)" placeholder="0" style="width:100%;font-size:0.78rem;border:1px solid #ddd;border-radius:3px;padding:0.2rem 0.3rem;text-align:right;font-family:'DM Mono',monospace;box-sizing:border-box;">`;
-      const time = (f, v) => `<input value="${v||''}" onchange="transEdit(${i},'${f}',this.value)" placeholder="0900" style="width:100%;font-size:0.78rem;border:1px solid #ddd;border-radius:3px;padding:0.2rem 0.3rem;text-align:center;font-family:'DM Mono',monospace;box-sizing:border-box;">`;
+      const time = (f, v) => `<input value="${v||''}" onchange="transEdit(${i},'${f}',this.value)" placeholder="輸入4碼數字" style="width:100%;font-size:0.78rem;border:1px solid #ddd;border-radius:3px;padding:0.2rem 0.3rem;text-align:center;font-family:'DM Mono',monospace;box-sizing:border-box;">`;
       return `<tr data-idx="${i}" style="border-bottom:1px solid #f0e8dc;">
         <td style="padding:0.35rem 0.4rem;">${sel('day',dayOpts)}</td>
         <td style="padding:0.35rem 0.4rem;">${inp('dest',r.dest,'目的地')}</td>
@@ -906,7 +906,7 @@ function spotsRender() {
         <td style="padding:0.35rem 0.4rem;"><input value="${(r.name||'').replace(/"/g,'&quot;')}" onchange="spotsEdit(${i},'name',this.value)" onmousedown="foodFieldGuard(event)" placeholder="景點名稱" style="width:100%;font-size:0.78rem;border:1px solid #ddd;border-radius:3px;padding:0.2rem 0.3rem;box-sizing:border-box;"></td>
         <td style="padding:0.35rem 0.4rem;"><div style="display:flex;gap:0.3rem;align-items:center;"><input value="${(r.website||'').replace(/"/g,'&quot;')}" onchange="spotsEdit(${i},'website',this.value)" onmousedown="foodFieldGuard(event)" placeholder="https://" id="website-inp-${i}" style="flex:1;font-size:0.78rem;border:1px solid #ddd;border-radius:3px;padding:0.2rem 0.3rem;box-sizing:border-box;min-width:0;"><button onclick="spotsAutoFetchWebsite(${i},spotsRows[${i}].name)" title="Google 搜尋官網" style="flex-shrink:0;background:#4285f4;color:white;border:none;border-radius:3px;padding:0.15rem 0.3rem;cursor:pointer;font-size:0.65rem;line-height:1;white-space:nowrap;">🔍</button></div></td>
         <td style="padding:0.35rem 0.4rem;">${sel('prio',prioOpts)}</td>
-        <td style="padding:0.35rem 0.4rem;" class="spots-hours-td"><input value="${(r.hours||'').replace(/"/g,'&quot;')}" onchange="spotsEdit(${i},'hours',this.value)" onmousedown="foodFieldGuard(event)" placeholder="09:00-17:00" style="width:100%;font-size:0.7rem;border:1px solid #ddd;border-radius:3px;padding:0.2rem 0.25rem;box-sizing:border-box;"></td>
+        <td style="padding:0.35rem 0.4rem;" class="spots-hours-td"><input value="${(r.hours||'').replace(/"/g,'&quot;')}" onchange="spotsEdit(${i},'hours',this.value)" onmousedown="foodFieldGuard(event)" placeholder="輸入8碼數字" style="width:100%;font-size:0.7rem;border:1px solid #ddd;border-radius:3px;padding:0.2rem 0.25rem;box-sizing:border-box;"></td>
         <td style="padding:0.35rem 0.4rem;">${num('fee',r.fee)}</td>
         <td style="padding:0.35rem 0.4rem;">${inp('note',r.note,'備註')}</td>
         <td style="padding:0.35rem 0.4rem;">${inp('address',r.address,'貼上 Google Maps 連結或地址')}</td>
