@@ -187,9 +187,9 @@ function foodRender() {
       const dayOpts = e.days.map(d => `<option value="${d}" ${r.day===d?'selected':''}>${d}</option>`).join('');
       const payOpts = PAY_OPTIONS.map(p => `<option value="${p}" ${r.pay===p?'selected':''}>${p}</option>`).join('');
       const bkOpts  = ['不可訂位','可訂位','已訂位'].map(b => `<option value="${b}" ${r.booked===b?'selected':''}>${b}</option>`).join('');
-      const inp = (f, v, ph) => `<input value="${(v||'').replace(/"/g,'&quot;')}" onchange="foodEdit(${i},'${f}',this.value)" placeholder="${ph}" style="width:100%;font-size:0.78rem;border:1px solid #ddd;border-radius:3px;padding:0.2rem 0.3rem;box-sizing:border-box;">`;
-      const num = (f, v) => `<input type="number" value="${v||''}" onchange="foodEdit(${i},'${f}',this.value)" placeholder="0" style="width:100%;font-size:0.78rem;border:1px solid #ddd;border-radius:3px;padding:0.2rem 0.3rem;text-align:right;font-family:'DM Mono',monospace;box-sizing:border-box;">`;
-      const sel = (f, opts) => `<select onchange="foodEdit(${i},'${f}',this.value)" style="width:100%;font-size:0.75rem;border:1px solid #ddd;border-radius:3px;padding:0.15rem;box-sizing:border-box;">${opts}</select>`;
+      const inp = (f, v, ph) => `<input value="${(v||'').replace(/"/g,'&quot;')}" onchange="foodEdit(${i},'${f}',this.value)" onmousedown="foodFieldGuard(event)" placeholder="${ph}" style="width:100%;font-size:0.78rem;border:1px solid #ddd;border-radius:3px;padding:0.2rem 0.3rem;box-sizing:border-box;">`;
+      const num = (f, v) => `<input type="number" value="${v||''}" onchange="foodEdit(${i},'${f}',this.value)" onmousedown="foodFieldGuard(event)" placeholder="0" style="width:100%;font-size:0.78rem;border:1px solid #ddd;border-radius:3px;padding:0.2rem 0.3rem;text-align:right;font-family:'DM Mono',monospace;box-sizing:border-box;">`;
+      const sel = (f, opts) => `<select onchange="foodEdit(${i},'${f}',this.value)" onmousedown="foodFieldGuard(event)" style="width:100%;font-size:0.75rem;border:1px solid #ddd;border-radius:3px;padding:0.15rem;box-sizing:border-box;">${opts}</select>`;
       return `<tr class="${r.booked==='已訂位'?'booked-row':''}" data-idx="${i}" draggable="true" data-day="${r.day||'—'}"
           style="border-bottom:1px solid #f0e8dc;cursor:grab;"
           ondragstart="foodDragStart(event,${i})"
@@ -237,6 +237,15 @@ function foodRender() {
   foodCalcTotal();
 }
 
+// 點擊欄位內的 input/select 時，暫時關閉該列的 draggable，避免選字被誤判為拖曳
+function foodFieldGuard(e) {
+  const tr = e.currentTarget.closest('tr');
+  if (!tr) return;
+  tr.draggable = false;
+  const restore = () => { tr.draggable = true; document.removeEventListener('mouseup', restore); };
+  document.addEventListener('mouseup', restore);
+}
+
 // 美食拖拉排序
 function foodDragStart(e, idx) {
   _foodDragSrcIdx = idx; _foodDragSrcDay = foodRows[idx]?.day || null;
@@ -276,7 +285,7 @@ function foodEdit(idx, field, value) {
   if (field === 'hours') {
     value = formatTimeRange(value);
     const row = document.querySelector(`#food-tbody tr[data-idx="${idx}"]`);
-    if (row) { const hi = row.querySelector('td:nth-child(3) input'); if (hi && hi.value !== value) hi.value = value; }
+    if (row) { const hi = row.querySelector('td.food-hours input'); if (hi && hi.value !== value) hi.value = value; }
   }
   foodRows[idx][field] = value;
   const total = (parseInt(foodRows[idx].priceA)||0)+(parseInt(foodRows[idx].priceB)||0)+(parseInt(foodRows[idx].priceC)||0);
@@ -883,9 +892,9 @@ function spotsRender() {
     if (spotsEditMode) {
       const dayOpts  = e.days.map(d => `<option value="${d}" ${r.day===d?'selected':''}>${d}</option>`).join('');
       const prioOpts = SPOTS_PRIO_OPTIONS.map(p => `<option value="${p}" ${r.prio===p?'selected':''}>${p}</option>`).join('');
-      const sel = (f, opts) => `<select onchange="spotsEdit(${i},'${f}',this.value)" style="width:100%;font-size:0.75rem;border:1px solid #ddd;border-radius:3px;padding:0.15rem;box-sizing:border-box;">${opts}</select>`;
-      const inp = (f, v, ph) => `<input value="${(v||'').replace(/"/g,'&quot;')}" onchange="spotsEdit(${i},'${f}',this.value)" placeholder="${ph}" style="width:100%;font-size:0.78rem;border:1px solid #ddd;border-radius:3px;padding:0.2rem 0.3rem;box-sizing:border-box;">`;
-      const num = (f, v) => `<input type="number" value="${v||''}" onchange="spotsEdit(${i},'${f}',this.value)" placeholder="0" style="width:100%;font-size:0.78rem;border:1px solid #ddd;border-radius:3px;padding:0.2rem 0.3rem;text-align:right;font-family:'DM Mono',monospace;box-sizing:border-box;">`;
+      const sel = (f, opts) => `<select onchange="spotsEdit(${i},'${f}',this.value)" onmousedown="foodFieldGuard(event)" style="width:100%;font-size:0.75rem;border:1px solid #ddd;border-radius:3px;padding:0.15rem;box-sizing:border-box;">${opts}</select>`;
+      const inp = (f, v, ph) => `<input value="${(v||'').replace(/"/g,'&quot;')}" onchange="spotsEdit(${i},'${f}',this.value)" onmousedown="foodFieldGuard(event)" placeholder="${ph}" style="width:100%;font-size:0.78rem;border:1px solid #ddd;border-radius:3px;padding:0.2rem 0.3rem;box-sizing:border-box;">`;
+      const num = (f, v) => `<input type="number" value="${v||''}" onchange="spotsEdit(${i},'${f}',this.value)" onmousedown="foodFieldGuard(event)" placeholder="0" style="width:100%;font-size:0.78rem;border:1px solid #ddd;border-radius:3px;padding:0.2rem 0.3rem;text-align:right;font-family:'DM Mono',monospace;box-sizing:border-box;">`;
       return `<tr data-idx="${i}" draggable="true" data-day="${r.day||'—'}"
           style="${rowBg}border-bottom:1px solid #f0e8dc;cursor:grab;"
           ondragstart="spotsDragStart(event,${i})"
@@ -894,10 +903,10 @@ function spotsRender() {
           ondragend="spotsDragEnd(event)">
         <td style="padding:0.35rem 0.3rem;text-align:center;color:#bbb;font-size:1rem;cursor:grab;user-select:none;" title="拖拉調整同天內順序">⠿</td>
         <td style="padding:0.35rem 0.4rem;">${sel('day',dayOpts)}</td>
-        <td style="padding:0.35rem 0.4rem;"><input value="${(r.name||'').replace(/"/g,'&quot;')}" onchange="spotsEdit(${i},'name',this.value)" placeholder="景點名稱" style="width:100%;font-size:0.78rem;border:1px solid #ddd;border-radius:3px;padding:0.2rem 0.3rem;box-sizing:border-box;"></td>
-        <td style="padding:0.35rem 0.4rem;"><div style="display:flex;gap:0.3rem;align-items:center;"><input value="${(r.website||'').replace(/"/g,'&quot;')}" onchange="spotsEdit(${i},'website',this.value)" placeholder="https://" id="website-inp-${i}" style="flex:1;font-size:0.78rem;border:1px solid #ddd;border-radius:3px;padding:0.2rem 0.3rem;box-sizing:border-box;min-width:0;"><button onclick="spotsAutoFetchWebsite(${i},spotsRows[${i}].name)" title="Google 搜尋官網" style="flex-shrink:0;background:#4285f4;color:white;border:none;border-radius:3px;padding:0.15rem 0.3rem;cursor:pointer;font-size:0.65rem;line-height:1;white-space:nowrap;">🔍</button></div></td>
+        <td style="padding:0.35rem 0.4rem;"><input value="${(r.name||'').replace(/"/g,'&quot;')}" onchange="spotsEdit(${i},'name',this.value)" onmousedown="foodFieldGuard(event)" placeholder="景點名稱" style="width:100%;font-size:0.78rem;border:1px solid #ddd;border-radius:3px;padding:0.2rem 0.3rem;box-sizing:border-box;"></td>
+        <td style="padding:0.35rem 0.4rem;"><div style="display:flex;gap:0.3rem;align-items:center;"><input value="${(r.website||'').replace(/"/g,'&quot;')}" onchange="spotsEdit(${i},'website',this.value)" onmousedown="foodFieldGuard(event)" placeholder="https://" id="website-inp-${i}" style="flex:1;font-size:0.78rem;border:1px solid #ddd;border-radius:3px;padding:0.2rem 0.3rem;box-sizing:border-box;min-width:0;"><button onclick="spotsAutoFetchWebsite(${i},spotsRows[${i}].name)" title="Google 搜尋官網" style="flex-shrink:0;background:#4285f4;color:white;border:none;border-radius:3px;padding:0.15rem 0.3rem;cursor:pointer;font-size:0.65rem;line-height:1;white-space:nowrap;">🔍</button></div></td>
         <td style="padding:0.35rem 0.4rem;">${sel('prio',prioOpts)}</td>
-        <td style="padding:0.35rem 0.4rem;"><input value="${(r.hours||'').replace(/"/g,'&quot;')}" onchange="spotsEdit(${i},'hours',this.value)" placeholder="09001700" style="width:100%;font-size:0.7rem;border:1px solid #ddd;border-radius:3px;padding:0.2rem 0.25rem;box-sizing:border-box;"></td>
+        <td style="padding:0.35rem 0.4rem;" class="spots-hours-td"><input value="${(r.hours||'').replace(/"/g,'&quot;')}" onchange="spotsEdit(${i},'hours',this.value)" onmousedown="foodFieldGuard(event)" placeholder="09:00-17:00" style="width:100%;font-size:0.7rem;border:1px solid #ddd;border-radius:3px;padding:0.2rem 0.25rem;box-sizing:border-box;"></td>
         <td style="padding:0.35rem 0.4rem;">${num('fee',r.fee)}</td>
         <td style="padding:0.35rem 0.4rem;">${inp('note',r.note,'備註')}</td>
         <td style="padding:0.35rem 0.4rem;">${inp('address',r.address,'貼上 Google Maps 連結或地址')}</td>
@@ -969,7 +978,7 @@ function spotsEdit(idx, field, value) {
   if (field === 'hours') {
     value = formatTimeRange(value);
     const row = document.querySelector(`#spots-tbody tr[data-idx="${idx}"]`);
-    if (row) { const inp = row.querySelector('td:nth-child(6) input'); if (inp && inp.value !== value) inp.value = value; }
+    if (row) { const inp = row.querySelector('td.spots-hours-td input'); if (inp && inp.value !== value) inp.value = value; }
   }
   if (spotsRows[idx]._new) delete spotsRows[idx]._new;
   spotsRows[idx][field] = value;
@@ -981,7 +990,7 @@ function spotsAutoFetchWebsite(idx, name) {
 
 function spotsAddRow() {
   const e = EC();
-  spotsRows.push({ day: e.days[0]||'D1', name:'', prio:'⭐ 推薦', area: e.areas[0]||'—', hours:'', fee:'', note:'', address:'', website:'', _new:true });
+  spotsRows.push({ day: e.days[0]||'D1', name:'', prio:'□ 備選', area: e.areas[0]||'—', hours:'', fee:'', note:'', address:'', website:'', _new:true });
   spotsRender();
   document.getElementById('spots-tbody')?.lastElementChild?.scrollIntoView({ behavior:'smooth', block:'center' });
 }
