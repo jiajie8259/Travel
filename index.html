@@ -1020,6 +1020,14 @@ function calcNights(start, end) {
 
 /* ════════════════════════════════════════════════════════
    產生新旅程 HTML — 從最新行程頁抓範本，並把卡片資料寫入 Firestore
+   ════════════════════════════════════════════════════════
+   清空邏輯對應範本真實結構（2026-06 版 / firebase-editor.js 共用架構）：
+     - itinerary-main(空殼) + itinerary-static-data(隱藏種子) → 種子整段重建
+     - card-grid 小卡 → 整段重建為待補充骨架
+     - TRACKER_SPOTS → 清空
+     - TRIP_CONFIG.firebase.collection → 改成本旅程專屬 storageKey（避免跟舊行程共用 collection）
+     - header::before 背景字／<h1>／date-tag → 取代
+     - 沒有 <footer>、沒有 header::after，故不再對這兩者做 replace
    ════════════════════════════════════════════════════════ */
 const TEMPLATE_RELATIVE = './202610_Kobe.html';
 const TEMPLATE_URL = 'https://jiajie8259.github.io/202610_Kobe.html';
@@ -1048,7 +1056,33 @@ async function createTrip() {
     ? formatDate(start) + ' – ' + (end.slice(5).replace('-', '/'))
     : '待定';
   const tagsHtml = tags.map(t => '<span class="trip-tag">' + t + '</span>').join(' ');
-  const storageKey = 'trip_' + year + month + '_' + slug.slice(0, 10);
+  // storageKey 必須是「全新的、不會跟任何舊行程撞名」的字串，
+  // 確保 Firebase collection 不會與其他旅程共用、互相污染資料。
+  const storageKey = 'trip_' + year + month + '_' + slug.slice(0, 10) + '_' + Date.now().toString(36).slice(-4);
+
+  // ── 計算天數／星期、各天日期物件，後面清空各區塊都會用到 ──
+  const weekdaysZh = ['日','一','二','三','四','五','六'];
+  let dayEntries = []; // [{ key:'d1', num:1, date:Date, mo, dy, wday, label:'D1 · 10/22（四）' }]
+  if (start && end) {
+    const startD = new Date(start);
+    const endD   = new Date(end);
+    const totalDays = Math.max(1, Math.round((endD - startD) / 86400000) + 1);
+    for (let d = 0; d < totalDays; d++) {
+      const date = new Date(startD);
+      date.setDate(startD.getDate() + d);
+      const mo = date.getMonth() + 1;
+      const dy = date.getDate();
+      const wday = weekdaysZh[date.getDay()];
+      dayEntries.push({
+        key: 'd' + (d + 1),
+        num: d + 1,
+        date, mo, dy, wday,
+        label: 'D' + (d + 1) + ' · ' + mo + '/' + dy + '（' + wday + '）'
+      });
+    }
+  }
+  const totalDays = dayEntries.length || 1;
+  const nights = totalDays - 1;
 
   const btn = document.querySelector('.btn-create');
   const origText = btn.textContent;
@@ -1075,175 +1109,312 @@ async function createTrip() {
     return;
   }
 
-  // ── 步驟 2：替換範本欄位 ──
+  /* ──────────────────────────────────────────────
+     步驟 2：基本資訊替換（title / header / 背景字）
+     ────────────────────────────────────────────── */
   html = html.replace(/<title>[^<]*<\/title>/, '<title>' + dest + ' · 旅遊記錄</title>');
-  html = html.replace(/(<div class="date-tag">)[^<]*/, '$1' + flag + ' ' + country + ' · ' + dateDsp);
-  html = html.replace(/(<div class="date-tag">[^<]*<\/div>\s*<h1>)[^<]*/, '$1' + dest);
-  html = html.replace(/(<\/h1>\s*<p>)[^<]*(<\/p>)/, '$1' + (sub || '行程記錄') + '$2');
-  html = html.replace(/(header::before[\s\S]{0,100}content:\s*')[^']*'/, "$1" + dest.slice(0,2) + "'");
-  html = html.replace(/(header::after[\s\S]{0,200}background:\s*)[^;]+;/, '$1' + grad + '; opacity: 0.15;');
-  html = html.replace(/(storageKey:\s*')[^']*'/, "$1" + storageKey + "'");
-  html = html.replace(/(exportName:\s*')[^']*'/, "$1" + dest + "記帳'");
-  html = html.replace(/<footer>[^<]*<\/footer>/, '<footer>Travel / ' + fname + ' &nbsp;·&nbsp; ' + dest + ' &nbsp;·&nbsp; ' + year + '</footer>');
-  html = html.replace(/db\.collection\('[^']+'\)/g, "db.collection('" + storageKey + "')");
 
-  html = html.replace(/'kobe26_food_rows'/g,    "'" + storageKey + "_food_rows'");
-  html = html.replace(/'kobe26_trans_rows'/g,   "'" + storageKey + "_trans_rows'");
-  html = html.replace(/'kobe26_hotel_rows'/g,   "'" + storageKey + "_hotel_rows'");
-  html = html.replace(/'kobe26_spots_rows'/g,   "'" + storageKey + "_spots_rows'");
-  html = html.replace(/'kobe26_notes'/g,        "'" + storageKey + "_notes'");
-  html = html.replace(/'kobe26_tracker_used'/g, "'" + storageKey + "_tracker_used'");
-  html = html.replace(/'kobe26_tracker_logs'/g, "'" + storageKey + "_tracker_logs'");
-  html = html.replace(/'kobe26_free_logs'/g,    "'" + storageKey + "_free_logs'");
-  html = html.replace(/'kobe26_skip'/g,         "'" + storageKey + "_skip'");
-  html = html.replace(/'kobe26_flight'/g,       "'" + storageKey + "_flight'");
-
-  html = html.replace(/⚠ 讀取失敗（離線模式）/g, '📭 暫無資料');
-  html = html.replace(/⚠ 讀取失敗/g,             '📭 暫無資料');
-  html = html.replace(/△ 讀取失敗/g,             '📭 暫無資料');
-
-  (function() {
-    const startD2 = new Date(start);
-    const endD2   = new Date(end);
-    const nDays   = (start && end) ? Math.round((endD2 - startD2) / 86400000) + 1 : 5;
-    const weekdays = ['日','一','二','三','四','五','六'];
-
-    let blankCards = '';
-    for (let d = 0; d < nDays; d++) {
-      const date = new Date(startD2);
-      date.setDate(startD2.getDate() + d);
-      const mo   = date.getMonth() + 1;
-      const dy   = date.getDate();
-      const wday = weekdays[date.getDay()];
-      const dNum = d + 1;
-      const isLast = (d === nDays - 1);
-      blankCards += [
-        '    <!-- D' + dNum + ' -->',
-        '    <div class="mini-card">',
-        '      <div class="mini-card-header">',
-        '        <div class="day-big">D' + dNum + '</div>',
-        '        <div class="day-info">',
-        '          <div>' + mo + '/' + dy + ' (' + wday + ')&nbsp;&nbsp;' + (isLast ? '返程日' : '待補充') + '</div>',
-        '          <div style="opacity:0.6;font-size:0.65rem;">' + (isLast ? '返程' : '行程待確認') + '</div>',
-        '        </div>',
-        '      </div>',
-        '      <div class="mini-card-body">',
-        '        <div class="mini-card-period">早上</div>',
-        '        <div class="item"><div class="item-dot" style="background:#aaa"></div><div class="item-text">（待補充）</div></div>',
-        '        <div class="mini-card-period">下午</div>',
-        '        <div class="item"><div class="item-dot" style="background:#6b7c5e"></div><div class="item-text">景點待補充</div></div>',
-        '        <div class="mini-card-period">晚上</div>',
-        '        <div class="item"><div class="item-dot" style="background:#c0392b"></div><div class="item-text">餐飲待補充</div></div>',
-        '      </div>',
-        '    </div>',
-        ''
-      ].join('\n');
-    }
-
-    const countNote = '<p style="font-size:0.75rem;color:#aaa;margin-top:1.5rem;text-align:center;">共 ' + nDays + ' 張 · 列印後剪開，每天帶當天那張即可</p>';
-    html = html.replace(
-      /(<div class="card-grid">)[\s\S]*?(<\/div>)\s*(<p style[^>]*>.*?<\/p>)/,
-      '$1\n' + blankCards + '  $2\n  $3'
-    );
-    html = html.replace(
-      /<p style="font-size:0\.75rem[^"]*">[^<]*張[^<]*<\/p>/,
-      countNote
-    );
-  })();
-
+  // header::before 背景大字（content: '神戶'; 這種寫法）
   html = html.replace(
-    /const TRACKER_SPOTS = \{[\s\S]*?\};/,
-    'const TRACKER_SPOTS = {};'
-  );
-  var flightIds = ['f-out-num','f-out-dep','f-out-dep-ap','f-out-arr','f-out-arr-ap',
-                   'f-ret-num','f-ret-dep','f-ret-dep-ap','f-ret-arr','f-ret-arr-ap'];
-  flightIds.forEach(function(fid) {
-    var re = new RegExp('(<[a-z]+[^>]+id="' + fid + '"[^>]*>)[^<]*(<\/[a-z]+>)');
-    html = html.replace(re, '$1—$2');
-  });
-  html = html.replace(
-    /(<div id="f-out-info"[^>]*>)[\s\S]*?(<\/div>)/,
-    '$1待確認$2'
-  );
-  html = html.replace(
-    /(<div id="f-ret-info"[^>]*>)[\s\S]*?(<\/div>)/,
-    '$1待確認$2'
+    /(header::before\s*\{[\s\S]{0,200}?content:\s*')[^']*(')/,
+    '$1' + dest.slice(0, 2) + '$2'
   );
 
+  // <header> 內的 date-tag / h1 / p（用三個各自獨立、有明確邊界的 replace，避免互相干擾）
   html = html.replace(
-    /(<div id="pay-panel-itinerary"[\s\S]*?開始追蹤[\s\S]*?<\/button>\s*<\/div>)[\s\S]*?(<div id="pay-panel-advisor")/,
-    '$1\n\n    <div class="empty-notice" style="margin-top:1.5rem;">\n      📍 行程支付對照待補充<br>\n      <span style="font-size:0.75rem;opacity:0.7;">確認行程據點後，在 TRIP_CONFIG 的 TRACKER_SPOTS 填入各景點設定</span>\n    </div>\n\n  $2'
+    /(<header>\s*<div class="date-tag">)[^<]*(<\/div>)/,
+    '$1' + flag + ' ' + country + ' · ' + dateDsp + '$2'
+  );
+  html = html.replace(
+    /(<header>[\s\S]{0,200}?<\/div>\s*<h1>)[^<]*(<\/h1>)/,
+    '$1' + dest + '$2'
+  );
+  html = html.replace(
+    /(<header>[\s\S]{0,300}?<\/h1>\s*<p>)[^<]*(<\/p>)/,
+    '$1' + (sub || tags.slice(0, 2).join(' · ') || '行程記錄') + '$2'
   );
 
-  if (start && end) {
-    const startD = new Date(start);
-    const endD   = new Date(end);
-    const totalDays = Math.round((endD - startD) / 86400000) + 1;
-    const weekdays  = ['日','一','二','三','四','五','六'];
+  /* ──────────────────────────────────────────────
+     步驟 3：TRIP_CONFIG 各欄位 + Excel 匯出相關字串
+     ────────────────────────────────────────────── */
+  // TRIP_CONFIG.storageKey（注意：跟 firebase.collection 是不同欄位，兩者都要換）
+  html = html.replace(
+    /(storageKey:\s*')[^']*(')/,
+    '$1' + storageKey + '$2'
+  );
+  // TRIP_CONFIG.exportName（Excel 匯出時顯示用的行程名稱）
+  html = html.replace(
+    /(exportName:\s*')[^']*(')/,
+    '$1' + dest + '記帳' + '$2'
+  );
+  // TRIP_CONFIG.firebase.collection
+  html = html.replace(
+    /(firebase:\s*\{\s*collection:\s*')[^']*(')/,
+    '$1' + storageKey + '$2'
+  );
+  // TRIP_CONFIG.editorOptions.areas（地區下拉選項，預設清成通用「待確認」）
+  html = html.replace(
+    /(areas:\s*\[)[^\]]*(\])/,
+    '$1\'待確認\',\'—\'$2'
+  );
+  // Excel Workbook creator
+  html = html.replace(
+    /(wb\.creator\s*=\s*')[^']*(')/,
+    '$1' + dest + '旅遊行程' + '$2'
+  );
+  // Excel 下載檔名（寫死字串，未讀取 TRIP_CONFIG.exportName）
+  html = html.replace(
+    /(a\.download\s*=\s*`)[^$]*(\$\{dateStr\}\.xlsx`)/,
+    '$1' + dest + '記帳_$2'
+  );
 
-    const dayEntries = [];
-    for (let d = 0; d < totalDays; d++) {
-      const date = new Date(startD);
-      date.setDate(startD.getDate() + d);
-      const mo   = date.getMonth() + 1;
-      const dy   = date.getDate();
-      const wday = weekdays[date.getDay()];
-      dayEntries.push({
-        key:   'd' + (d + 1),
-        label: 'D' + (d + 1) + ' · ' + mo + '/' + dy + '（' + wday + '）'
-      });
-    }
-
-    let labelsStr = '';
-    dayEntries.forEach(function(e) { labelsStr += '    ' + e.key + ': ' + "'" + e.label + "'" + ',\n'; });
+  // dayLabels（物件，逐個 d1: '...' 形式）
+  if (dayEntries.length) {
+    let labelsStr = dayEntries.map(e => "    " + e.key + ": '" + e.label + "',").join('\n');
     html = html.replace(
       /dayLabels:\s*\{[\s\S]*?\},/,
-      'dayLabels: {\n' + labelsStr + '  },'
+      'dayLabels: {\n' + labelsStr + '\n  },'
     );
 
-    let orderStr = '';
-    dayEntries.forEach(function(e) { orderStr += "    '" + e.label + "',\n"; });
-    orderStr += "    '" + '其他' + "',\n";
+    // dayOrder（TRIP_CONFIG 裡那一份）
+    let orderStr = dayEntries.map(e => "    '" + e.label + "',").join('\n');
     html = html.replace(
       /dayOrder:\s*\[[\s\S]*?\],/,
-      'dayOrder: [\n' + orderStr + '  ],'
+      'dayOrder: [\n' + orderStr + "\n    '其他',\n  ],"
     );
 
-    const freeDaysArr = dayEntries.map(function(e) { return "'" + e.key + "'"; }).join(',');
+    // freeDays
+    const freeDaysArr = dayEntries.map(e => "'" + e.key + "'").join(',');
     html = html.replace(
       /freeDays:\s*\[[^\]]*\]/,
       'freeDays: [' + freeDaysArr + ']'
     );
   }
 
-  const itinNew = [
-    '<a href="index.html" style="display:inline-flex;align-items:center;gap:0.4rem;',
-    'font-family:\'DM Mono\',monospace;font-size:0.7rem;letter-spacing:0.1em;',
-    'color:var(--gold);text-decoration:none;margin-bottom:2rem;opacity:0.8;">← 返回旅遊首頁</a>',
-    '<div style="display:flex;flex-wrap:wrap;gap:0.4rem;margin-bottom:2rem;">' + tagsHtml + '</div>',
-    '<div class="day-block">',
-    '  <div class="day-header">',
-    '    <div class="day-label">D1</div>',
-    '    <div class="day-sub">' + (start ? formatDate(start) : '第一天') + ' · 出發</div>',
-    '  </div>',
-    '  <div class="period">',
-    '    <div class="period-title">早上・出發</div>',
-    '    <div class="event">',
-    '      <div class="event-type"><span class="tag tag-transport">交通</span></div>',
-    '      <div class="event-body">',
-    '        <div class="event-name">✈ 出發</div>',
-    '        <div class="event-note">從台灣出發，前往' + country + '。</div>',
-    '      </div>',
-    '    </div>',
-    '  </div>',
-    '</div>'
-  ].join('\n  ');
+  // renderPaySummary() 內部寫死的第二份 dayOrder（消費明細分組用）
+  // 結構固定為：const dayOrder = ['D1 · ...神戶','D2 · ...','其他'];
+  if (dayEntries.length) {
+    const secondOrderArr = dayEntries.map(e => "'" + e.label + "'").join(',') + ",'其他'";
+    html = html.replace(
+      /const dayOrder = \[[^\]]*\];/,
+      'const dayOrder = [' + secondOrderArr + '];'
+    );
+  }
+
+  // SPOT_DAY_MAP（spotId 前綴 → Day 標籤對應表，第三份天數資料）
+  if (dayEntries.length) {
+    let spotDayMapStr = dayEntries.map(e => "  " + e.key + ": '" + e.label + "',").join('\n');
+    html = html.replace(
+      /const SPOT_DAY_MAP = \{[\s\S]*?\};/,
+      'const SPOT_DAY_MAP = {\n' + spotDayMapStr + '\n};'
+    );
+  }
+
+  /* ──────────────────────────────────────────────
+     步驟 4：TRACKER_SPOTS 清空（消費追蹤景點對照表，新行程沒有資料）
+     ────────────────────────────────────────────── */
   html = html.replace(
-    /(<div id="itinerary"[^>]*>\s*<main>)[\s\S]*?(<\/main>\s*<\/div>)/,
-    '$1\n  ' + itinNew + '\n$2'
+    /const TRACKER_SPOTS = \{[\s\S]*?\n\};/,
+    'const TRACKER_SPOTS = {\n  // 待新增：確認行程據點後，於此填入景點對照設定\n};'
   );
 
-  // ── 步驟 3：下載新行程 HTML ──
+  /* ──────────────────────────────────────────────
+     步驟 5：航班資訊清空（顯示用欄位 + 編輯面板 placeholder）
+     ────────────────────────────────────────────── */
+  const flightSpanIds = ['f-out-num','f-out-dep','f-out-dep-ap','f-out-arr','f-out-arr-ap',
+                          'f-ret-num','f-ret-dep','f-ret-dep-ap','f-ret-arr','f-ret-arr-ap'];
+  flightSpanIds.forEach(fid => {
+    // 容錯：標籤可能是 <div> 或 <span>，結尾標籤須對應同一種
+    const re = new RegExp('(id="' + fid + '"[^>]*>)[^<]*(</(?:div|span)>)');
+    html = html.replace(re, '$1—$2');
+  });
+  html = html.replace(
+    /(id="f-out-info"[^>]*>)[\s\S]*?(<\/div>)/,
+    '$1待確認$2'
+  );
+  html = html.replace(
+    /(id="f-ret-info"[^>]*>)[\s\S]*?(<\/div>)/,
+    '$1待確認$2'
+  );
+  // 編輯面板 input 的 placeholder 範例值（避免使用者誤以為是已填資料）
+  const flightEditIds = ['ei-out-num','ei-out-dep','ei-out-dep-ap','ei-out-arr','ei-out-arr-ap',
+                          'ei-ret-num','ei-ret-dep','ei-ret-dep-ap','ei-ret-arr','ei-ret-arr-ap'];
+  flightEditIds.forEach(fid => {
+    const re = new RegExp('(id="' + fid + '"[^>]*placeholder=")[^"]*(")');
+    html = html.replace(re, '$1$2');
+  });
+
+  /* ──────────────────────────────────────────────
+     步驟 6：itinerary-static-data — 整段重建為 D1...Dn 空白骨架
+     （這是上一版「新行程帶有舊行程內容」問題的根源，必須完整重建）
+     ────────────────────────────────────────────── */
+  {
+    const blocksHtml = dayEntries.map((e, idx) => {
+      const isFirst = idx === 0;
+      const isLast  = idx === dayEntries.length - 1;
+      const subText = isFirst ? '出發日・抵達' + country
+                    : isLast  ? '返程日'
+                    : '待安排';
+      const transportRow = isFirst
+        ? '<div class="period"><div class="period-title">早上・出發</div>' +
+            '<div class="event"><div class="event-type"><span class="tag tag-transport">交通</span></div>' +
+            '<div class="event-body"><div class="event-name">✈ 出發</div>' +
+            '<div class="event-note">從台灣出發，前往' + country + '。</div></div></div></div>'
+        : isLast
+        ? '<div class="period"><div class="period-title">返程</div>' +
+            '<div class="event"><div class="event-type"><span class="tag tag-transport">交通</span></div>' +
+            '<div class="event-body"><div class="event-name">✈ 返程</div>' +
+            '<div class="event-note">搭機返回台灣。</div></div></div></div>'
+        : '<div class="period"><div class="period-title">全日</div>' +
+            '<div class="event"><div class="event-type"><span class="tag tag-spot">景點</span></div>' +
+            '<div class="event-body"><div class="event-name">待補充</div></div></div></div>';
+
+      return '    <div class="day-block" data-static>\n' +
+        '      <div class="day-header"><div class="day-label">D' + e.num + '</div>' +
+        '<div class="day-sub">' + e.mo + '/' + e.dy + ' (' + e.wday + ') ' + subText + '</div></div>\n' +
+        '      ' + transportRow + '\n' +
+        '    </div>';
+    }).join('\n');
+
+    html = html.replace(
+      /<div id="itinerary-static-data"[^>]*>[\s\S]*?<\/div>\s*<\/main>/,
+      '<div id="itinerary-static-data" style="display:none;">\n' + blocksHtml + '\n  </div>\n\n</main>'
+    );
+  }
+
+  /* ──────────────────────────────────────────────
+     步驟 7：card-grid 隨身小卡 — 整段重建為 D1...Dn 空白骨架
+     ────────────────────────────────────────────── */
+  {
+    const miniCards = dayEntries.map((e, idx) => {
+      const isFirst = idx === 0;
+      const isLast  = idx === dayEntries.length - 1;
+      const subInfo = isFirst ? '出發・抵達' + country : isLast ? '返程日' : '待補充';
+      const bodyHtml = isFirst
+        ? '        <div class="mini-card-period">早上</div>\n' +
+          '        <div class="item"><div class="item-dot" style="background:#aaa"></div><div class="item-text">✈ 出發（待補充航班資訊）</div></div>\n' +
+          '        <div class="mini-card-period">下午・晚上</div>\n' +
+          '        <div class="item"><div class="item-dot" style="background:#6b7c5e"></div><div class="item-text">景點待補充</div></div>\n' +
+          '        <div class="item"><div class="item-dot" style="background:#c0392b"></div><div class="item-text">🍽 晚餐（待安排）</div></div>'
+        : isLast
+        ? '        <div class="mini-card-period">早上</div>\n' +
+          '        <div class="item"><div class="item-dot" style="background:#6b7c5e"></div><div class="item-text">返程前行程（待補充）</div></div>\n' +
+          '        <div class="mini-card-period">返程</div>\n' +
+          '        <div class="item"><div class="item-dot" style="background:#aaa"></div><div class="item-text">✈ 返程（待補充航班資訊）</div></div>'
+        : '        <div class="mini-card-period">全日</div>\n' +
+          '        <div class="item"><div class="item-dot" style="background:#6b7c5e"></div><div class="item-text">景點待補充</div></div>\n' +
+          '        <div class="item"><div class="item-dot" style="background:#c0392b"></div><div class="item-text">🍽 餐飲待補充</div></div>';
+
+      return '    <!-- ── D' + e.num + ' ── -->\n' +
+        '    <div class="mini-card">\n' +
+        '      <div class="mini-card-header">\n' +
+        '        <div class="day-big">D' + e.num + '</div>\n' +
+        '        <div class="day-info">\n' +
+        '          <div>' + e.mo + '/' + e.dy + ' (' + e.wday + ')　' + subInfo + '</div>\n' +
+        '          <div style="opacity:0.6;font-size:0.65rem;">待補充</div>\n' +
+        '        </div>\n' +
+        '      </div>\n' +
+        '      <div class="mini-card-body">\n' + bodyHtml + '\n' +
+        '      </div>\n' +
+        '    </div>';
+    }).join('\n\n');
+
+    html = html.replace(
+      /(<div class="card-grid">)[\s\S]*?(<\/div>\s*<p style="font-size:0\.75rem[^"]*">)[^<]*(<\/p>)/,
+      '$1\n\n' + miniCards + '\n\n  $2共 ' + totalDays + ' 張 · 列印後剪開，每天帶當天那張即可$3'
+    );
+  }
+
+  /* ──────────────────────────────────────────────
+     步驟 7b：支付優惠 tab 的「行程支付對照」子面板（pay-panel-itinerary）
+     此區塊含逐日 itin-day 區塊，原本帶有完整的神戶大阪日期/航班/地名，
+     必須整段依新行程天數重建為「待補充」骨架。
+     ────────────────────────────────────────────── */
+  {
+    // 頂部行程徽章（含日期＋行程名）
+    html = html.replace(
+      /(<div class="pay-trip-badge">\s*)✈[^<]*(<span class="q-badge")/,
+      '$1✈ ' + (start ? start.replace(/-/g,'/') : '') + (end ? '–' + end.slice(5).replace('-','/') : '') + ' ' + dest + '\n    $2'
+    );
+    // 副標說明文字（Kobe · Osaka Itinerary · 日期 · 逐據點支付建議）
+    html = html.replace(
+      /Kobe · Osaka Itinerary · [^<]*逐據點支付建議/,
+      dest + ' Itinerary · ' + (start ? start.replace(/-/g,'/') : '') + (end ? '–' + end.slice(5).replace('-','/') : '') + ' · 逐據點支付建議'
+    );
+    // HTML 註解文字（不影響功能，但避免殘留地名造成混淆）
+    html = html.replace(
+      /<!-- ── Sub panel 0: [^-]*行程支付對照 ── -->/,
+      '<!-- ── Sub panel 0: ' + dest + '行程支付對照 ── -->'
+    );
+    // 現金警示文字（地名特定句子換成通用提醒）
+    html = html.replace(
+      /⚠️ <strong style="color:var\(--red\);">[^<]*<\/strong>\s*建議出發前備好[^<]*現金。<br>/,
+      '⚠️ <strong style="color:var(--red);">部分商店街小攤可能只收現金！</strong>\n      建議出發前備好當地現金以備不時之需。<br>'
+    );
+
+    // 整段重建 itin-day 區塊（依新行程天數動態產生，每天皆為「待補充」骨架）
+    const itinDaysHtml = dayEntries.map((e, idx) => {
+      const isFirst = idx === 0;
+      const isLast  = idx === dayEntries.length - 1;
+      const subTitle = isFirst ? (e.mo + '/' + e.dy + '（' + e.wday + '）抵達' + country)
+                     : isLast  ? (e.mo + '/' + e.dy + '（' + e.wday + '）返程日')
+                     : (e.mo + '/' + e.dy + '（' + e.wday + '）待確認');
+      const subInfo  = isFirst ? '✈ 出發 → 抵達當地'
+                     : isLast  ? '✈ 當地 → 返程台灣'
+                     : '待補充';
+      const spotRow  = (isFirst || isLast)
+        ? '      <div class="period-lbl">交通</div>\n' +
+          '      <div class="spot-row">\n' +
+          '        <div class="spot-ico">' + (isFirst ? '🚃' : '✈️') + '</div>\n' +
+          '        <div class="spot-body">\n' +
+          '          <div class="spot-name">' + (isFirst ? '機場 → 市區交通（待確認）' : '市區 → 機場交通（待確認）') + '</div>\n' +
+          '          <div class="spot-note">待確認交通方式及支付建議</div>\n' +
+          '        </div>\n' +
+          '        <div class="pay-col"><span class="pb pb-cash">💴 待確認</span></div>\n' +
+          '      </div>\n'
+        : '';
+      return '    <div class="itin-day">\n' +
+        '      <div class="itin-day-head">\n' +
+        '        <div class="itin-day-num">D' + e.num + '</div>\n' +
+        '        <div class="itin-day-meta">\n' +
+        '          <div class="itin-day-title">' + subTitle + '</div>\n' +
+        '          <div class="itin-day-sub">' + subInfo + '</div>\n' +
+        '        </div>\n' +
+        '      </div>\n' +
+        spotRow +
+        '      <!-- D' + e.num + ' 自由記帳 -->\n' +
+        '      <div class="free-log-strip" id="free-strip-' + e.key + '" data-day="' + e.key + '">\n' +
+        '        <div class="free-log-strip-header">\n' +
+        '          <span class="free-log-strip-label">D' + e.num + ' · 其他消費</span>\n' +
+        '          <button class="free-add-btn" id="free-btn-' + e.key + '" onclick="freeModalOpen(\'' + e.key + '\')">＋ 新增消費</button>\n' +
+        '        </div>\n' +
+        '        <div class="free-log-list" id="free-logs-' + e.key + '"></div>\n' +
+        '      </div>\n' +
+        '    </div>';
+    }).join('\n\n');
+
+    html = html.replace(
+      /<div class="itin-day">[\s\S]*?<\/div>\s*(?=<!-- 行程支付彙總表 -->)/,
+      itinDaysHtml + '\n\n    '
+    );
+  }
+
+  /* ──────────────────────────────────────────────
+     步驟 8：localStorage key 改名，避免新行程讀到舊行程的離線備份
+     ────────────────────────────────────────────── */
+  ['kobe26_food_rows','kobe26_trans_rows','kobe26_hotel_rows','kobe26_spots_rows',
+   'kobe26_notes','kobe26_tracker_used','kobe26_tracker_logs','kobe26_free_logs',
+   'kobe26_skip','kobe26_flight'].forEach(oldKey => {
+    const suffix = oldKey.replace('kobe26_', '');
+    html = html.replace(new RegExp("'" + oldKey + "'", 'g'), "'" + storageKey + '_' + suffix + "'");
+  });
+
+  // 「讀取失敗」字樣改成「暫無資料」（空集合是新行程的正常狀態，不是錯誤）
+  html = html.replace(/⚠ 讀取失敗（離線模式）/g, '📭 暫無資料');
+  html = html.replace(/⚠ 讀取失敗/g,             '📭 暫無資料');
+  html = html.replace(/△ 讀取失敗/g,             '📭 暫無資料');
+
+  // ── 步驟 9：下載新行程 HTML ──
   const tripBlob = new Blob([html], { type: 'text/html;charset=utf-8' });
   const tripUrl  = URL.createObjectURL(tripBlob);
   const tripA    = Object.assign(document.createElement('a'), { href: tripUrl, download: fname });
@@ -1252,7 +1423,7 @@ async function createTrip() {
   document.body.removeChild(tripA);
   URL.revokeObjectURL(tripUrl);
 
-  // ── 步驟 4：把新卡片資料寫入 Firestore（取代過去插入 DOM + 下載 index.html 的做法）──
+  // ── 步驟 10：把新卡片資料寫入 Firestore（首頁卡片清單即時生效）──
   const newCard = {
     id: 't_' + year + month + '_' + slug.slice(0, 16) + '_' + Date.now().toString(36),
     year, href: fname, flag, start, end,
@@ -1267,8 +1438,9 @@ async function createTrip() {
   cardsRender();
   await cardsPushToFirebase();
 
-  alert('✅ 已產生 ' + fname + '！\n\n📄 行程 HTML 已下載，請放入 Travel/ 資料夾。\n📌 首頁卡片已自動同步到資料庫，重新整理頁面即可看到（無需再下載 index.html）。');
+  alert('✅ 已產生 ' + fname + '！\n\n📄 行程 HTML 已下載，請放入 Travel/ 資料夾。\n📌 首頁卡片已自動同步到資料庫，重新整理頁面即可看到（無需再下載 index.html）。\n\n本次已重建行程總覽／隨身小卡為空白骨架，並使用全新的 Firebase collection，不會帶有上一趟旅程的資料。');
 }
+
 
 /* ── 網路失敗時的備用說明 ── */
 function showFallbackGuide(fname, dest, sub, country, flag, dateDsp, grad, tagsHtml) {
