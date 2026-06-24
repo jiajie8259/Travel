@@ -430,8 +430,7 @@ var db = firebase.firestore();
     <span>編輯模式 — 點 ✎ 修改卡片內容，點 ✕ 可刪除</span>
   </div>
   <div class="edit-bar-actions">
-    <button class="edit-bar-btn" onclick="toggleEditMode()">✕ 離開編輯</button>
-    <button class="edit-bar-btn save-btn" onclick="saveIndex()">⬇ 儲存 index.html</button>
+    <button class="edit-bar-btn save-btn" onclick="toggleEditMode()">✓ 完成編輯</button>
   </div>
 </div>
 
@@ -956,12 +955,9 @@ async function saveCardEdit() {
   await cardsPushToFirebase();
 }
 
-/* 編輯列上的「儲存」按鈕：目前所有變更都即時寫入 Firestore，
-   這顆按鈕保留作為「再次強制同步＋離開編輯模式」使用 */
-async function saveIndex() {
-  await cardsPushToFirebase();
-  toggleEditMode();
-}
+/* 注意：所有卡片變更（刪除／編輯）都已在發生當下即時寫入 Firestore
+   （deleteCard / deleteYearGroup / saveCardEdit 內都有 await cardsPushToFirebase()），
+   因此「完成編輯」只需要切換離開編輯模式，不需要額外的儲存動作。 */
 
 /* ── 新增旅程 Modal ── */
 let pendingYear = null; // 從哪個年份區塊的「＋」按鈕開啟的，用來預填年份
