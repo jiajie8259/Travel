@@ -24,6 +24,18 @@
  */
 
 /* ══════════════════════════════════════════════════════════════
+   OCR Proxy 設定
+   ──────────────────────────────────────────────────────────────
+   小筆記「上傳圖片由 AI 辨識」功能，改由 Cloudflare Worker 代理呼叫
+   Gemini API，Gemini API key 存在 Worker 的環境變數裡，不會出現在
+   這份前端程式碼或瀏覽器原始碼中。
+
+   請把下面這個網址換成你自己部署的 Cloudflare Worker 網址
+   （部署步驟見 worker.js 檔案開頭的說明註解）。
+   ══════════════════════════════════════════════════════════════ */
+const OCR_PROXY_URL = 'https://travel-notes-ocr.jiajie8259.workers.dev';
+
+/* ══════════════════════════════════════════════════════════════
    0. Firebase 初始化（共用，只初始化一次）
    ══════════════════════════════════════════════════════════════ */
 // firebase-editor.js 不自行初始化 Firebase
@@ -763,14 +775,24 @@ async function notesHandleImage(file) {
     if (zone) zone.style.display = 'none';
     if (status) { status.style.display = 'block'; status.textContent = '🤖 AI 辨識中…'; status.style.color = '#b8860b'; }
     let b64 = b64full.split(',')[1];
-    try { b64 = await notesCompressImage(b64full, file.type); } catch(_) {}
+    let mimeType = file.type;
     try {
-      const res = await fetch('https://vision.googleapis.com/v1/images:annotate?key=AIzaSyCLPHCRr1uwioawNl0UXYrFNa_ftMdI3PU', {
-        method:'POST', headers:{'Content-Type':'application/json'},
-        body: JSON.stringify({ requests: [{ image:{content:b64}, features:[{type:'DOCUMENT_TEXT_DETECTION',maxResults:1}], imageContext:{languageHints:['zh-Hant','ja','en']} }] })
+      const compressed = await notesCompressImage(b64full, file.type);
+      b64 = compressed;
+      // notesCompressImage 統一輸出 jpeg（png 例外，見函式內判斷）
+      mimeType = (file.type === 'image/png') ? 'image/png' : 'image/jpeg';
+    } catch(_) {}
+    try {
+      const res = await fetch(OCR_PROXY_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ image: b64, mimeType })
       });
       const data = await res.json();
-      const text = data.responses?.[0]?.fullTextAnnotation?.text?.trim() || data.responses?.[0]?.textAnnotations?.[0]?.description?.trim() || '';
+      if (!res.ok) {
+        throw new Error(data?.error || ('HTTP ' + res.status));
+      }
+      const text = (data?.text || '').trim();
       if (text && ta) {
         const ex = ta.value.trim();
         ta.value = (ex ? ex + '\n\n' : '') + text;
@@ -781,7 +803,8 @@ async function notesHandleImage(file) {
         if (status) { status.textContent = '⚠ 未偵測到文字'; status.style.color = '#c0392b'; }
       }
     } catch(err) {
-      if (status) { status.textContent = `⚠ 辨識失敗`; status.style.color = '#c0392b'; }
+      if (status) { status.textContent = '⚠ 辨識失敗'; status.style.color = '#c0392b'; }
+      console.error('[notesHandleImage] OCR proxy error:', err);
     }
   };
   reader.readAsDataURL(file);
