@@ -2186,7 +2186,7 @@
 
     <div class="pay-section-label" style="margin-bottom:0.5rem;">優先使用順序口訣</div>
     <div class="pay-tip-box">
-      <strong>📌 2026 Q4 日本消費策略（請出發前確認各卡優惠是否延續）</strong><br><br>
+      <strong>📌 2026 Q3/Q4 日本消費策略（優惠已更新至下半年）</strong><br><br>
       1️⃣ <strong>指定通路（藥妝/電器/Suica加值 8.5%）→ 玉山熊本熊</strong>（每期NT$8,333封頂，超出換下一張）<br>
       2️⃣ <strong>日本實體消費（無上限保底）→ 國泰CUBE卡【趣旅行】</strong>（3%無上限，切換即可）<br>
       3️⃣ <strong>Suica加值 → 玉山熊本熊 Apple Pay</strong>（8.5%但有上限，超出再用台新Richart）<br>
@@ -2432,7 +2432,7 @@ async function payGetAdvice() {
   loading.style.display = 'block';
   result.innerHTML = '';
 
-  const msgs = ['比對指定通路清單...', '計算2026 Q2回饋額度...', '確認各卡封頂限制...', '排序最佳支付方案...'];
+  const msgs = ['比對指定通路清單...', '計算2026 Q3/Q4回饋額度...', '確認各卡封頂限制...', '排序最佳支付方案...'];
   let i = 0;
   const interval = setInterval(() => { if (i < msgs.length) status.textContent = msgs[i++]; }, 400);
   await new Promise(r => setTimeout(r, 1700));
@@ -2446,7 +2446,7 @@ async function payGetAdvice() {
 
   result.innerHTML = `
     <div class="pay-ai-box">
-      <div class="pay-ai-title">✦ 2026 Q2 最佳建議 — ${venueName}</div>
+      <div class="pay-ai-title">✦ 2026 Q3/Q4 最佳建議 — ${venueName}</div>
       <div class="pay-ai-best">最佳選擇：${d.best} <span style="font-family:'DM Mono',monospace;color:#f0c040;font-size:0.9rem;">${d.rate}</span></div>
       <div class="pay-ai-reason">${d.reason}<br><br>${d.tips}</div>
     </div>
