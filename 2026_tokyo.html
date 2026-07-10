@@ -2929,6 +2929,24 @@
 </div>
 </div>
 
+<!-- ── Firebase 初始化（消費追蹤器雲端同步用，與其他行程頁共用同一個 Firebase 專案） ── -->
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
+<script>
+const firebaseConfig = {
+  apiKey:            "AIzaSyA_KFwm7pE8YqSP64OKsFFEU3lKMuF-wjI",
+  authDomain:        "travel-c9ab0.firebaseapp.com",
+  projectId:         "travel-c9ab0",
+  storageBucket:     "travel-c9ab0.firebasestorage.app",
+  messagingSenderId: "179782530206",
+  appId:             "1:179782530206:web:93d42650009b01ad56778f",
+  measurementId:     "G-30P0GGS1YE"
+};
+if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
+var db = firebase.firestore();
+const TRACKER_FIRESTORE_COLLECTION = 'trip_2026_TOKYO_05b3';
+</script>
+
 <script>
 // ── Payment Advisor Data ──────────────────────────────
 const PAY_VENUES = {
@@ -3279,9 +3297,43 @@ function updateRateDisplay(source) {
   }
 }
 
-function trackerSaveState() {
+// ── 雲端同步（Firestore）：讓消費追蹤器在手機／電腦間共用同一份資料 ──
+// 本機 localStorage 仍保留當離線備援；Firestore 為主要儲存位置。
+function trackerSaveLocalOnly() {
   try { localStorage.setItem('tokyo26_tracker_used', JSON.stringify(trackerUsed)); } catch(e){}
   try { localStorage.setItem('tokyo26_tracker_logs', JSON.stringify(trackerLogs)); } catch(e){}
+  try { localStorage.setItem('tokyo26_free_logs', JSON.stringify(freeLogs)); } catch(e){}
+  try { localStorage.setItem('tokyo26_skip', JSON.stringify(skipState)); } catch(e){}
+}
+async function trackerPushToFirestore() {
+  if (!window.db) return;
+  try {
+    await window.db.collection(TRACKER_FIRESTORE_COLLECTION).doc('data').set({
+      trackerUsed, trackerLogs, freeLogs, skipState,
+      updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+    });
+  } catch(e) { console.warn('[tracker] 雲端同步失敗，已保留在本機：', e); }
+}
+async function trackerPullFromFirestore() {
+  if (!window.db) return false;
+  try {
+    const snap = await window.db.collection(TRACKER_FIRESTORE_COLLECTION).doc('data').get();
+    if (snap.exists) {
+      const d = snap.data() || {};
+      trackerUsed = d.trackerUsed || {};
+      trackerLogs = d.trackerLogs || {};
+      freeLogs    = d.freeLogs    || {};
+      skipState   = d.skipState   || {};
+      trackerSaveLocalOnly();
+      return true;
+    }
+  } catch(e) { console.warn('[tracker] 無法從雲端讀取，改用本機資料：', e); }
+  return false;
+}
+
+function trackerSaveState() {
+  trackerSaveLocalOnly();
+  trackerPushToFirestore();
 }
 function trackerLoadState() {
   try { const u = localStorage.getItem('tokyo26_tracker_used'); if(u) trackerUsed = JSON.parse(u); } catch(e){}
@@ -3788,7 +3840,8 @@ function exportXLSX() {
 let skipState = {}; // { spotRowId: true/false }
 
 function skipSave() {
-  try { localStorage.setItem('tokyo26_skip', JSON.stringify(skipState)); } catch(e) {}
+  trackerSaveLocalOnly();
+  trackerPushToFirestore();
 }
 function skipLoad() {
   try {
@@ -4062,7 +4115,8 @@ let freePendingDay = null;
 let freeSelectedPay = 'eco';
 
 function freeLogsSave() {
-  try { localStorage.setItem('tokyo26_free_logs', JSON.stringify(freeLogs)); } catch(e) {}
+  trackerSaveLocalOnly();
+  trackerPushToFirestore();
 }
 function freeLogsLoad() {
   try {
@@ -4237,24 +4291,35 @@ document.addEventListener('keydown', function(e) {
 });
 
 // Auto-restore tracker state on load
-window.addEventListener('load', () => {
+window.addEventListener('load', async () => {
   fetchBOTRate();
-  freeLogsLoad();
-  skipLoad();
-  const hasFreeEntries = Object.values(freeLogs).some(arr => arr.length > 0);
-  try {
-    const saved = localStorage.getItem('tokyo26_tracker_used');
-    if (saved) {
-      const parsed = JSON.parse(saved);
-      if (Object.values(parsed).some(v => v > 0) || hasFreeEntries) {
-        trackerActivate();
-        return;
-      }
-    } else if (hasFreeEntries) {
-      trackerActivate();
-      return;
+  // 優先從雲端（Firestore）拉取資料，讓手機／電腦看到同一份記帳紀錄；
+  // 若離線或雲端讀取失敗，才退回本機 localStorage。
+  const pulled = await trackerPullFromFirestore();
+  let migratedFromLocal = false;
+  if (!pulled) {
+    freeLogsLoad();
+    skipLoad();
+    trackerLoadState();
+    // 雲端還沒有資料，但本機有舊紀錄 → 視為第一次遷移，自動推一次上雲端
+    const hadLocalData =
+      Object.values(trackerUsed).some(v => v > 0) ||
+      Object.values(freeLogs).some(arr => arr.length > 0) ||
+      Object.keys(skipState).length > 0;
+    if (hadLocalData) {
+      trackerPushToFirestore();
+      migratedFromLocal = true;
     }
-  } catch(e) {}
+  }
+  if (migratedFromLocal) {
+    console.log('[tracker] 已將本機舊紀錄自動同步至雲端');
+  }
+  const hasFreeEntries = Object.values(freeLogs).some(arr => arr.length > 0);
+  const hasUsedEntries = Object.values(trackerUsed).some(v => v > 0);
+  if (hasUsedEntries || hasFreeEntries) {
+    trackerActivate();
+    return;
+  }
   document.querySelectorAll('.add-btn').forEach(b => {
     if (!trackerActive) b.style.display = 'none';
   });
