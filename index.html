@@ -31,9 +31,15 @@
     position: relative;
     background: var(--ink);
     color: var(--paper);
-    padding: 2rem 2rem 1.75rem;   /* 原本 5rem 4rem，縮短約 55% */
-    overflow: hidden;
+    padding: 2rem 2rem 3.5rem;
     text-align: center;
+  }
+  /* 背景大字的溢出裁切（用獨立 wrapper 控制，不影響 readme-box 定位）*/
+  .hero-bg-wrapper {
+    position: absolute;
+    inset: 0;
+    overflow: hidden;
+    pointer-events: none;
   }
   .hero-bg-text {
     position: absolute;
@@ -89,44 +95,57 @@
   }
 
   /* ── MAIN ── */
-  main { max-width: 1000px; margin: 0 auto; padding: 2rem 1.5rem 5rem; }
+  main { max-width: 1400px; margin: 0 auto; padding: 2rem 1.5rem 5rem; }
 
-  /* ── README BOX（可收合）── */
+  /* ── README BOX（hero 右下角）── */
   .readme-box {
-    background: var(--ink); color: var(--paper);
-    border-radius: 8px; margin-bottom: 2.5rem;
-    font-family: 'DM Mono', monospace; font-size: 0.8rem; line-height: 1.8;
+    position: absolute;
+    top: 1.25rem;
+    right: 1.5rem;
+    width: 360px;
+    background: rgba(14,12,9,0.75);
+    backdrop-filter: blur(6px);
+    border: 1px solid rgba(181,146,42,0.35);
+    color: var(--paper);
+    border-radius: 8px;
+    font-family: 'DM Mono', monospace;
+    font-size: 0.75rem;
+    line-height: 1.8;
     overflow: hidden;
+    z-index: 10;
   }
   .readme-toggle {
     display: flex; align-items: center; justify-content: space-between;
-    padding: 0.9rem 1.5rem;
+    padding: 0.6rem 1rem;
     cursor: pointer;
     user-select: none;
     transition: background 0.15s;
   }
   .readme-toggle:hover { background: rgba(255,255,255,0.05); }
   .readme-toggle-left {
-    display: flex; align-items: center; gap: 0.6rem;
+    display: flex; align-items: center; gap: 0.5rem;
   }
   .readme-toggle-title {
-    font-size: 0.68rem; letter-spacing: 0.2em; text-transform: uppercase;
+    font-size: 0.62rem; letter-spacing: 0.18em; text-transform: uppercase;
     color: var(--gold-light);
   }
   .readme-toggle-count {
-    font-size: 0.58rem; color: #555;
+    font-size: 0.55rem; color: #777;
     background: rgba(255,255,255,0.07);
-    padding: 0.1em 0.55em; border-radius: 20px;
+    padding: 0.1em 0.5em; border-radius: 20px;
   }
   .readme-chevron {
-    font-size: 0.65rem; color: #555;
+    font-size: 0.6rem; color: #666;
     transition: transform 0.25s ease;
   }
   .readme-box.open .readme-chevron { transform: rotate(180deg); }
   .readme-content {
     display: none;
-    padding: 0 1.5rem 1.2rem;
+    padding: 0 1rem 1rem;
     border-top: 1px solid rgba(255,255,255,0.07);
+    font-size: 0.72rem;
+    text-align: left;
+    white-space: nowrap;
   }
   .readme-box.open .readme-content { display: block; }
   .readme-box .dir     { color: var(--gold-light); }
@@ -146,7 +165,7 @@
   /* ── TRIP GRID ── */
   .trip-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    grid-template-columns: repeat(4, 1fr);
     gap: 1.25rem;
   }
 
@@ -183,19 +202,26 @@
   .trip-arrow { font-size: 1rem; color: var(--gold); transition: transform 0.2s; }
   .trip-card:hover .trip-arrow { transform: translateX(4px); }
 
-  /* ── ADD CARD ── */
-  .trip-card.add-card {
-    border-style: dashed; border-color: #ccc;
-    display: flex; align-items: center; justify-content: center;
-    min-height: 160px; color: var(--muted); font-size: 0.85rem;
-    letter-spacing: 0.05em; cursor: pointer;
+  /* ── ADD TRIP BUTTON（年份標題列右側）── */
+  .add-trip-btn {
+    flex-shrink: 0;
+    font-family: 'DM Mono', monospace;
+    font-size: 0.68rem;
+    letter-spacing: 0.1em;
+    padding: 0.35em 0.9em;
+    border: 1.5px solid var(--gold);
+    border-radius: 20px;
+    background: transparent;
+    color: var(--gold);
+    cursor: pointer;
+    transition: background 0.18s, color 0.18s;
+    white-space: nowrap;
   }
-  .trip-card.add-card:hover {
-    transform: none; box-shadow: none;
-    border-color: var(--gold); color: var(--gold);
+  .add-trip-btn:hover {
+    background: var(--gold);
+    color: white;
   }
-  .add-inner { text-align: center; }
-  .add-plus  { font-size: 2rem; line-height: 1; margin-bottom: 0.5rem; display: block; }
+  body.edit-mode .add-trip-btn { display: none; }
 
   /* ── UPCOMING BADGE ── */
   .badge-upcoming {
@@ -288,12 +314,12 @@
   body.edit-mode .card-edit-btn { display: block; }
 
   /* 編輯模式下的卡片樣式 */
-  body.edit-mode .trip-card:not(.add-card) {
+  body.edit-mode .trip-card {
     position: relative;
     outline: 2px dashed rgba(184,134,11,0.4);
     outline-offset: 2px;
   }
-  body.edit-mode .trip-card:not(.add-card):hover {
+  body.edit-mode .trip-card:hover {
     outline-color: var(--red);
   }
   body.edit-mode .card-delete-btn { display: block; }
@@ -396,10 +422,14 @@
   .swatch.selected { border-color: var(--ink); }
 
   /* ── RWD ── */
+  @media (max-width: 900px) {
+    .trip-grid { grid-template-columns: repeat(2, 1fr); }
+  }
   @media (max-width: 600px) {
     .hero { padding: 1.5rem 1.25rem 1.25rem; }
     .hero-stats { gap: 1.5rem; }
     main { padding: 1.5rem 1rem 4rem; }
+    .trip-grid { grid-template-columns: 1fr; }
   }
 </style>
 
@@ -436,7 +466,9 @@ var db = firebase.firestore();
 
 <!-- ── HERO（縮短版）── -->
 <div class="hero">
-  <div class="hero-bg-text">TRAVEL</div>
+  <div class="hero-bg-wrapper">
+    <div class="hero-bg-text">TRAVEL</div>
+  </div>
   <div class="hero-eyebrow">Personal Travel Archive</div>
   <h1>旅遊記錄</h1>
   <p class="hero-sub">Every journey, remembered.</p>
@@ -454,12 +486,8 @@ var db = firebase.firestore();
       <div class="stat-label">天數</div>
     </div>
   </div>
-</div>
-<div class="divider"></div>
 
-<main>
-
-  <!-- ── 資料結構說明（點擊展開）── -->
+  <!-- ── Repo Structure（右下角）── -->
   <div class="readme-box" id="readmeBox">
     <div class="readme-toggle" onclick="toggleReadme()">
       <div class="readme-toggle-left">
@@ -485,6 +513,10 @@ var db = firebase.firestore();
       </div>
     </div>
   </div>
+</div>
+<div class="divider"></div>
+
+<main>
 
   <!-- ── 旅程卡片區（從 Firebase 動態載入）── -->
   <div id="trip-container">
@@ -776,12 +808,9 @@ function cardsRender() {
         <div class="year-header">
           <div><div class="year-label">Year</div><div class="year-num">—</div></div>
           <div class="year-line"></div>
+          <button class="add-trip-btn" onclick="openModal()">＋ 新增旅程</button>
         </div>
-        <div class="trip-grid">
-          <div class="trip-card add-card" onclick="openModal()">
-            <div class="add-inner"><span class="add-plus">＋</span>新增第一趟旅程</div>
-          </div>
-        </div>
+        <div class="trip-grid"></div>
       </div>`;
     updateHeroStats();
     return;
@@ -800,12 +829,10 @@ function cardsRender() {
             <button class="year-delete-btn" onclick="deleteYearGroup(event, this)">✕ 刪除此年份區塊</button>
           </div>
           <div class="year-line"></div>
+          <button class="add-trip-btn" onclick="openModal('${year}')">＋ 新增旅程</button>
         </div>
         <div class="trip-grid">
           ${cardsHtml}
-          <div class="trip-card add-card" onclick="openModal('${year}')">
-            <div class="add-inner"><span class="add-plus">＋</span>下一趟旅程</div>
-          </div>
         </div>
       </div>`;
   }).join('\n');
