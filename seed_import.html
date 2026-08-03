@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<title>東京四日遊 · 消費紀錄一次性匯入</title>
+<style>
+  body { font-family: -apple-system, "Microsoft JhengHei", sans-serif; max-width: 640px; margin: 40px auto; padding: 0 20px; color: #222; }
+  h1 { font-size: 1.3rem; }
+  #log { background:#111; color:#0f0; padding:16px; border-radius:8px; font-family: monospace; font-size: 0.85rem; white-space: pre-wrap; min-height: 200px; }
+  button { font-size: 1rem; padding: 10px 20px; border-radius: 6px; border: none; background: #2c5f8a; color: #fff; cursor: pointer; margin-bottom: 16px; }
+  button:disabled { background: #999; cursor: not-allowed; }
+  .warn { color: #b8680b; font-size: 0.9rem; }
+</style>
+</head>
+<body>
+<h1>東京四日遊（2026/4/16–19）消費紀錄 · 一次性雲端匯入</h1>
+<p class="warn">⚠ 這個工具只需要執行「一次」。執行後，這個行程頁的「支付優惠」消費追蹤器，不管在哪個裝置打開都會顯示這份重建後的完整資料。若重複執行，會直接覆蓋掉 Firestore 上目前的資料。</p>
+<button id="runBtn" onclick="runImport()">開始匯入</button>
+<div id="log">尚未執行。按上方按鈕開始。</div>
+
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
+<script>
+const firebaseConfig = {
+  apiKey:            "AIzaSyA_KFwm7pE8YqSP64OKsFFEU3lKMuF-wjI",
+  authDomain:        "travel-c9ab0.firebaseapp.com",
+  projectId:         "travel-c9ab0",
+  storageBucket:     "travel-c9ab0.firebasestorage.app",
+  messagingSenderId: "179782530206",
+  appId:             "1:179782530206:web:93d42650009b01ad56778f",
+  measurementId:     "G-30P0GGS1YE"
+};
+if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
+const db = firebase.firestore();
+const COLLECTION = 'trip_2026_TOKYO_05b3';
+
+// ── 重建後的完整消費資料（依你確認過的 Excel 內容與信用卡對照表計算） ──
+const trackerUsed = {"kuma": 463.0, "eco": 160.2, "pay": 100.0, "rich": 0};
+
+const trackerLogs = {
+  "d1-isetan":          [{"jpy": 8670, "twd": 1715.8, "rebate": 85.8, "payUsed": "pay"}],
+  "d1-gyutan":          [{"jpy": 7160, "twd": 1417.0, "rebate": 70.8, "payUsed": "eco"}],
+  "d2-3coins-harajuku": [{"jpy": 3850, "twd": 761.9,  "rebate": 0,    "payUsed": "pay"}],
+  "d2-neel":            [{"jpy": 1980, "twd": 391.8,  "rebate": 0,    "payUsed": "pay"}],
+  "d3-musashi":         [{"jpy": 2233, "twd": 441.9,  "rebate": 22.1, "payUsed": "eco"}],
+  "d4-unagi":           [{"jpy": 5500, "twd": 1088.5, "rebate": 54.4, "payUsed": "eco"}],
+  "d4-airport-tax":     [{"jpy": 8171, "twd": 1617.0, "rebate": 137.4,"payUsed": "kuma"}]
+};
+
+const freeLogs = {
+  "d1": [
+    {"jpy": 678,  "twd": 134.2, "rebate": 6.7, "payUsed": "pay",   "name": "藍瓶咖啡 (Latte)"},
+    {"jpy": 698,  "twd": 138.1, "rebate": 0,   "payUsed": "suica", "name": "Lawson(西新宿)"},
+    {"jpy": 2044, "twd": 404.5, "rebate": 7.5, "payUsed": "pay",   "name": "Lawson(高輪)"}
+  ],
+  "d2": [
+    {"jpy": 14805,"twd": 2929.9,"rebate": 0,    "payUsed": "pay",   "name": "松本清(新宿)"},
+    {"jpy": 8840, "twd": 1749.4,"rebate": 148.7,"payUsed": "kuma",  "name": "無印良品(渋谷西武)"},
+    {"jpy": 2100, "twd": 415.6, "rebate": 0,    "payUsed": "pay",   "name": "ecute(品川)-冷麵"},
+    {"jpy": 446,  "twd": 88.3,  "rebate": 0,    "payUsed": "suica", "name": "7-11(品川)"},
+    {"jpy": 715,  "twd": 141.5, "rebate": 0,    "payUsed": "suica", "name": "Lawson(品川)"},
+    {"jpy": 1300, "twd": 257.3, "rebate": 12.9, "payUsed": "eco",   "name": "八十八渋谷-抹茶"}
+  ],
+  "d3": [
+    {"jpy": 2260, "twd": 447.3, "rebate": 38.0, "payUsed": "kuma",  "name": "VERVE Coffee (NEWoMan)"},
+    {"jpy": 550,  "twd": 108.8, "rebate": 9.3,  "payUsed": "kuma",  "name": "DAISO (武藏小山)"},
+    {"jpy": 600,  "twd": 118.7, "rebate": 0,    "payUsed": "pay",   "name": "北極熊咖啡廳-冰淇淋"},
+    {"jpy": 410,  "twd": 81.1,  "rebate": 6.9,  "payUsed": "kuma",  "name": "OZEKI (戶越銀座)-草莓"},
+    {"jpy": 7293, "twd": 1443.3,"rebate": 122.7,"payUsed": "kuma",  "name": "SALVATORE&BAR (大井町)-披薩"},
+    {"jpy": 507,  "twd": 100.3, "rebate": 0,    "payUsed": "suica", "name": "Lawson (高輪)"}
+  ],
+  "d4": [
+    {"jpy": 498, "twd": 98.6,  "rebate": 0, "payUsed": "suica", "name": "ecute (品川)-咖啡"},
+    {"jpy": 580, "twd": 114.8, "rebate": 0, "payUsed": "suica", "name": "Tully's coffee (機場)"}
+  ]
+};
+
+const skipState = {};
+
+function log(msg) {
+  document.getElementById('log').textContent += '\n' + msg;
+}
+
+async function runImport() {
+  const btn = document.getElementById('runBtn');
+  btn.disabled = true;
+  document.getElementById('log').textContent = '開始匯入...';
+  try {
+    await db.collection(COLLECTION).doc('data').set({
+      trackerUsed, trackerLogs, freeLogs, skipState,
+      updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+    });
+    log('✅ 匯入成功！資料已寫入 Firestore collection: ' + COLLECTION);
+    log('');
+    log('熊本熊已用額度：NT$' + trackerUsed.kuma.toFixed(1) + ' / 500');
+    log('星展eco已用額度：NT$' + trackerUsed.eco.toFixed(1) + ' / 600');
+    log('PayPay已用額度：NT$' + trackerUsed.pay.toFixed(1) + ' / 100');
+    log('Richart已用額度：NT$' + trackerUsed.rich.toFixed(1) + ' (無上限)');
+    log('');
+    log('現在可以打開 2026_tokyo.html → 支付優惠頁 確認資料是否正確顯示。');
+    log('這個匯入工具之後就不需要再用了，可以刪除或忽略。');
+  } catch (e) {
+    log('❌ 匯入失敗：' + e.message);
+    btn.disabled = false;
+  }
+}
+</script>
+</body>
+</html>
