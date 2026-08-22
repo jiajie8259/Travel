@@ -666,6 +666,8 @@ const NOTE_COLORS = {
   '行程': { bg:'#fffde7', border:'#f9a825', icon:'🗓' },
   '交通': { bg:'#e3f2fd', border:'#1e88e5', icon:'🚆' },
   '美食': { bg:'#fce4ec', border:'#e91e63', icon:'🍽' },
+  '飯店': { bg:'#e8f5e9', border:'#43a047', icon:'🏨' },
+  'News': { bg:'#fff3e0', border:'#fb8c00', icon:'📰' },
 };
 const NOTE_DEFAULT_COLOR = { bg:'#f3e5f5', border:'#9c27b0', icon:'📝' };
 
