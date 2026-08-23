@@ -710,11 +710,11 @@ function notesRender() {
     const c = NOTE_COLORS[note.cat] || NOTE_DEFAULT_COLOR;
     const date = note.ts ? new Date(note.ts).toLocaleDateString('zh-TW', { month:'numeric', day:'numeric', hour:'2-digit', minute:'2-digit' }) : '';
     const card = document.createElement('div');
-    card.style.cssText = `background:${c.bg};border:1.5px solid ${c.border};border-radius:8px;padding:1rem 1.1rem 0.85rem;position:relative;box-shadow:0 2px 8px rgba(0,0,0,0.06);transition:box-shadow 0.15s;`;
+    card.style.cssText = `background:${c.bg};border:1.5px solid ${c.border};border-radius:8px;padding:1rem 1.1rem 0.85rem;position:relative;box-shadow:0 2px 8px rgba(0,0,0,0.06);transition:box-shadow 0.15s;display:flex;flex-direction:column;height:100%;`;
     card.onmouseenter = () => card.style.boxShadow = '0 6px 18px rgba(0,0,0,0.12)';
     card.onmouseleave = () => card.style.boxShadow = '0 2px 8px rgba(0,0,0,0.06)';
     card.innerHTML = `
-      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:0.6rem;">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:0.6rem;flex-shrink:0;">
         <span style="font-size:0.68rem;font-family:'DM Mono',monospace;font-weight:700;letter-spacing:0.1em;color:${c.border};background:white;padding:0.15em 0.55em;border-radius:3px;border:1px solid ${c.border};">${c.icon} ${note.cat||'筆記'}</span>
         <div style="display:flex;align-items:center;gap:0.4rem;">
           <span style="font-size:0.65rem;color:#aaa;font-family:'DM Mono',monospace;">${date}</span>
@@ -722,8 +722,8 @@ function notesRender() {
           <button onclick="notesDelete(${idx})" title="刪除" style="background:none;border:none;cursor:pointer;color:#ccc;font-size:1rem;line-height:1;padding:0.1rem 0.2rem;border-radius:3px;transition:color 0.15s;" onmouseenter="this.style.color='#c0392b'" onmouseleave="this.style.color='#ccc'">✕</button>
         </div>
       </div>
-      ${note.imgUrl ? `<img src="${note.imgUrl}" loading="lazy" onclick="window.open('${note.imgUrl}','_blank')" style="display:block;width:100%;max-height:240px;object-fit:cover;border-radius:6px;cursor:zoom-in;margin-bottom:${note.text?'0.6rem':'0'};">` : ''}
-      ${note.text ? `<div style="font-size:0.85rem;line-height:1.75;white-space:pre-wrap;word-break:break-word;color:var(--ink);">${note.text}</div>` : ''}`;
+      ${note.imgUrl ? `<img src="${note.imgUrl}" loading="lazy" onclick="window.open('${note.imgUrl}','_blank')" style="display:block;width:100%;flex:1;min-height:140px;object-fit:cover;object-position:top;border-radius:6px;cursor:zoom-in;margin-bottom:${note.text?'0.6rem':'0'};flex-shrink:0;">` : ''}
+      ${note.text ? `<div style="font-size:0.85rem;line-height:1.75;white-space:pre-wrap;word-break:break-word;color:var(--ink);flex-shrink:0;">${note.text}</div>` : ''}`;
     grid.appendChild(card);
   });
 }
