@@ -661,6 +661,11 @@ async function hotelToggleEdit() {
    ══════════════════════════════════════════════════════════════ */
 var notesData = [];
 var notesEditIdx = -1;
+var notesMode = 'ocr';           // 'ocr' | 'image'
+var notesPendingImgUrl = null;   // 已上傳到 Storage 的網址（存圖模式）
+var notesPendingImgPath = null;  // 對應的 Storage 路徑（供刪除用）
+var notesOriginalImgUrl = null;  // 編輯前，該筆記原本的圖片網址
+var notesUploading = false;
 
 const NOTE_COLORS = {
   '行程': { bg:'#fffde7', border:'#f9a825', icon:'🗓' },
@@ -717,7 +722,8 @@ function notesRender() {
           <button onclick="notesDelete(${idx})" title="刪除" style="background:none;border:none;cursor:pointer;color:#ccc;font-size:1rem;line-height:1;padding:0.1rem 0.2rem;border-radius:3px;transition:color 0.15s;" onmouseenter="this.style.color='#c0392b'" onmouseleave="this.style.color='#ccc'">✕</button>
         </div>
       </div>
-      <div style="font-size:0.85rem;line-height:1.75;white-space:pre-wrap;word-break:break-word;color:var(--ink);">${note.text||''}</div>`;
+      ${note.imgUrl ? `<img src="${note.imgUrl}" loading="lazy" onclick="window.open('${note.imgUrl}','_blank')" style="display:block;width:100%;max-height:240px;object-fit:cover;border-radius:6px;cursor:zoom-in;margin-bottom:${note.text?'0.6rem':'0'};">` : ''}
+      ${note.text ? `<div style="font-size:0.85rem;line-height:1.75;white-space:pre-wrap;word-break:break-word;color:var(--ink);">${note.text}</div>` : ''}`;
     grid.appendChild(card);
   });
 }
@@ -730,6 +736,7 @@ function notesOpenModal(idx) {
   const title = document.getElementById('notes-modal-title');
   const btn   = document.getElementById('notes-modal-submit');
   notesEditIdx = (idx !== undefined) ? idx : -1;
+  notesPendingImgUrl = null; notesPendingImgPath = null; notesOriginalImgUrl = null; notesUploading = false;
   if (notesEditIdx >= 0) {
     const n = notesData[notesEditIdx];
     if (cat) cat.value = n.cat || '行程';
@@ -737,28 +744,59 @@ function notesOpenModal(idx) {
     if (cnt) cnt.textContent = (n.text||'').length + ' / 500';
     if (title) title.textContent = '✏ 編輯筆記';
     if (btn)   btn.textContent   = '更新筆記';
+    notesSetMode(n.imgUrl ? 'image' : 'ocr');
+    if (n.imgUrl) {
+      notesPendingImgUrl = n.imgUrl;
+      notesOriginalImgUrl = n.imgUrl;
+      const thumb = document.getElementById('notes-img-thumb');
+      const preview = document.getElementById('notes-img-preview');
+      const zone = document.getElementById('notes-img-zone');
+      if (thumb) thumb.src = n.imgUrl;
+      if (preview) preview.style.display = 'block';
+      if (zone) zone.style.display = 'none';
+    }
   } else {
     if (cat) cat.value = '行程';
     if (ta)  ta.value  = '';
     if (cnt) cnt.textContent = '0 / 500';
     if (title) title.textContent = '📝 新增小筆記';
     if (btn)   btn.textContent   = '儲存筆記';
+    notesSetMode('ocr');
   }
-  try { notesClearImage(); } catch(_) {}
   if (modal) modal.style.display = 'flex';
   setTimeout(() => { if (ta) ta.focus(); }, 150);
 }
 
+function notesSetMode(mode) {
+  notesMode = mode;
+  const ocrBtn = document.getElementById('notes-mode-ocr');
+  const imgBtn = document.getElementById('notes-mode-image');
+  const label  = document.getElementById('notes-img-label');
+  const active   = 'flex:1;font-family:\'DM Mono\',monospace;font-size:0.72rem;padding:0.4rem 0.5rem;border-radius:4px;cursor:pointer;border:1.5px solid var(--gold);background:var(--gold);color:var(--ink);font-weight:700;';
+  const inactive = 'flex:1;font-family:\'DM Mono\',monospace;font-size:0.72rem;padding:0.4rem 0.5rem;border-radius:4px;cursor:pointer;border:1.5px solid #ddd;background:white;color:var(--muted);font-weight:700;';
+  if (ocrBtn) ocrBtn.style.cssText = (mode === 'ocr')   ? active : inactive;
+  if (imgBtn) imgBtn.style.cssText = (mode === 'image') ? active : inactive;
+  if (label && !notesPendingImgUrl) {
+    label.textContent = (mode === 'image') ? '📷 點擊或拖曳上傳圖片（直接存成圖片）' : '📷 點擊或拖曳上傳圖片，由 AI 辨識轉文字';
+  }
+}
+
 function notesClearImage() {
-  ['notes-img-preview','notes-img-zone','notes-img-label','notes-img-input','notes-ocr-status'].forEach(id => {
+  // 若圖片已上傳到 Storage 但尚未送出筆記，順手刪除，避免留下孤兒檔案
+  if (notesPendingImgPath && notesPendingImgUrl !== notesOriginalImgUrl) {
+    try { storage.ref(notesPendingImgPath).delete().catch(()=>{}); } catch(_) {}
+  }
+  notesPendingImgUrl = null; notesPendingImgPath = null;
+  ['notes-img-preview','notes-img-zone','notes-img-input','notes-ocr-status'].forEach(id => {
     const el = document.getElementById(id);
     if (!el) return;
     if (id === 'notes-img-preview') el.style.display = 'none';
     else if (id === 'notes-img-zone') el.style.display = '';
-    else if (id === 'notes-img-label') el.textContent = '📷 點擊或拖曳上傳圖片，由 AI 辨識轉文字';
     else if (id === 'notes-img-input') el.value = '';
     else if (id === 'notes-ocr-status') { el.style.display = 'none'; el.textContent = ''; }
   });
+  const label = document.getElementById('notes-img-label');
+  if (label) label.textContent = (notesMode === 'image') ? '📷 點擊或拖曳上傳圖片（直接存成圖片）' : '📷 點擊或拖曳上傳圖片，由 AI 辨識轉文字';
 }
 
 async function notesHandleImage(file) {
@@ -775,6 +813,37 @@ async function notesHandleImage(file) {
     if (thumb) thumb.src = b64full;
     if (preview) preview.style.display = 'block';
     if (zone) zone.style.display = 'none';
+
+    if (notesMode === 'image') {
+      // ── 存圖模式：壓縮後上傳到 Firebase Storage，存網址 ──
+      if (status) { status.style.display = 'block'; status.textContent = '☁️ 上傳中…'; status.style.color = '#b8860b'; }
+      notesUploading = true;
+      try {
+        const compressedB64 = await notesCompressImage(b64full, file.type, 1600, 0.8);
+        const mimeType = (file.type === 'image/png') ? 'image/png' : 'image/jpeg';
+        const ext = (mimeType === 'image/png') ? 'png' : 'jpg';
+        // 若先前已上傳過一張待送出的圖，先清掉，避免留下孤兒檔案
+        if (notesPendingImgPath && notesPendingImgUrl !== notesOriginalImgUrl) {
+          try { await storage.ref(notesPendingImgPath).delete(); } catch(_) {}
+        }
+        const path = `notes_images/${EC().col}/${Date.now()}_${Math.random().toString(36).slice(2,8)}.${ext}`;
+        const ref = storage.ref(path);
+        await ref.putString(compressedB64, 'base64', { contentType: mimeType });
+        const url = await ref.getDownloadURL();
+        notesPendingImgUrl = url;
+        notesPendingImgPath = path;
+        if (thumb) thumb.src = url;
+        if (status) { status.textContent = '✓ 圖片已上傳'; status.style.color = '#27ae60'; }
+      } catch(err) {
+        if (status) { status.textContent = '⚠ 上傳失敗，請重試'; status.style.color = '#c0392b'; }
+        console.error('[notesHandleImage] Storage upload error:', err);
+      } finally {
+        notesUploading = false;
+      }
+      return;
+    }
+
+    // ── AI 轉文字模式：原本的 OCR 流程 ──
     if (status) { status.style.display = 'block'; status.textContent = '🤖 AI 辨識中…'; status.style.color = '#b8860b'; }
     let b64 = b64full.split(',')[1];
     let mimeType = file.type;
@@ -812,17 +881,18 @@ async function notesHandleImage(file) {
   reader.readAsDataURL(file);
 }
 
-function notesCompressImage(dataUrl, mimeType) {
+function notesCompressImage(dataUrl, mimeType, maxDim, quality) {
+  const MAX = maxDim || 2048;
+  const Q = (quality !== undefined) ? quality : 0.85;
   return new Promise((resolve, reject) => {
     const img = new Image();
     img.onload = () => {
-      const MAX = 2048;
       let w = img.width, h = img.height;
       if (w > MAX || h > MAX) { if (w > h) { h = Math.round(h*MAX/w); w = MAX; } else { w = Math.round(w*MAX/h); h = MAX; } }
       const canvas = document.createElement('canvas');
       canvas.width = w; canvas.height = h;
       canvas.getContext('2d').drawImage(img, 0, 0, w, h);
-      resolve(canvas.toDataURL(mimeType === 'image/png' ? 'image/png' : 'image/jpeg', 0.85).split(',')[1]);
+      resolve(canvas.toDataURL(mimeType === 'image/png' ? 'image/png' : 'image/jpeg', Q).split(',')[1]);
     };
     img.onerror = reject; img.src = dataUrl;
   });
@@ -831,26 +901,45 @@ function notesCompressImage(dataUrl, mimeType) {
 function notesCloseModal() {
   const modal = document.getElementById('notes-modal');
   if (modal) modal.style.display = 'none';
+  // 取消時，若剛上傳了新圖片但尚未儲存，順手刪除，避免孤兒檔案
+  if (notesPendingImgPath && notesPendingImgUrl !== notesOriginalImgUrl) {
+    try { storage.ref(notesPendingImgPath).delete().catch(()=>{}); } catch(_) {}
+  }
   notesEditIdx = -1;
+  notesPendingImgUrl = null; notesPendingImgPath = null; notesOriginalImgUrl = null;
 }
 
 async function notesSubmit() {
+  if (notesUploading) { alert('圖片上傳中，請稍候再儲存！'); return; }
   const cat  = document.getElementById('notes-modal-cat')?.value || '行程';
   const text = document.getElementById('notes-modal-text')?.value?.trim() || '';
-  if (!text) { alert('請輸入筆記內容！'); return; }
+  const imgUrl = notesPendingImgUrl || null;
+  if (!text && !imgUrl) { alert('請輸入筆記內容，或上傳一張圖片！'); return; }
+
+  // 若舊圖片被換掉或移除了，刪除 Storage 裡的舊檔（不阻擋儲存流程）
+  if (notesOriginalImgUrl && notesOriginalImgUrl !== imgUrl) {
+    try { await storage.refFromURL(notesOriginalImgUrl).delete(); } catch(_) {}
+  }
+
   if (notesEditIdx >= 0) {
-    notesData[notesEditIdx] = { ...notesData[notesEditIdx], cat, text, edited: Date.now() };
+    const updated = { ...notesData[notesEditIdx], cat, text, edited: Date.now() };
+    if (imgUrl) updated.imgUrl = imgUrl; else delete updated.imgUrl;
+    notesData[notesEditIdx] = updated;
   } else {
-    notesData.unshift({ cat, text, ts: Date.now() });
+    const entry = { cat, text, ts: Date.now() };
+    if (imgUrl) entry.imgUrl = imgUrl;
+    notesData.unshift(entry);
   }
   notesEditIdx = -1;
+  notesPendingImgUrl = null; notesPendingImgPath = null; notesOriginalImgUrl = null;
   notesCloseModal(); notesRender(); await notesPush();
 }
 
 async function notesDelete(idx) {
   const note = notesData[idx];
-  const preview = (note.text||'').slice(0,20) + ((note.text||'').length > 20 ? '…' : '');
+  const preview = (note.text||'').slice(0,20) + ((note.text||'').length > 20 ? '…' : '') || '(圖片筆記)';
   if (!confirm(`確定刪除這則「${note.cat}」筆記？\n\n「${preview}」`)) return;
+  if (note.imgUrl) { try { await storage.refFromURL(note.imgUrl).delete(); } catch(_) {} }
   notesData.splice(idx, 1); notesRender(); await notesPush();
 }
 
