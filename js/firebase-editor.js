@@ -1414,6 +1414,64 @@ async function itineraryToggleEdit() {
    ══════════════════════════════════════════════════════════════ */
 var flightEditMode = false;
 
+function flightApplyData(d) {
+  if (!d) return;
+  ['out-num','out-dep','out-dep-ap','out-arr','out-arr-ap','ret-num','ret-dep','ret-dep-ap','ret-arr','ret-arr-ap'].forEach(k => {
+    const key = k.replace(/-/g,'_');
+    const el = document.getElementById('f-' + k);
+    if (d[key] && el) el.textContent = d[key];
+  });
+  if (d.out_info) { const el = document.getElementById('f-out-info'); if (el) el.innerHTML = d.out_info; }
+  if (d.ret_info) { const el = document.getElementById('f-ret-info'); if (el) el.innerHTML = d.ret_info; }
+}
+
+function flightReadDom() {
+  const data = {};
+  ['out-num','out-dep','out-dep-ap','out-arr','out-arr-ap','ret-num','ret-dep','ret-dep-ap','ret-arr','ret-arr-ap'].forEach(k => {
+    data[k.replace(/-/g,'_')] = document.getElementById('f-' + k)?.textContent;
+  });
+  data.out_info = document.getElementById('f-out-info')?.innerHTML;
+  data.ret_info = document.getElementById('f-ret-info')?.innerHTML;
+  return data;
+}
+
+async function flightPushToFirebase() {
+  const e = EC();
+  const doc = e.doc('flight');
+  if (!doc) return;
+  await pushToFirebase(doc, { info: flightReadDom() }, 'flight-sync-status', e.lsKey('flight'));
+  cardsRender();
+}
+
+async function flightLoad() {
+  const e = EC();
+  const doc = e.doc('flight');
+  // 舊版只存在 localStorage，先讀出來當作離線 fallback ／ 首次搬移的資料來源
+  let localData = null;
+  try { const s = localStorage.getItem(e.lsKey('flight')); if (s) localData = JSON.parse(s); } catch(_) {}
+
+  if (!doc) { flightApplyData(localData); cardsRender(); return; }
+
+  setStatus('flight-sync-status', '⏳ 同步中…', '#b8860b');
+  try {
+    const snap = await doc.get();
+    if (snap.exists && snap.data().info) {
+      flightApplyData(snap.data().info);
+      setStatus('flight-sync-status', '✓ 已同步', '#27ae60');
+    } else if (localData) {
+      // Firestore 尚無資料，但本機還留著舊資料 → 套用後自動搬移到雲端
+      flightApplyData(localData);
+      await pushToFirebase(doc, { info: localData }, 'flight-sync-status', e.lsKey('flight'));
+    } else {
+      setStatus('flight-sync-status', '✓ 已同步', '#27ae60');
+    }
+  } catch(_) {
+    flightApplyData(localData);
+    setStatus('flight-sync-status', '📭 離線模式', '#c0392b');
+  }
+  cardsRender();
+}
+
 function flightToggleEdit() {
   flightEditMode = !flightEditMode;
   const panel   = document.getElementById('flight-edit-panel');
@@ -1439,7 +1497,7 @@ function flightToggleEdit() {
   }
 }
 
-function flightSave() {
+async function flightSave() {
   ['out-num','out-dep','out-arr','ret-num','ret-dep','ret-arr'].forEach(k => {
     const src = document.getElementById('ei-' + k);
     const dst = document.getElementById('f-' + k);
@@ -1455,30 +1513,8 @@ function flightSave() {
     const dst = document.getElementById('f-' + k);
     if (src && dst) dst.innerHTML = src.value.trim().replace(/\n/g, '<br>');
   });
-  const data = {};
-  ['out-num','out-dep','out-dep-ap','out-arr','out-arr-ap','ret-num','ret-dep','ret-dep-ap','ret-arr','ret-arr-ap'].forEach(k => {
-    data[k.replace(/-/g,'_')] = document.getElementById('f-' + k)?.textContent;
-  });
-  data.out_info = document.getElementById('f-out-info')?.innerHTML;
-  data.ret_info = document.getElementById('f-ret-info')?.innerHTML;
-  try { localStorage.setItem(EC().lsKey('flight'), JSON.stringify(data)); } catch(_) {}
   flightEditMode = true; flightToggleEdit();
-  cardsRender();
-}
-
-function flightLoad() {
-  try {
-    const saved = localStorage.getItem(EC().lsKey('flight'));
-    if (!saved) return;
-    const d = JSON.parse(saved);
-    ['out-num','out-dep','out-dep-ap','out-arr','out-arr-ap','ret-num','ret-dep','ret-dep-ap','ret-arr','ret-arr-ap'].forEach(k => {
-      const key = k.replace(/-/g,'_');
-      const el = document.getElementById('f-' + k);
-      if (d[key] && el) el.textContent = d[key];
-    });
-    if (d.out_info) { const el = document.getElementById('f-out-info'); if (el) el.innerHTML = d.out_info; }
-    if (d.ret_info) { const el = document.getElementById('f-ret-info'); if (el) el.innerHTML = d.ret_info; }
-  } catch(_) {}
+  await flightPushToFirebase();
 }
 
 /* ══════════════════════════════════════════════════════════════
