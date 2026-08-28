@@ -1551,7 +1551,10 @@
   <!-- 航班資訊 -->
   <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:0.6rem;">
     <span style="font-family:'DM Mono',monospace;font-size:0.65rem;letter-spacing:0.12em;text-transform:uppercase;color:var(--muted);">✈ 航班資訊</span>
+    <div style="display:flex;align-items:center;gap:0.75rem;">
+    <span id="flight-sync-status" style="font-family:'DM Mono',monospace;font-size:0.68rem;color:var(--muted);"></span>
     <button id="flight-edit-btn" onclick="flightToggleEdit()" style="font-family:'DM Mono',monospace;font-size:0.72rem;letter-spacing:0.06em;text-transform:uppercase;padding:0.45rem 1rem;border:1.5px solid var(--ink);border-radius:4px;background:transparent;cursor:pointer;color:var(--ink);transition:all 0.15s;">✏ 編輯</button>
+    </div>
   </div>
   <div id="flight-display" style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-bottom:1.5rem;">
     <div style="background:var(--ink);color:var(--paper);border-radius:8px;padding:1.1rem 1.3rem;">
