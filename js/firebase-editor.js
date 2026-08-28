@@ -1143,6 +1143,7 @@ var itinerarySyncing  = false;
 
 const ITIN_TYPES = ['交通','景點','餐飲','住宿','其他'];
 const ITIN_TYPE_CLASS = { '交通':'tag-transport','景點':'tag-spot','餐飲':'tag-meal','住宿':'tag-hotel','其他':'tag-other' };
+const CARD_TYPE_DOT = { '交通':'#aaa','景點':'#6b7c5e','餐飲':'#c0392b','住宿':'#8b6b3d','其他':'#999' };
 
 /* ── 從靜態 HTML 掃描初始資料（首次載入、Firebase 無資料時使用） ── */
 function itineraryReadStatic() {
@@ -1294,9 +1295,60 @@ function itineraryRender() {
       ${addPeriodBtn}
     </div>`;
   }).join('');
+
+  cardsRender();
 }
 
-/* ── 資料操作 ── */
+/* ── 隨身小卡（由行程資料自動產生，不再手動維護） ── */
+function cardsFlightLine(dir) { // dir: 'out'（去程）| 'ret'（回程）
+  const num   = document.getElementById(`f-${dir}-num`)?.textContent?.trim();
+  const dep   = document.getElementById(`f-${dir}-dep`)?.textContent?.trim();
+  const depAp = document.getElementById(`f-${dir}-dep-ap`)?.textContent?.trim();
+  const arr   = document.getElementById(`f-${dir}-arr`)?.textContent?.trim();
+  const arrAp = document.getElementById(`f-${dir}-arr-ap`)?.textContent?.trim();
+  if (!num || num === '—') return '';
+  return `✈ ${num}　${dep||''} ${depAp||''} → ${arr||''} ${arrAp||''}`;
+}
+
+function cardsRender() {
+  const grid  = document.getElementById('card-grid');
+  const count = document.getElementById('card-count');
+  if (!grid) return;
+
+  if (!itineraryData.length) {
+    grid.innerHTML = `<div style="grid-column:1/-1;text-align:center;padding:2rem;color:var(--muted);font-style:italic;">— 尚無行程資料，請先到「行程總覽」新增 —</div>`;
+    if (count) count.textContent = '0';
+    return;
+  }
+
+  const lastIdx = itineraryData.length - 1;
+
+  grid.innerHTML = itineraryData.map((day, di) => {
+    const periods = (day.periods || []).map(p => {
+      const items = (p.events || []).map(ev => {
+        const dot = CARD_TYPE_DOT[ev.type] || '#999';
+        return `<div class="item"><div class="item-dot" style="background:${dot}"></div><div class="item-text">${ev.name||''}${ev.note ? `<div class="item-sub">${ev.note}</div>` : ''}</div></div>`;
+      }).join('');
+      return `<div class="mini-card-period">${p.title||''}</div>${items}`;
+    }).join('');
+
+    // 出發日附上「去程」航班資訊，回程日附上「回程」航班資訊（同一天則兩者皆顯示）
+    const flightLines = [];
+    if (di === 0)       { const l = cardsFlightLine('out'); if (l) flightLines.push(l); }
+    if (di === lastIdx) { const l = cardsFlightLine('ret'); if (l) flightLines.push(l); }
+    const flightHtml = flightLines.map(l => `<div style="opacity:0.6;font-size:0.65rem;">${l}</div>`).join('');
+
+    return `<div class="mini-card">
+      <div class="mini-card-header">
+        <div class="day-big">${day.day||''}</div>
+        <div class="day-info"><div>${day.sub||''}</div>${flightHtml}</div>
+      </div>
+      <div class="mini-card-body">${periods}</div>
+    </div>`;
+  }).join('');
+
+  if (count) count.textContent = String(itineraryData.length);
+}
 function itinEdit(di, pi, ei, field, value) {
   if (itineraryData[di]?.periods[pi]?.events[ei]) {
     itineraryData[di].periods[pi].events[ei][field] = value;
@@ -1411,6 +1463,7 @@ function flightSave() {
   data.ret_info = document.getElementById('f-ret-info')?.innerHTML;
   try { localStorage.setItem(EC().lsKey('flight'), JSON.stringify(data)); } catch(_) {}
   flightEditMode = true; flightToggleEdit();
+  cardsRender();
 }
 
 function flightLoad() {
