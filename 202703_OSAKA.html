@@ -232,16 +232,12 @@
     #card-section > div > button { display: none !important; } /* 列印按鈕本身不列印 */
     #card-section > p { display: none; } /* 「共 X 張」提示文字，列印時不需要 */
 
-    /* 小卡改為無間距排列，改用虛線當剪裁線 */
-    .card-grid { grid-template-columns: repeat(2, 1fr); gap: 0; }
+    /* 小卡外觀（框線／圓角／間距）完全不變，只在外圍加虛線當剪裁參考線 */
+    .card-grid { grid-template-columns: repeat(2, 1fr); }
     .mini-card {
-      border: none;
-      border-radius: 0;
-      box-shadow: none;
-      border-right: 1px dashed #999;
-      border-bottom: 1px dashed #999;
+      outline: 1.5px dashed #999;
+      outline-offset: 10px;
     }
-    .mini-card:nth-child(2n) { border-right: none; }
   }
 
   /* ── CARD PRINT PAGE ── */
