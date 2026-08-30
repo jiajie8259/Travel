@@ -216,10 +216,32 @@
 
   /* ── PRINT CARDS ── */
   @media print {
+    * { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
     body { background: white; }
     header::before { display:none; }
     .no-print { display: none !important; }
     .day-block { page-break-inside: avoid; }
+
+    /* 列印「隨身小卡」時，隱藏頁首與分頁列，只留小卡本身 */
+    body:has(#cards.tab-panel.active) header,
+    body:has(#cards.tab-panel.active) .tab-nav {
+      display: none !important;
+    }
+    #card-section { max-width: 100%; padding: 0; margin: 0; }
+    #card-section h2 { border-bottom: none; margin-bottom: 0.5rem; }
+    #card-section > div > button { display: none !important; } /* 列印按鈕本身不列印 */
+    #card-section > p { display: none; } /* 「共 X 張」提示文字，列印時不需要 */
+
+    /* 小卡改為無間距排列，改用虛線當剪裁線 */
+    .card-grid { grid-template-columns: repeat(2, 1fr); gap: 0; }
+    .mini-card {
+      border: none;
+      border-radius: 0;
+      box-shadow: none;
+      border-right: 1px dashed #999;
+      border-bottom: 1px dashed #999;
+    }
+    .mini-card:nth-child(2n) { border-right: none; }
   }
 
   /* ── CARD PRINT PAGE ── */
@@ -1528,7 +1550,10 @@
 
 <div id="cards" class="tab-panel">
 <div id="card-section">
-  <h2 style="margin-top:2rem;">✂ 隨身小卡 — 每天一張，列印後剪開攜帶</h2>
+  <div style="display:flex;align-items:center;justify-content:space-between;gap:1rem;flex-wrap:wrap;margin-top:2rem;">
+    <h2 style="margin:0;">✂ 隨身小卡 — 每天一張，列印後剪開攜帶</h2>
+    <button onclick="window.print()" style="font-family:'DM Mono',monospace;font-size:0.72rem;letter-spacing:0.06em;text-transform:uppercase;padding:0.45rem 1rem;border:1.5px solid var(--ink);border-radius:4px;background:transparent;cursor:pointer;color:var(--ink);transition:all 0.15s;flex-shrink:0;">🖨 列印小卡</button>
+  </div>
   <div id="card-grid" class="card-grid"></div>
   <p style="font-size:0.75rem;color:#aaa;margin-top:1.5rem;text-align:center;">共 <span id="card-count">0</span> 張 · 列印後剪開，每天帶當天那張即可</p>
 </div>
