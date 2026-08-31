@@ -1292,6 +1292,7 @@
   <button class="tab-btn" onclick="switchTab('hotel',this)">🏨 飯店</button>
   <button class="tab-btn" onclick="switchTab('payment',this)">💳 支付優惠</button>
   <button class="tab-btn" onclick="switchTab('notes',this)">📝 小筆記</button>
+  <button class="tab-btn" onclick="switchTab('prep',this)">🧳 準備事項</button>
   <button class="tab-btn" onclick="switchTab('cards',this)">🃏 隨身小卡</button>
 </div>
 
@@ -1512,6 +1513,40 @@
 </div>
 
 
+
+<div id="prep" class="tab-panel">
+<div class="tab-inner" style="max-width:900px;margin:0 auto;padding:2.5rem 2.5rem 4rem;">
+
+  <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:0.75rem;margin-bottom:1rem;">
+    <h2 style="margin:0;">🧳 準備事項 — 出發前檢查清單</h2>
+    <span id="prep-sync-status" style="font-family:'DM Mono',monospace;font-size:0.68rem;color:var(--muted);"></span>
+  </div>
+
+  <div style="display:flex;align-items:center;gap:0.75rem;margin-bottom:1.5rem;">
+    <div style="flex:1;height:8px;background:#eee;border-radius:4px;overflow:hidden;">
+      <div id="prep-progress-bar" style="height:100%;background:var(--gold);width:0%;transition:width 0.25s;"></div>
+    </div>
+    <span id="prep-count" style="font-family:'DM Mono',monospace;font-size:0.78rem;color:var(--muted);white-space:nowrap;">0 / 0</span>
+  </div>
+
+  <div style="display:flex;gap:0.5rem;margin-bottom:1.75rem;flex-wrap:wrap;">
+    <select id="prep-cat-select" style="font-size:0.82rem;border:1.5px solid #ddd;border-radius:5px;padding:0.5rem 0.6rem;background:white;cursor:pointer;">
+      <option value="證件金融">🛂 證件金融</option>
+      <option value="3C電子">🔌 3C電子</option>
+      <option value="藥品保健">💊 藥品保健</option>
+      <option value="衣物穿搭">👕 衣物穿搭</option>
+      <option value="其他">📦 其他</option>
+    </select>
+    <input id="prep-input" type="text" placeholder="輸入要準備的項目，按 Enter 新增…"
+      onkeydown="if(event.key==='Enter'){event.preventDefault();prepAdd();}"
+      style="flex:1;min-width:180px;font-size:0.85rem;border:1.5px solid #ddd;border-radius:5px;padding:0.5rem 0.7rem;">
+    <button onclick="prepAdd()" style="font-family:'DM Mono',monospace;font-size:0.78rem;padding:0.5rem 1.2rem;border:1.5px solid var(--ink);border-radius:5px;background:var(--ink);color:white;cursor:pointer;flex-shrink:0;">+ 新增</button>
+  </div>
+
+  <div id="prep-list"></div>
+
+</div>
+</div>
 
 <div id="cards" class="tab-panel">
 <div id="card-section">
