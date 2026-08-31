@@ -227,16 +227,16 @@
     body:has(#cards.tab-panel.active) .tab-nav {
       display: none !important;
     }
-    #card-section { max-width: 100%; padding: 0; margin: 0; }
-    #card-section h2 { border-bottom: none; margin-bottom: 0.5rem; }
+    #card-section { max-width: 100% !important; padding: 0 !important; margin: 0 !important; }
+    #card-section h2 { border-bottom: none !important; margin-bottom: 0.5rem !important; }
     #card-section > div > button { display: none !important; } /* 列印按鈕本身不列印 */
-    #card-section > p { display: none; } /* 「共 X 張」提示文字，列印時不需要 */
+    #card-section > p { display: none !important; } /* 「共 X 張」提示文字，列印時不需要 */
 
     /* 小卡外觀（框線／圓角／間距）完全不變，只在外圍加虛線當剪裁參考線 */
-    .card-grid { grid-template-columns: repeat(2, 1fr); }
+    .card-grid { grid-template-columns: repeat(2, 1fr) !important; }
     .mini-card {
-      outline: 1.5px dashed #999;
-      outline-offset: 10px;
+      outline: 1.5px dashed #999 !important;
+      outline-offset: 10px !important;
     }
   }
 
