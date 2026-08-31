@@ -1145,6 +1145,10 @@ const ITIN_TYPES = ['交通','景點','餐飲','住宿','其他'];
 const ITIN_TYPE_CLASS = { '交通':'tag-transport','景點':'tag-spot','餐飲':'tag-meal','住宿':'tag-hotel','其他':'tag-other' };
 const CARD_TYPE_DOT = { '交通':'#aaa','景點':'#6b7c5e','餐飲':'#c0392b','住宿':'#8b6b3d','其他':'#999' };
 
+var prepData = []; // [ { id, cat, text, done } ]
+const PREP_CATS = ['證件金融','3C電子','藥品保健','衣物穿搭','其他'];
+const PREP_CAT_ICON = { '證件金融':'🛂','3C電子':'🔌','藥品保健':'💊','衣物穿搭':'👕','其他':'📦' };
+
 /* ── 從靜態 HTML 掃描初始資料（首次載入、Firebase 無資料時使用） ── */
 function itineraryReadStatic() {
   const days = [];
@@ -1297,6 +1301,88 @@ function itineraryRender() {
   }).join('');
 
   cardsRender();
+}
+
+/* ── 準備事項（出發前檢查清單，跨裝置同步） ── */
+async function prepLoad() {
+  const e = EC();
+  const doc = e.doc('prep');
+  if (!doc) { prepRender(); return; }
+  setStatus('prep-sync-status', '⏳ 同步中…', '#b8860b');
+  try {
+    const snap = await doc.get();
+    prepData = (snap.exists && Array.isArray(snap.data().items)) ? snap.data().items : [];
+    setStatus('prep-sync-status', '✓ 已同步', '#27ae60');
+  } catch(_) {
+    setStatus('prep-sync-status', '📭 暫無資料', '#c0392b');
+    try { const s = localStorage.getItem(e.lsKey('prep')); if (s) prepData = JSON.parse(s); } catch(_) {}
+  }
+  prepRender();
+}
+
+async function prepPush() {
+  const e = EC();
+  const doc = e.doc('prep');
+  if (!doc) return;
+  await pushToFirebase(doc, { items: prepData }, 'prep-sync-status', e.lsKey('prep'));
+}
+
+function prepAdd() {
+  const input  = document.getElementById('prep-input');
+  const catSel = document.getElementById('prep-cat-select');
+  const text = input?.value?.trim();
+  if (!text) return;
+  prepData.push({ id: Date.now() + '_' + Math.random().toString(36).slice(2,6), cat: catSel?.value || '其他', text, done: false });
+  input.value = '';
+  input.focus();
+  prepRender();
+  prepPush();
+}
+
+function prepToggle(id) {
+  const item = prepData.find(i => i.id === id);
+  if (!item) return;
+  item.done = !item.done;
+  prepRender();
+  prepPush();
+}
+
+function prepDelete(id) {
+  prepData = prepData.filter(i => i.id !== id);
+  prepRender();
+  prepPush();
+}
+
+function prepRender() {
+  const list  = document.getElementById('prep-list');
+  const count = document.getElementById('prep-count');
+  const bar   = document.getElementById('prep-progress-bar');
+  if (!list) return;
+
+  const total = prepData.length;
+  const doneCount = prepData.filter(i => i.done).length;
+  if (count) count.textContent = `${doneCount} / ${total}`;
+  if (bar) bar.style.width = total ? `${Math.round(doneCount / total * 100)}%` : '0%';
+
+  if (!total) {
+    list.innerHTML = `<div style="text-align:center;padding:2.5rem 1rem;color:var(--muted);font-style:italic;font-size:0.85rem;">— 尚無項目，新增你的第一筆準備清單吧 —</div>`;
+    return;
+  }
+
+  list.innerHTML = PREP_CATS.map(cat => {
+    const items = prepData.filter(i => i.cat === cat);
+    if (!items.length) return '';
+    const rows = items.map(i => `
+      <div style="display:flex;align-items:center;gap:0.65rem;padding:0.55rem 0.3rem;border-bottom:1px solid #eee;">
+        <input type="checkbox" ${i.done ? 'checked' : ''} onchange="prepToggle('${i.id}')" style="width:18px;height:18px;cursor:pointer;accent-color:var(--gold);flex-shrink:0;">
+        <span style="flex:1;font-size:0.88rem;word-break:break-word;${i.done ? 'text-decoration:line-through;color:#bbb;' : 'color:var(--ink);'}">${i.text}</span>
+        <button onclick="prepDelete('${i.id}')" title="刪除" style="background:none;border:none;cursor:pointer;color:#ccc;font-size:0.95rem;padding:0.1rem 0.35rem;line-height:1;transition:color 0.15s;" onmouseenter="this.style.color='#c0392b'" onmouseleave="this.style.color='#ccc'">✕</button>
+      </div>`).join('');
+    return `<div style="margin-bottom:1.5rem;">
+      <div style="font-family:'DM Mono',monospace;font-size:0.7rem;font-weight:700;letter-spacing:0.08em;color:var(--gold);margin-bottom:0.4rem;">${PREP_CAT_ICON[cat] || ''} ${cat}</div>
+      ${rows}
+    </div>`;
+  }).join('');
 }
 
 /* ── 隨身小卡（由行程資料自動產生，不再手動維護） ── */
@@ -1534,4 +1620,5 @@ document.addEventListener('DOMContentLoaded', function() {
   notesLoad();
   spotsLoad();
   itineraryLoad();
+  prepLoad();
 });
