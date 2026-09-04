@@ -358,6 +358,8 @@
     border-bottom: 3px solid transparent;
     margin-bottom: -2px;
     transition: all 0.2s;
+    white-space: nowrap;
+    flex-shrink: 0;
   }
   .tab-btn.active {
     color: var(--ink);
@@ -1159,10 +1161,19 @@
       padding-right: 1rem;
     }
 
-    /* tab-nav 左右 padding 縮小 */
+    /* tab-nav 左右 padding 縮小，並允許橫向捲動避免文字換行 */
     .tab-nav {
       padding: 0 0.5rem;
       max-width: 100%;
+      overflow-x: auto;
+      -webkit-overflow-scrolling: touch;
+      scrollbar-width: none;
+    }
+    .tab-nav::-webkit-scrollbar { display: none; }
+
+    /* 縮小按鈕內距，讓 9 個頁籤盡量擠在同一行（字體不縮小） */
+    .tab-btn {
+      padding: 0.8rem 0.7rem;
     }
 
     /* 美食表格捲動提示 */
