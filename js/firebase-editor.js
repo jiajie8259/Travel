@@ -1146,8 +1146,8 @@ const ITIN_TYPE_CLASS = { '交通':'tag-transport','景點':'tag-spot','餐飲':
 const CARD_TYPE_DOT = { '交通':'#aaa','景點':'#6b7c5e','餐飲':'#c0392b','住宿':'#8b6b3d','其他':'#999' };
 
 var prepData = []; // [ { id, cat, text, done } ]
-const PREP_CATS = ['證件金融','3C電子','藥品保健','衣物穿搭','其他'];
-const PREP_CAT_ICON = { '證件金融':'🛂','3C電子':'🔌','藥品保健':'💊','衣物穿搭':'👕','其他':'📦' };
+const PREP_CATS = ['證件金融','3C電子','藥品保健','衣物穿搭','機場接送','eSIM','換外幣','列印小卡','支付優惠','其他'];
+const PREP_CAT_ICON = { '證件金融':'🛂','3C電子':'🔌','藥品保健':'💊','衣物穿搭':'👕','機場接送':'🚕','eSIM':'📶','換外幣':'💱','列印小卡':'🖨️','支付優惠':'💳','其他':'📦' };
 
 /* ── 從靜態 HTML 掃描初始資料（首次載入、Firebase 無資料時使用） ── */
 function itineraryReadStatic() {
