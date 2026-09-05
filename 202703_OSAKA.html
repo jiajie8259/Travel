@@ -338,10 +338,13 @@
 
   /* tab nav */
   .tab-nav {
-    display: flex;
-    gap: 0;
     background: var(--cream);
     border-bottom: 2px solid var(--ink);
+    width: 100%;
+  }
+  .tab-nav-inner {
+    display: flex;
+    gap: 0;
     max-width: 960px;
     margin: 0 auto;
     padding: 0 1.5rem;
@@ -1161,15 +1164,15 @@
       padding-right: 1rem;
     }
 
-    /* tab-nav 左右 padding 縮小，並允許橫向捲動避免文字換行 */
-    .tab-nav {
+    /* tab-nav-inner 左右 padding 縮小，並允許橫向捲動避免文字換行 */
+    .tab-nav-inner {
       padding: 0 0.5rem;
       max-width: 100%;
       overflow-x: auto;
       -webkit-overflow-scrolling: touch;
       scrollbar-width: none;
     }
-    .tab-nav::-webkit-scrollbar { display: none; }
+    .tab-nav-inner::-webkit-scrollbar { display: none; }
 
     /* 縮小按鈕內距，讓 9 個頁籤盡量擠在同一行（字體不縮小） */
     .tab-btn {
@@ -1296,6 +1299,7 @@
 </header>
 
 <div class="tab-nav">
+<div class="tab-nav-inner">
   <button class="tab-btn active" onclick="switchTab('itinerary',this)">📅 行程總覽</button>
   <button class="tab-btn" onclick="switchTab('transport',this)">🚆 交通</button>
   <button class="tab-btn" onclick="switchTab('food',this)">🍽 美食</button>
@@ -1305,6 +1309,7 @@
   <button class="tab-btn" onclick="switchTab('notes',this)">📝 小筆記</button>
   <button class="tab-btn" onclick="switchTab('prep',this)">🧳 準備事項</button>
   <button class="tab-btn" onclick="switchTab('cards',this)">🃏 隨身小卡</button>
+</div>
 </div>
 
 
@@ -1546,6 +1551,11 @@
       <option value="3C電子">🔌 3C電子</option>
       <option value="藥品保健">💊 藥品保健</option>
       <option value="衣物穿搭">👕 衣物穿搭</option>
+      <option value="機場接送">🚕 機場接送</option>
+      <option value="eSIM">📶 eSIM</option>
+      <option value="換外幣">💱 換外幣</option>
+      <option value="列印小卡">🖨️ 列印小卡</option>
+      <option value="支付優惠">💳 支付優惠</option>
       <option value="其他">📦 其他</option>
     </select>
     <input id="prep-input" type="text" placeholder="輸入要準備的項目，按 Enter 新增…"
