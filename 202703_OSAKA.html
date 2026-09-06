@@ -1660,7 +1660,7 @@
   <!-- 編輯模式工具列 -->
   <div id="trans-edit-toolbar" style="display:none;background:#fff8e8;border:1.5px solid var(--gold);border-radius:6px;padding:0.75rem 1rem;margin-bottom:1rem;align-items:center;gap:0.75rem;flex-wrap:wrap;">
     <button onclick="transAddRow()" style="font-family:'DM Mono',monospace;font-size:0.72rem;padding:0.4rem 0.9rem;background:var(--ink);color:#f0c040;border:none;border-radius:4px;cursor:pointer;">＋ 新增路線</button>
-    <span style="font-size:0.75rem;color:var(--muted);">點擊儲存格可直接編輯　｜　每列右側有刪除按鈕</span>
+    <span style="font-size:0.75rem;color:var(--muted);">點擊儲存格可直接編輯　｜　拖拉 ⠿ 調整同天內順序　｜　每列右側有刪除按鈕</span>
     <button onclick="transSave()" style="margin-left:auto;font-family:'DM Mono',monospace;font-size:0.72rem;padding:0.4rem 0.9rem;background:#27ae60;color:white;border:none;border-radius:4px;cursor:pointer;">💾 儲存</button>
   </div>
 
@@ -1668,6 +1668,7 @@
   <div style="overflow-x:auto;border-radius:6px;border:1px solid #e0d8cc;width:100%;">
     <table id="trans-main-table" style="width:100%;border-collapse:collapse;font-size:0.8rem;background:white;table-layout:fixed;">
       <colgroup>
+        <col id="trans-drag-col-width" style="display:none;width:1.8rem">  <!-- drag handle -->
         <col style="width:3rem">    <!-- D -->
         <col style="width:9%">      <!-- 目的地 -->
         <col style="width:16%">     <!-- 路線名稱 -->
@@ -1680,6 +1681,7 @@
       </colgroup>
       <thead>
         <tr style="background:var(--ink);color:var(--paper);">
+          <th id="trans-drag-col" style="display:none;width:1.8rem;padding:0;"></th>
           <th style="padding:0.6rem 0.5rem;font-family:'DM Mono',monospace;font-size:0.72rem;font-weight:600;text-align:center;white-space:nowrap;">D</th>
           <th style="padding:0.6rem 0.5rem;font-family:'DM Mono',monospace;font-size:0.72rem;font-weight:600;text-align:left;white-space:nowrap;">目的地</th>
           <th style="padding:0.6rem 0.5rem;font-family:'DM Mono',monospace;font-size:0.72rem;font-weight:600;text-align:left;white-space:nowrap;">路線名稱</th>
@@ -1694,6 +1696,7 @@
       <tbody id="trans-tbody"></tbody>
       <tfoot>
         <tr>
+          <td id="trans-drag-col-foot" style="display:none;background:#fff8f8;"></td>
           <td colspan="6" style="text-align:right;padding:0.75rem 1rem;font-size:0.8rem;color:var(--muted);font-family:'DM Mono',monospace;">電車費小計</td>
           <td id="trans-total" style="padding:0.75rem 0.5rem;font-weight:900;font-size:1rem;color:var(--red);font-family:'DM Mono',monospace;text-align:center;background:#fff8f8;">—</td>
           <td style="background:#fff8f8;"></td>
@@ -1722,7 +1725,7 @@
 
   <!-- ── 編輯模式工具列 ── -->
   <div id="food-edit-toolbar" style="display:none;background:#fff8e8;border:1.5px solid var(--gold);border-radius:6px;padding:0.75rem 1rem;margin-bottom:1rem;display:none;align-items:center;gap:0.75rem;flex-wrap:wrap;">
-    <button onclick="foodAddRow()" style="font-family:'DM Mono',monospace;font-size:0.72rem;padding:0.4rem 0.9rem;background:var(--ink);color:#f0c040;border:none;border-radius:4px;cursor:pointer;">＋ 新增一列</button>
+    <button onclick="foodAddRow()" style="font-family:'DM Mono',monospace;font-size:0.72rem;padding:0.4rem 0.9rem;background:var(--ink);color:#f0c040;border:none;border-radius:4px;cursor:pointer;">＋ 新增餐廳</button>
     <span style="font-size:0.75rem;color:var(--muted);">點擊儲存格可直接編輯　｜　拖拉 ⠿ 調整同天內順序　｜　每列右側有刪除按鈕</span>
     <button onclick="foodSave()" style="margin-left:auto;font-family:'DM Mono',monospace;font-size:0.72rem;padding:0.4rem 0.9rem;background:#27ae60;color:white;border:none;border-radius:4px;cursor:pointer;">💾 儲存</button>
   </div>
@@ -3652,6 +3655,22 @@ var storage = firebase.storage(); // var 確保掛到 window，供小筆記圖�
         };
         syncFoot();
         new MutationObserver(syncFoot).observe(foodDelFoot, { attributes:true, attributeFilter:['style'] });
+      }
+    }
+    // transport
+    const transDel = document.getElementById('trans-del-col');
+    if (transDel) {
+      syncCol('trans-del-col','trans-drag-col','trans-drag-col-width');
+      new MutationObserver(() => syncCol('trans-del-col','trans-drag-col','trans-drag-col-width'))
+        .observe(transDel, { attributes:true, attributeFilter:['style'] });
+      const transDelFoot = document.getElementById('trans-del-col-foot');
+      if (transDelFoot) {
+        const syncFoot = () => {
+          const f = document.getElementById('trans-drag-col-foot');
+          if (f) f.style.display = transDelFoot.style.display;
+        };
+        syncFoot();
+        new MutationObserver(syncFoot).observe(transDelFoot, { attributes:true, attributeFilter:['style'] });
       }
     }
   });
