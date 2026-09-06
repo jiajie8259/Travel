@@ -343,6 +343,7 @@ async function foodToggleEdit() {
 var transRows = [];
 var transEditMode = false;
 var transSyncing = false;
+var _transDragSrcIdx = null, _transDragSrcDay = null, _transDragTargetTr = null;
 
 async function transLoad() {
   const e = EC();
@@ -379,23 +380,19 @@ function transRender() {
   const tbody = document.getElementById('trans-tbody');
   if (!tbody) return;
   const e = EC();
-  ['trans-del-col','trans-del-col-foot'].forEach(id => {
-    const el = document.getElementById(id);
-    if (el) el.style.display = transEditMode ? '' : 'none';
-  });
+  const delCol      = document.getElementById('trans-del-col');
+  const delColFoot  = document.getElementById('trans-del-col-foot');
+  const dragCol     = document.getElementById('trans-drag-col');
+  if (delCol)     delCol.style.display     = transEditMode ? '' : 'none';
+  if (delColFoot) delColFoot.style.display = transEditMode ? '' : 'none';
+  if (dragCol)    dragCol.style.display    = transEditMode ? '' : 'none';
 
   if (!transRows.length) {
     tbody.innerHTML = `<tr><td colspan="9" style="color:var(--muted);font-style:italic;text-align:center;padding:1.5rem;">— 交通資訊待補充 —<br><span style="font-size:0.75rem;">點擊右上角「✏ 編輯」按鈕開始新增</span></td></tr>`;
     transCalcTotal(); return;
   }
 
-  const sorted = dayOrderSort(transRows, e.days).sort((a, b) => {
-    // 同天再依發車時間排序（dayOrderSort 已排好天，這裡補時間）
-    const ai = e.days.indexOf(a.day) === -1 ? 99 : e.days.indexOf(a.day);
-    const bi = e.days.indexOf(b.day) === -1 ? 99 : e.days.indexOf(b.day);
-    if (ai !== bi) return ai - bi;
-    return (a.depart||'').localeCompare(b.depart||'');
-  });
+  const sorted = dayOrderSort(transRows, e.days);
 
   tbody.innerHTML = sorted.map(r => {
     const i = r._orig;
@@ -405,11 +402,17 @@ function transRender() {
 
     if (transEditMode) {
       const dayOpts = e.days.map(d => `<option value="${d}" ${r.day===d?'selected':''}>${d}</option>`).join('');
-      const sel = (f, opts) => `<select onchange="transEdit(${i},'${f}',this.value)" style="width:100%;font-size:0.75rem;border:1px solid #ddd;border-radius:3px;padding:0.15rem;box-sizing:border-box;">${opts}</select>`;
-      const inp = (f, v, ph) => `<input value="${(v||'').replace(/"/g,'&quot;')}" onchange="transEdit(${i},'${f}',this.value)" placeholder="${ph}" style="width:100%;font-size:0.78rem;border:1px solid #ddd;border-radius:3px;padding:0.2rem 0.3rem;box-sizing:border-box;">`;
-      const num = (f, v) => `<input type="number" value="${v||''}" onchange="transEdit(${i},'${f}',this.value)" placeholder="0" style="width:100%;font-size:0.78rem;border:1px solid #ddd;border-radius:3px;padding:0.2rem 0.3rem;text-align:right;font-family:'DM Mono',monospace;box-sizing:border-box;">`;
-      const time = (f, v) => `<input value="${v||''}" onchange="transEdit(${i},'${f}',this.value)" placeholder="輸入4碼數字" style="width:100%;font-size:0.78rem;border:1px solid #ddd;border-radius:3px;padding:0.2rem 0.3rem;text-align:center;font-family:'DM Mono',monospace;box-sizing:border-box;">`;
-      return `<tr data-idx="${i}" style="border-bottom:1px solid #f0e8dc;">
+      const sel = (f, opts) => `<select onchange="transEdit(${i},'${f}',this.value)" onmousedown="foodFieldGuard(event)" style="width:100%;font-size:0.75rem;border:1px solid #ddd;border-radius:3px;padding:0.15rem;box-sizing:border-box;">${opts}</select>`;
+      const inp = (f, v, ph) => `<input value="${(v||'').replace(/"/g,'&quot;')}" onchange="transEdit(${i},'${f}',this.value)" onmousedown="foodFieldGuard(event)" placeholder="${ph}" style="width:100%;font-size:0.78rem;border:1px solid #ddd;border-radius:3px;padding:0.2rem 0.3rem;box-sizing:border-box;">`;
+      const num = (f, v) => `<input type="number" value="${v||''}" onchange="transEdit(${i},'${f}',this.value)" onmousedown="foodFieldGuard(event)" placeholder="0" style="width:100%;font-size:0.78rem;border:1px solid #ddd;border-radius:3px;padding:0.2rem 0.3rem;text-align:right;font-family:'DM Mono',monospace;box-sizing:border-box;">`;
+      const time = (f, v) => `<input value="${v||''}" onchange="transEdit(${i},'${f}',this.value)" onmousedown="foodFieldGuard(event)" placeholder="輸入4碼數字" style="width:100%;font-size:0.78rem;border:1px solid #ddd;border-radius:3px;padding:0.2rem 0.3rem;text-align:center;font-family:'DM Mono',monospace;box-sizing:border-box;">`;
+      return `<tr data-idx="${i}" draggable="true" data-day="${r.day||'—'}"
+          style="border-bottom:1px solid #f0e8dc;cursor:grab;"
+          ondragstart="transDragStart(event,${i})"
+          ondragover="transDragOver(event)"
+          ondrop="transDrop(event,${i})"
+          ondragend="transDragEnd(event)">
+        <td style="padding:0.35rem 0.3rem;text-align:center;color:#bbb;font-size:1rem;cursor:grab;user-select:none;" title="拖拉調整同天內順序">⠿</td>
         <td style="padding:0.35rem 0.4rem;">${sel('day',dayOpts)}</td>
         <td style="padding:0.35rem 0.4rem;">${inp('dest',r.dest,'目的地')}</td>
         <td style="padding:0.35rem 0.4rem;">${inp('line',r.line,'路線名稱')}</td>
@@ -422,6 +425,7 @@ function transRender() {
     } else {
       const fmtTime = t => { if (!t) return '—'; const d = t.replace(/\D/g,''); return d.length >= 4 ? d.slice(0,2)+':'+d.slice(2,4) : t; };
       return `<tr style="border-bottom:1px solid #f0e8dc;">
+        <td style="display:none"></td>
         <td style="padding:0.6rem 0.5rem;font-family:'DM Mono',monospace;font-size:0.72rem;color:var(--muted);text-align:center;">${r.day||'—'}</td>
         <td style="padding:0.6rem 0.5rem;font-weight:700;">${r.dest||'—'}</td>
         <td style="padding:0.6rem 0.5rem;font-size:0.78rem;">${r.line||'—'}</td>
@@ -436,20 +440,53 @@ function transRender() {
   transCalcTotal();
 }
 
+// 交通拖拉排序（限制同一天內）
+function transDragStart(e, idx) {
+  _transDragSrcIdx = idx; _transDragSrcDay = transRows[idx]?.day || null;
+  e.dataTransfer.effectAllowed = 'move';
+  e.dataTransfer.setData('text/plain', String(idx));
+  e.currentTarget.style.opacity = '0.45';
+}
+function transDragOver(e) {
+  e.preventDefault();
+  const tr = e.currentTarget;
+  const targetIdx = parseInt(tr.dataset.idx);
+  const targetDay = transRows[targetIdx]?.day || null;
+  if (targetDay !== _transDragSrcDay) { e.dataTransfer.dropEffect = 'none'; tr.style.borderTop = ''; return; }
+  e.dataTransfer.dropEffect = 'move';
+  if (_transDragTargetTr && _transDragTargetTr !== tr) _transDragTargetTr.style.borderTop = '';
+  _transDragTargetTr = tr; tr.style.borderTop = '2.5px solid var(--gold)';
+}
+function transDrop(e, targetIdx) {
+  e.preventDefault();
+  if (_transDragTargetTr) _transDragTargetTr.style.borderTop = '';
+  if (_transDragSrcIdx === null || _transDragSrcIdx === targetIdx) return;
+  if ((transRows[targetIdx]?.day||null) !== _transDragSrcDay) return;
+  const moved = transRows.splice(_transDragSrcIdx, 1)[0];
+  const newTarget = _transDragSrcIdx < targetIdx ? targetIdx - 1 : targetIdx;
+  transRows.splice(newTarget, 0, moved);
+  _transDragSrcIdx = null; _transDragSrcDay = null;
+  transRender(); transPushToFirebase();
+}
+function transDragEnd(e) {
+  e.currentTarget.style.opacity = '';
+  if (_transDragTargetTr) { _transDragTargetTr.style.borderTop = ''; _transDragTargetTr = null; }
+  _transDragSrcIdx = null; _transDragSrcDay = null;
+}
+
 function transEdit(idx, field, value) {
   if (!transRows[idx]) return;
   if ((field==='depart'||field==='arrive') && value) {
     value = formatTimeRange(value);
     const row = document.querySelector(`#trans-tbody tr[data-idx="${idx}"]`);
-    if (row) { const col = field==='depart'?5:6; const inp = row.querySelector(`td:nth-child(${col}) input`); if (inp && inp.value !== value) inp.value = value; }
+    if (row) { const col = field==='depart'?6:7; const inp = row.querySelector(`td:nth-child(${col}) input`); if (inp && inp.value !== value) inp.value = value; }
   }
-  if (transRows[idx]._new) delete transRows[idx]._new;
   transRows[idx][field] = value; transCalcTotal();
 }
 
 function transAddRow() {
   const e = EC();
-  transRows.push({ day: e.days[0]||'D1', dest:'', line:'', route:'', depart:'', arrive:'', fare:'', note:'', _new:true });
+  transRows.push({ day: e.days[0]||'D1', dest:'', line:'', route:'', depart:'', arrive:'', fare:'', note:'' });
   transRender();
   document.getElementById('trans-tbody')?.lastElementChild?.scrollIntoView({ behavior:'smooth', block:'center' });
 }
