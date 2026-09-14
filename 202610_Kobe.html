@@ -1517,7 +1517,7 @@
 
     <!-- 文字輸入 -->
     <div style="margin-bottom:1.25rem;">
-      <label style="font-size:0.78rem;color:var(--muted);font-family:'DM Mono',monospace;letter-spacing:0.08em;display:block;margin-bottom:0.35rem;">內容 <span id="notes-modal-count" style="color:#aaa;">0 / 500</span></label>
+      <label style="font-size:0.78rem;color:var(--muted);font-family:'DM Mono',monospace;letter-spacing:0.08em;display:block;margin-bottom:0.35rem;">內容 <span id="notes-modal-count" style="color:#aaa;">0 / 1200</span></label>
 
       <!-- 圖片模式切換 -->
       <div style="display:flex;gap:0.4rem;margin-bottom:0.6rem;">
@@ -1545,8 +1545,8 @@
       <!-- OCR / 上傳 狀態 -->
       <div id="notes-ocr-status" style="display:none;font-size:0.75rem;font-family:'DM Mono',monospace;color:#b8860b;margin-bottom:0.5rem;text-align:center;"></div>
 
-      <textarea id="notes-modal-text" maxlength="500" rows="6"
-        oninput="document.getElementById('notes-modal-count').textContent=this.value.length+' / 500'"
+      <textarea id="notes-modal-text" maxlength="1200" rows="6"
+        oninput="document.getElementById('notes-modal-count').textContent=this.value.length+' / 1200'"
         placeholder="在這裡輸入筆記內容，或上傳圖片讓 AI 自動辨識…"
         style="width:100%;font-size:0.88rem;border:1.5px solid #ddd;border-radius:5px;padding:0.6rem 0.8rem;resize:vertical;box-sizing:border-box;font-family:'Noto Serif TC',serif;line-height:1.7;"></textarea>
     </div>
