@@ -778,7 +778,7 @@ function notesOpenModal(idx) {
     const n = notesData[notesEditIdx];
     if (cat) cat.value = n.cat || '行程';
     if (ta)  ta.value  = n.text || '';
-    if (cnt) cnt.textContent = (n.text||'').length + ' / 500';
+    if (cnt) cnt.textContent = (n.text||'').length + ' / 1200';
     if (title) title.textContent = '✏ 編輯筆記';
     if (btn)   btn.textContent   = '更新筆記';
     notesSetMode(n.imgUrl ? 'image' : 'ocr');
@@ -795,7 +795,7 @@ function notesOpenModal(idx) {
   } else {
     if (cat) cat.value = '行程';
     if (ta)  ta.value  = '';
-    if (cnt) cnt.textContent = '0 / 500';
+    if (cnt) cnt.textContent = '0 / 1200';
     if (title) title.textContent = '📝 新增小筆記';
     if (btn)   btn.textContent   = '儲存筆記';
     notesSetMode('ocr');
@@ -904,8 +904,8 @@ async function notesHandleImage(file) {
       if (text && ta) {
         const ex = ta.value.trim();
         ta.value = (ex ? ex + '\n\n' : '') + text;
-        if (ta.value.length > 500) ta.value = ta.value.slice(0, 500);
-        if (cnt) cnt.textContent = ta.value.length + ' / 500';
+        if (ta.value.length > 1200) ta.value = ta.value.slice(0, 1200);
+        if (cnt) cnt.textContent = ta.value.length + ' / 1200';
         if (status) { status.textContent = '✓ 辨識完成'; status.style.color = '#27ae60'; }
       } else {
         if (status) { status.textContent = '⚠ 未偵測到文字'; status.style.color = '#c0392b'; }
