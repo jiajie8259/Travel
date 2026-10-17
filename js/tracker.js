@@ -214,7 +214,9 @@ function trackerGetEffectivePay(spotId) {
   if (!pri.unlimited && (trackerUsed[s.primary] || 0) >= pri.cap) {
     const fb = CAPS()[s.fallback];
     if (!fb.unlimited && (trackerUsed[s.fallback] || 0) >= fb.cap) {
-      return { pay: 'rich', primaryExhausted: true, fallbackExhausted: true };
+      // 主卡＋次卡都用盡時的最終備援卡：可由 TRIP_CONFIG.finalFallback 指定（未指定則維持舊預設 'rich'）
+      const finalKey = TC().finalFallback || 'rich';
+      return { pay: finalKey, primaryExhausted: true, fallbackExhausted: true };
     }
     return { pay: s.fallback, primaryExhausted: true, fallbackExhausted: false };
   }
