@@ -781,6 +781,7 @@
   .pb-suica { background: #d8f0dc; color: #3a8a4a; border: 1px solid #88cc90; }
   .pb-cube  { background: #e8f0d8; color: #4a6a30; border: 1px solid #a8c888; }
   .pb-lai   { background: #e3f9e5; color: #06a84a; border: 1px solid #8adba0; }
+  .pb-allpay{ background: #d8f5ea; color: #06966b; border: 1px solid #80d8b8; }
   .pb-cash  { background: #f0ebe5; color: #999;    border: 1px solid #ccc; }
   .pb-rate  { font-family: 'DM Mono', monospace; font-size: 0.7rem; font-weight: 900; }
   .pb-rate.gold   { color: #b8680b; }
@@ -1908,32 +1909,17 @@
   <div id="pay-panel-itinerary" class="pay-sub-panel active">
     <div style="font-family:'DM Mono',monospace;font-size:0.63rem;letter-spacing:0.14em;text-transform:uppercase;color:var(--muted);margin-bottom:0.4rem;">Kobe · Osaka Itinerary · 2026/10/22–10/26 · 逐據點支付建議</div>
 
-    <!-- 色碼說明 -->
+    <!-- 色碼說明（以下皆為扣除手續費或無手續費之淨回饋） -->
     <div style="display:flex;flex-wrap:wrap;gap:0.5rem;margin-bottom:0.9rem;font-size:0.75rem;">
-      <span class="pb pb-kuma">🐻 熊本熊 8.5%</span>
-      <span class="pb pb-cube">🟡 CUBE秋日遊 3.5%</span>
-      <span class="pb pb-eco">🌿 星展eco 5%</span>
-      <span class="pb pb-pay">🔴 PayPay 5%</span>
+      <span class="pb pb-kuma">🐻 熊本熊 6%</span>
+      <span class="pb pb-eco">🌿 星展eco 3.5%</span>
+      <span class="pb pb-cube">🟡 CUBE秋日遊 2%</span>
+      <span class="pb pb-pay">🔴 PayPay 3.5%</span>
+      <span class="pb pb-allpay">🟢 全支付 3.5%</span>
       <span class="pb pb-suica">🍉 Suica</span>
-      <span class="pb pb-rich">🐶 Richart 淨1.8%</span>
-      <span class="pb pb-lai">📱 賴點卡 3%</span>
+      <span class="pb pb-rich">🐶 Richart 1.8%</span>
+      <span class="pb pb-lai">📱 賴點卡 1.5%</span>
       <span class="pb pb-cash">💴 現金</span>
-    </div>
-
-    <!-- ⚠ 海外手續費說明 -->
-    <div style="background:#fff8e7;border:1.5px solid #e0c060;border-radius:8px;padding:0.85rem 1.1rem;margin-bottom:0.9rem;font-size:0.78rem;line-height:1.85;color:var(--muted);">
-      💳 <strong style="color:var(--ink);">國外交易手續費說明</strong><br>
-      <strong>🐻 熊本熊 8.5%</strong>（加碼回饋6%，每期上限NT$500）需同時滿足三個條件：<br>
-      &nbsp;&nbsp;① <strong>完成活動登錄</strong>（每期帳單週期登錄一次，官網或App均可）<br>
-      &nbsp;&nbsp;② <strong>於指定商店消費</strong>（熊好買：唐吉軻德/松本清/BicCamera/UNIQLO/3Coins等；熊好用：Suica/PASMO/ICOCA儲值；<a href="https://event.esunbank.com.tw/credit/kumamon-card/japan-discount.html#!" target="_blank" style="color:var(--blue);">完整清單</a>）<br>
-      &nbsp;&nbsp;③ <strong>持熊本熊實體卡刷卡</strong>（不可綁定玉山Wallet電子支付消費）<br>
-      未符合條件時，一般日本消費仍享2.5%無上限基本回饋。<br>
-      ⚠ <strong>熊本熊卡（一般卡／日圓雙幣卡）另收1.5%國外交易服務費</strong>，上述8.5%為毛回饋，精算淨回饋需再扣約1.5%（約剩7%）。<br>
-      <strong>🟡 CUBE秋日遊</strong>：活動期2026/10/1–11/30（涵蓋本次行程），須在CUBE App切換「秋日遊」權益，日本實體消費3.5%無上限；官方未公告回饋上限❓，出發前建議至App核對一次。<br>
-      <strong>🌿 星展eco</strong>：官方未明確聲明5%是否已扣除國外交易手續費，依卡片慣例保守假設可能另收約1.5%，建議出發前致電確認。<br>
-      <strong>🔴 PayPay</strong>：透過玉山Wallet走行動支付通道，<strong>不收海外交易手續費</strong>，5%為實際淨回饋。✅<br>
-      <strong>🐶 Richart 玩旅刷</strong>：宣稱3.3%，但仍收1.5%手續費，<strong>實際淨回饋僅約1.8%</strong>（無上限備用卡）。⚠️<br>
-      <strong>📱 聯邦賴點卡</strong>：海外3% LINE Points無上限，已確認適用至2026/12/31，但官網未明確聲明是否含手續費❓（熊大卡原活動已到期，改以此卡作為無上限備用）。
     </div>
 
     <!-- 啟動追蹤器 -->
@@ -2065,10 +2051,11 @@
       </table>
     </div>
     <div class="itin-note-box">
-      <strong>💡 關西行額度分配建議（初稿）</strong><br>
-      🐻 熊本熊 8.5% → 唐吉軻德・藥妝・3Coins・UNIQLO 等指定通路<br>
-      🌿 星展eco 5% → 百貨公司・一般餐廳・大型商場<br>
-      🔴 PayPay 5% → 商店街小店・小型咖啡館・行動支付掃碼<br>
+      <strong>💡 關西行額度分配建議（初稿，淨回饋）</strong><br>
+      🐻 熊本熊 6% → 唐吉軻德・藥妝・3Coins・UNIQLO 等指定通路<br>
+      🌿 星展eco 3.5% → 百貨公司・一般餐廳・大型商場<br>
+      🟡 CUBE秋日遊 2% → 無上限保底，額度用盡後接續使用<br>
+      🔴 PayPay 3.5% → 商店街小店・小型咖啡館・行動支付掃碼<br>
       🃏 ICOCA → 關西全線電車、巴士感應扣款<br>
       詳細支付建議待行程確認後補充。
     </div>
@@ -2226,84 +2213,57 @@
     </div>
   </div>
 
-  <!-- ── Sub panel 3: 攻略速查 ── -->
+  <!-- ── Sub panel 3: 使用攻略（內容由使用者提供，出發前保持空白／由使用者更新） ── -->
   <div id="pay-panel-tips" class="pay-sub-panel">
 
-    <div style="background:var(--ink);color:var(--paper);border-radius:8px;padding:1.3rem 1.6rem;margin-bottom:1rem;">
-      <div style="font-family:'DM Mono',monospace;font-size:0.68rem;letter-spacing:0.1em;text-transform:uppercase;color:#f0c040;margin-bottom:0.75rem;">⚡ 最高效率場景速查</div>
-      <table class="pay-rank-table" style="color:var(--paper);">
-        <thead><tr>
-          <th style="color:rgba(255,255,255,0.4);">消費場景</th>
-          <th style="color:rgba(255,255,255,0.4);">最佳支付</th>
-          <th style="color:rgba(255,255,255,0.4);">回饋</th>
-          <th style="color:rgba(255,255,255,0.4);">備註</th>
-        </tr></thead>
-        <tbody>
-          <tr><td>日本實體消費（無上限保底）</td><td>國泰CUBE卡【趣旅行】</td><td style="color:#7ec8e3;font-family:'DM Mono',monospace;font-weight:700;">3%</td><td style="font-size:0.72rem;color:rgba(255,255,255,0.5)">無上限，切換趣旅行即可</td></tr>
-          <tr><td>Suica加值</td><td>玉山熊本熊 + Apple Pay</td><td style="color:#f0c040;font-family:'DM Mono',monospace;font-weight:700;">8.5%</td><td style="font-size:0.72rem;color:rgba(255,255,255,0.5)">每期NT$500封頂；或CUBE領券5%無上限</td></tr>
-          <tr><td>唐吉軻德 / 松本清</td><td>玉山熊本熊（實體或Apple Pay）</td><td style="color:#f0c040;font-family:'DM Mono',monospace;font-weight:700;">8.5%</td><td style="font-size:0.72rem;color:rgba(255,255,255,0.5)">指定通路</td></tr>
-          <tr><td>BicCamera / Yodobashi</td><td>玉山熊本熊（實體或Apple Pay）</td><td style="color:#f0c040;font-family:'DM Mono',monospace;font-weight:700;">8.5%</td><td style="font-size:0.72rem;color:rgba(255,255,255,0.5)">可疊加電器折扣</td></tr>
-          <tr><td>壽司郎 / 一蘭 / 鳥貴族</td><td>玉山熊本熊（實體）</td><td style="color:#f0c040;font-family:'DM Mono',monospace;font-weight:700;">8.5%</td><td style="font-size:0.72rem;color:rgba(255,255,255,0.5)">熊好吃通路</td></tr>
-          <tr><td>一般大額消費</td><td>星展eco極簡（實體）</td><td style="color:#7ec8e3;font-family:'DM Mono',monospace;font-weight:700;">5%</td><td style="font-size:0.72rem;color:rgba(255,255,255,0.5)">每期NT$15,000封頂</td></tr>
-          <tr><td>不收信用卡小店</td><td>PayPay（玉山Wallet）</td><td style="color:#7ec8e3;font-family:'DM Mono',monospace;font-weight:700;">5%</td><td style="font-size:0.72rem;color:rgba(255,255,255,0.5)">季上限NT$2,857</td></tr>
-          <tr><td>超出Richart額度</td><td>聯邦賴點卡</td><td style="color:#a0d4a0;font-family:'DM Mono',monospace;font-weight:700;">3%</td><td style="font-size:0.72rem;color:rgba(255,255,255,0.5)">無上限備用卡（熊大卡已查無延續，改用此卡）</td></tr>
-          <tr><td>搭電車地鐵</td><td>ICOCA / Suica 感應（已加值）</td><td style="color:rgba(255,255,255,0.4);font-family:'DM Mono',monospace;">—</td><td style="font-size:0.72rem;color:rgba(255,255,255,0.5)">回饋在加值時已賺</td></tr>
-        </tbody>
-      </table>
+    <div style="background:#fff8e7;border:1.5px solid #e0c060;border-radius:8px;padding:0.85rem 1.1rem;margin-bottom:1.2rem;font-size:0.78rem;line-height:1.7;color:var(--muted);">
+      📌 以下皆為<strong style="color:var(--ink);">扣除手續費或無手續費之實際淨回饋</strong>（2026/10/18 依使用者提供資料更新）
     </div>
 
-    <div style="background:linear-gradient(135deg,#f5faf0,white);border:1.5px solid #5a7a3a;border-radius:8px;padding:1.2rem 1.4rem;margin-bottom:1rem;">
-      <div style="font-weight:900;margin-bottom:0.75rem;font-size:0.95rem;">🟡 國泰CUBE卡【趣旅行】— 出發前設定</div>
+    <div style="background:white;border:1.5px solid #ddd5c8;border-radius:8px;padding:1.2rem 1.4rem;margin-bottom:1rem;">
+      <div style="font-weight:900;margin-bottom:0.75rem;font-size:0.95rem;">🐻 玉山熊本熊卡〈實體卡〉</div>
       <div style="font-size:0.82rem;line-height:2;color:var(--muted);">
-        ✅ CUBE App 切換「<strong style="color:#4a6a30;">趣旅行</strong>」權益（每日限切換1次，出發當天切好即可）<br>
-        ✅ Level 2 資格：持有國泰台幣帳戶 + 設定自動扣繳，或每月用 CUBE App 手動繳1元卡費<br>
-        ✅ 日本海外實體消費 3% 無上限，全年有效不怕活動到期<br>
-        ✅ 回饋為小樹點（1點=1元），可直接折抵帳單<br>
-        ⚠ 日本賞（3.5%）已於 2026/4/30 結束，改用趣旅行（3%）更穩定<br>
-        ⚠ 非指定通路僅 0.3%，務必先切換「趣旅行」再消費<br>
-        ⚠ 僅限實體刷卡或 Apple Pay/Google Pay/Samsung Pay，不含 LINE Pay、街口等第三方支付
+        日本指定通路 <strong style="color:#b8680b;">淨回饋 6%</strong>（可刷 NT$8,333 ≒ ¥40,598）<br>
+        指定通路：BicCamera、Yodobashi、松本清、唐吉軻德、大國藥妝、無印良品、UNIQLO、GU、Montbell、Alpen、DOUTOR Coffee、Fuglen、鳥貴族、一蘭拉麵、人形町今半、Shake Shack
       </div>
     </div>
 
     <div style="background:white;border:1.5px solid #ddd5c8;border-radius:8px;padding:1.2rem 1.4rem;margin-bottom:1rem;">
-      <div style="font-weight:900;margin-bottom:0.75rem;font-size:0.95rem;">🐻 玉山熊本熊卡 — 出發前必做</div>
+      <div style="font-weight:900;margin-bottom:0.75rem;font-size:0.95rem;">🌿 星展永續極簡卡〈實體卡〉</div>
       <div style="font-size:0.82rem;line-height:2;color:var(--muted);">
-        ✅ 登錄「指定日本商店加碼6%」活動（下半年需重新登錄，官網操作一次即可，整期有效）<br>
-        🆕 2026下半年新增指定通路：Prince Hotel、Budget租車、人形町今半、Montbell、Alpen<br>
-        ✅ 下載「玉山Wallet」App，開通電子支付 → 日本可用PayPay（延續至2026/12/31）<br>
-        ✅ iPhone：Apple錢包加入Suica，綁定熊本熊卡加值享8.5%<br>
-        ⚠ 加碼6%每期上限NT$500（約可刷8,333元，滿了換其他卡）
+        <strong style="color:#2e7d52;">淨回饋 3.5%</strong>（可刷 NT$15,000 ≒ ¥73,079）
       </div>
     </div>
 
     <div style="background:white;border:1.5px solid #ddd5c8;border-radius:8px;padding:1.2rem 1.4rem;margin-bottom:1rem;">
-      <div style="font-weight:900;margin-bottom:0.75rem;font-size:0.95rem;">🐶 台新Richart卡 — 出發前必做</div>
+      <div style="font-weight:900;margin-bottom:0.75rem;font-size:0.95rem;">🟡 國泰CUBE卡〈實體卡〉</div>
       <div style="font-size:0.82rem;line-height:2;color:var(--muted);">
-        ✅ 設定台新帳戶自動扣繳升級Level 2，才能享3.3%<br>
-        ✅ 出國前在Richart Life App切換到「玩旅刷」方案<br>
-        ⚠ 玩旅刷宣稱3.3%，但仍收1.5%手續費，實際淨回饋約1.8%（補底備用）<br>
-        ✅ 支援Apple Pay / Google Pay / Samsung Pay
+        切換至「秋日遊」方案 <strong style="color:#4a6a30;">淨回饋 2%（無上限）</strong><br>
+        ⚠ 部分通路需先在App領券，且<strong>不含百貨及商場門市</strong><br>
+        通路加碼：關西機場指定免稅店 2.5%／SUNDRUG單筆逾¥10,000部分 3%／3COINS限定店（友都八喜3F）3.5%
       </div>
     </div>
 
     <div style="background:white;border:1.5px solid #ddd5c8;border-radius:8px;padding:1.2rem 1.4rem;margin-bottom:1rem;">
-      <div style="font-weight:900;margin-bottom:0.75rem;font-size:0.95rem;">🔴 PayPay — 使用教學</div>
+      <div style="font-weight:900;margin-bottom:0.75rem;font-size:0.95rem;">🐶 台新Richart卡〈實體卡〉</div>
       <div style="font-size:0.82rem;line-height:2;color:var(--muted);">
-        ✅ 玉山Wallet → 電子支付 → 綁定熊本熊卡<br>
-        ✅ 消費時：支付 → 條碼付 → 玉山電子支付 → PayPay → 出示條碼<br>
-        ✅ 適用：居酒屋、拉麵店、計程車、藥妝小店等不接受信用卡感應的地方<br>
-        ⚠ 每季回饋上限NT$100（≒NT$2,857消費）
+        切換至「玩旅刷」方案 <strong style="color:#2c5f8a;">淨回饋 1.8%（無上限）</strong>
+      </div>
+    </div>
+
+    <div style="background:white;border:1.5px solid #ddd5c8;border-radius:8px;padding:1.2rem 1.4rem;margin-bottom:1rem;">
+      <div style="font-weight:900;margin-bottom:0.75rem;font-size:0.95rem;">📱 聯邦賴點卡〈實體卡〉</div>
+      <div style="font-size:0.82rem;line-height:2;color:var(--muted);">
+        <strong style="color:#06a84a;">淨回饋 1.5%（無上限）</strong>
       </div>
     </div>
 
     <div style="background:white;border:1.5px solid #ddd5c8;border-radius:8px;padding:1.2rem 1.4rem;">
-      <div style="font-weight:900;margin-bottom:0.75rem;font-size:0.95rem;">🃏 ICOCA / Suica 交通卡加值攻略</div>
+      <div style="font-weight:900;margin-bottom:0.75rem;font-size:0.95rem;">🔴 PayPay</div>
       <div style="font-size:0.82rem;line-height:2;color:var(--muted);">
-        ✅ 關西建議使用 <strong>ICOCA</strong>（JR西日本）或 Suica，兩者在關西 JR・阪急・阪神・地鐵均可感應<br>
-        ✅ iPhone：Apple錢包 → ＋ → 交通卡 → Suica 或 ICOCA → 用熊本熊卡加值 → 享8.5%<br>
-        ✅ 可提前在台灣完成開卡和加值<br>
-        ✅ 適用：JR、私鐵、地下鐵、巴士、全家/7-11/Lawson、自販機<br>
-        ⚠ 餘額建議維持3,000–5,000日圓，用完再補值繼續賺8.5%
+        <strong>玉山Wallet：</strong><strong style="color:#cc0033;">淨回饋 3.5%</strong>（可刷 NT$2,857 ≒ ¥13,919）<br>
+        <strong>全支付：</strong><strong style="color:#06966b;">淨回饋 3.5%</strong>（每筆交易超過NT$1,000≒¥4,872的部分則無回饋；每月最多可刷NT$4,000≒¥19,488）<br>
+        <strong>全支付加碼：</strong><strong style="color:#06966b;">淨回饋 4%</strong>（單筆交易需超過NT$3,000≒¥14,616，僅有一次機會）
       </div>
     </div>
 
@@ -2528,44 +2488,50 @@ document.querySelectorAll('.event').forEach((el, i) => {
   el.style.animationDelay = (i * 0.04) + 's';
 });
 
-// ─── 回饋率說明（追蹤器顯示「毛回饋」，尚未扣除國外交易手續費）─────────────────
-// ⚠ 2026/10/17查證更新：依「支付優惠建議」頁籤最新查證結果同步 2026 Q4 卡別與費率
-// 熊本熊卡：帳面8.5%，但須滿足條件：① 指定通路（熊好買/熊好遊/熊好吃等）
-//           ② 活動期間完成登錄（每期僅需登錄1次）
-//           ③ 加碼6%每歸戶每期回饋上限NT$500（≈ NT$8,333消費封頂）
-//           ④ 超過上限後一般日本消費仍享2.5%無上限
-//           ⑤ 官方明確另收1.5%國外交易服務費，8.5%為毛回饋
-//           → 追蹤器顯示8.5%毛回饋（未扣1.5%手續費）
-// CUBE秋日遊：2026/10/1–11/30限定（涵蓋本次10/22–10/26行程），日本實體消費3.5%無上限
-//           須在CUBE App切換「秋日遊」權益（與「趣旅行」互斥，每日限切換1次）
-//           → 追蹤器以3.5%計算，作為額度用盡後的無上限備用卡
-// 星展eco：  官方未明確聲明5%是否已扣除手續費，依卡片慣例保守假設可能另收約1.5%
-//           → 追蹤器沿用5%（毛回饋，未確認是否需再扣手續費）
-// Richart玩旅刷：宣稱3.3%，但仍收1.5%手續費
-//           → 實際淨回饋 = 3.3% - 1.5% = 1.8%（追蹤器使用淨值）
-// 聯邦賴點卡：海外3% LINE Points無上限，已確認適用至2026/12/31，但官網未明確聲明是否含手續費
-//           → 追蹤器沿用3%（毛回饋，未確認是否需再扣手續費）；原「熊大卡」活動已到期，改用此卡
-// PayPay(玉山Wallet)：日本PayPay不走信用卡刷卡流程，不收海外交易手續費
-//           → 5% 為實際淨回饋；每季回饋上限NT$100
+// ─── 回饋率說明（2026/10/18 依使用者提供資料全面改版：以下皆為「實際淨回饋」，已扣除手續費或無手續費）─────────────────
+// 資料來源：使用者提供之最新查核版本（取代先前「毛回饋＋手續費另計」的估算模型）
+// 熊本熊卡：日本指定通路淨回饋6%，可刷NT$8,333（≒¥40,598）封頂
+//           指定通路：BicCamera/Yodobashi/松本清/唐吉軻德/大國藥妝/無印良品/UNIQLO/GU/
+//           Montbell/Alpen/DOUTOR Coffee/Fuglen/鳥貴族/一蘭拉麵/人形町今半/Shake Shack
+// 星展eco：  淨回饋3.5%，可刷NT$15,000（≒¥73,079）封頂
+// CUBE秋日遊：切換「秋日遊」方案，淨回饋2%無上限；不含百貨及商場門市，部分通路需先App領券
+//           通路加碼：關西機場指定免稅店2.5%／SUNDRUG單筆逾¥10,000部分3%／3COINS限定店(友都八喜3F)3.5%
+//           → 追蹤器以基本2%計算，作為無上限的最終備用卡
+// Richart玩旅刷：切換「玩旅刷」方案，淨回饋1.8%無上限
+// 聯邦賴點卡：淨回饋1.5%無上限
+// PayPay(玉山Wallet)：淨回饋3.5%，可刷NT$2,857（≒¥13,919）封頂
+// 全支付：淨回饋3.5%，每筆上限NT$1,000（≒¥4,872，超過部分無回饋），每月可刷NT$4,000（≒¥19,488）封頂
+//           另有單筆消費逾NT$3,000（≒¥14,616）送一次性4%加碼（僅限一次，追蹤器未納入此加碼）
 // Suica：   電子票券儲值消費，無信用卡回饋，僅作消費記帳用
 // 日幣現金：現金消費，無回饋，僅作消費記帳用
 const TRACKER_CAPS = {
   kuma:  {
     label: '🐻 熊本熊',
-    cap: 500, rate: 0.085, color: '#b8680b', unlimited: false,
-    condNote: '須：① 指定通路（唐吉軻德/松本清/BicCamera/UNIQLO/Suica儲值等）② 活動登錄1次 ③ 加碼6%每期上限NT$500（≈¥40,000封頂），超過上限後一般日本消費仍享2.5%',
-    feeNote: '⚠ 另收約1.5%手續費，上列為毛回饋（未扣手續費）'
+    cap: 500, rate: 0.06, color: '#b8680b', unlimited: false,
+    condNote: '指定通路限定：BicCamera/Yodobashi/松本清/唐吉軻德/大國藥妝/無印良品/UNIQLO/GU/Montbell/Alpen/DOUTOR Coffee/Fuglen/鳥貴族/一蘭拉麵/人形町今半/Shake Shack',
+    feeNote: '淨回饋6%（已扣除手續費），可刷NT$8,333≒¥40,598封頂'
+  },
+  eco:   {
+    label: '🌿 星展eco', cap: 525, rate: 0.035, color: '#2e7d52', unlimited: false,
+    feeNote: '淨回饋3.5%（已扣除手續費），可刷NT$15,000≒¥73,079封頂'
   },
   cube:  {
     label: '🟡 CUBE秋日遊',
-    cap: 99999, rate: 0.035, color: '#4a6a30', unlimited: true,
-    condNote: '須先在CUBE App切換「秋日遊」權益（每日限切換1次，與「趣旅行」互斥）；活動期2026/10/1–11/30；指定通路加碼至5%需另領App優惠券；未切換時回落至「趣旅行」3%無上限',
-    feeNote: '❓ 官方未公告回饋上限，出發前建議至CUBE App核對一次'
+    cap: 99999, rate: 0.02, color: '#4a6a30', unlimited: true,
+    condNote: '切換至「秋日遊」方案；不含百貨及商場門市，部分通路需先App領券；通路加碼：關西機場指定免稅店2.5%／SUNDRUG單筆逾¥10,000部分3%／3COINS限定店(友都八喜3F)3.5%',
+    feeNote: '淨回饋2%（無上限，已扣除手續費）'
   },
-  eco:   { label: '🌿 星展eco',  cap: 600,   rate: 0.05,  color: '#2e7d52', unlimited: false, feeNote: '❓ 是否含手續費未明確，依慣例可能另收1.5%' },
-  pay:   { label: '🔴 PayPay',  cap: 100,   rate: 0.05,  color: '#cc0033', unlimited: false, feeNote: '免收海外手續費（行動支付通道）；每季上限NT$100' },
-  rich:  { label: '🐶 Richart', cap: 99999, rate: 0.018, color: '#2c5f8a', unlimited: true,  feeNote: '玩旅刷3.3%－手續費1.5%＝淨回饋1.8%' },
-  lai:   { label: '📱 賴點卡',  cap: 99999, rate: 0.03,  color: '#06C755', unlimited: true,  feeNote: '❓ 是否含手續費未明確，依慣例可能另收1.5%；適用至2026/12/31' },
+  pay:   {
+    label: '🔴 PayPay', cap: 100, rate: 0.035, color: '#cc0033', unlimited: false,
+    feeNote: '玉山Wallet，淨回饋3.5%（已扣除手續費），可刷NT$2,857≒¥13,919封頂'
+  },
+  allpay:{
+    label: '🟢 全支付', cap: 140, rate: 0.035, color: '#06966b', unlimited: false,
+    condNote: '每筆交易上限NT$1,000≒¥4,872，超過部分無回饋；每月最多可刷NT$4,000≒¥19,488；另有單筆消費逾NT$3,000≒¥14,616送一次性4%加碼（僅限一次，此處未納入計算）',
+    feeNote: '淨回饋3.5%（已扣除手續費），每月可刷NT$4,000≒¥19,488封頂'
+  },
+  rich:  { label: '🐶 Richart', cap: 99999, rate: 0.018, color: '#2c5f8a', unlimited: true,  feeNote: '切換「玩旅刷」方案，淨回饋1.8%（已扣除手續費）' },
+  lai:   { label: '📱 賴點卡',  cap: 99999, rate: 0.015, color: '#06C755', unlimited: true,  feeNote: '淨回饋1.5%（已扣除手續費）' },
   suica: { label: '🍉 Suica',   cap: 0,     rate: 0,     color: '#3a8a4a', unlimited: true,  noRebate: true, feeNote: '交通卡消費，無回饋，僅作支出記帳' },
   cash:  { label: '💴 日幣現金', cap: 0,     rate: 0,     color: '#888',    unlimited: true,  noRebate: true, feeNote: '現金消費，無回饋，僅作支出記帳' },
 };
@@ -2582,7 +2548,7 @@ const TRACKER_SPOTS = {
 // 讓 TRIP_CONFIG 指向本行程的 tracker 設定（tracker.js 透過 TC() 讀取）
 TRIP_CONFIG.TRACKER_CAPS  = TRACKER_CAPS;
 TRIP_CONFIG.TRACKER_SPOTS = TRACKER_SPOTS;
-TRIP_CONFIG.finalFallback = 'cube'; // 主卡＋次卡額度皆用盡時的最終備用卡（CUBE秋日遊3.5%無上限，優於Richart淨1.8%）
+TRIP_CONFIG.finalFallback = 'cube'; // 主卡＋次卡額度皆用盡時的最終備用卡（CUBE秋日遊淨回饋2%無上限，優於Richart淨1.8%與賴點卡淨1.5%）
 
 // [已移至 tracker.js] let trackerUsed = { kuma: 0, eco: 0, pay: 0, rich: 0 };
 // [已移至 tracker.js] let trackerLogs = {};
@@ -3329,6 +3295,7 @@ const CARD_CHIP_STYLE = {
   cube:  'background:#e8f0d8;color:#4a6a30;border:1px solid #a8c888;',
   eco:   'background:#d4f0e0;color:#2e7d52;border:1px solid #80c8a0;',
   pay:   'background:#ffe0e0;color:#cc0033;border:1px solid #f0a0a0;',
+  allpay:'background:#d8f5ea;color:#06966b;border:1px solid #80d8b8;',
   rich:  'background:#d4e4f5;color:#2c5f8a;border:1px solid #80a8d8;',
   lai:   'background:#e3f9e5;color:#06a84a;border:1px solid #8adba0;',
   suica: 'background:#d8f0dc;color:#3a8a4a;border:1px solid #88cc90;',
