@@ -156,6 +156,25 @@ function trackerActivate() {
 }
 
 /* ══════════════════════════════════════
+   5b. 依支付方式統計實際消費金額（TWD／JPY）
+   ══════════════════════════════════════ */
+function trackerGetSpendByCard(key) {
+  let twd = 0, jpy = 0;
+  Object.values(trackerLogs).forEach(entries => entries.forEach(e => {
+    if (e.payUsed === key) { twd += e.twd; jpy += e.jpy; }
+  }));
+  Object.values(freeLogs).forEach(entries => entries.forEach(e => {
+    if (e.payUsed === key) { twd += e.twd; jpy += e.jpy; }
+  }));
+  return { twd, jpy };
+}
+function trackerFormatSpend(spend) {
+  return spend.twd > 0
+    ? `已刷 NT$${spend.twd.toFixed(0)} ≒ ¥${Math.round(spend.jpy).toLocaleString()}`
+    : `尚無消費記錄`;
+}
+
+/* ══════════════════════════════════════
    6. Dashboard 渲染
    ══════════════════════════════════════ */
 function trackerRenderDashboard() {
@@ -170,6 +189,7 @@ function trackerRenderDashboard() {
       const cardCls = cfg.unlimited ? '' : (pct >= 100 ? 'exhausted' : pct >= 70 ? 'warning' : '');
       const pctLbl  = cfg.unlimited ? '無上限' : (pct >= 100 ? '已用盡' : `${Math.round(pct)}%`);
       const rateLbl = `${(cfg.rate * 100).toFixed(1)}%`;
+      const spentLbl = trackerFormatSpend(trackerGetSpendByCard(key));
       return `
       <div class="tracker-card ${cardCls}" id="tc-${key}">
         <div class="tc-head">
@@ -177,12 +197,10 @@ function trackerRenderDashboard() {
           <span class="tc-pct ${barCls}">${pctLbl}</span>
         </div>
         ${!cfg.unlimited ? `
-        <div class="tc-bar-track"><div class="tc-bar-fill ${barCls}" id="tbar-${key}" style="width:${pct}%"></div></div>
+        <div class="tc-bar-track"><div class="tc-bar-fill ${barCls}" id="tbar-${key}" style="width:${pct}%"></div></div>` : ''}
         <div class="tc-amounts">
-          <span class="tc-used">已用 NT$${u.toFixed(0)}</span>
-          <span class="tc-cap">上限 NT$${cfg.cap}</span>
-        </div>` : `
-        <div style="font-size:0.62rem;color:#555;margin-top:0.25rem;font-family:'DM Mono',monospace;">無回饋上限 · 已記 NT$${u.toFixed(0)}</div>`}
+          <span class="tc-used" id="tcspend-${key}">${spentLbl}</span>
+        </div>
       </div>`;
     }).join('');
 }
@@ -200,8 +218,8 @@ function trackerUpdateDashboard(key) {
   card.querySelector('.tc-pct').className   = `tc-pct ${barCls}`;
   const bar  = document.getElementById(`tbar-${key}`);
   if (bar) { bar.style.width = pct + '%'; bar.className = `tc-bar-fill ${barCls}`; }
-  const used = card.querySelector('.tc-used');
-  if (used) used.textContent = `已用 NT$${u.toFixed(0)}`;
+  const spendEl = document.getElementById(`tcspend-${key}`);
+  if (spendEl) spendEl.textContent = trackerFormatSpend(trackerGetSpendByCard(key));
 }
 
 /* ══════════════════════════════════════
@@ -649,6 +667,7 @@ function freeModalConfirm() {
   if (!freeLogs[freePendingDay]) freeLogs[freePendingDay] = [];
   freeLogs[freePendingDay].push({ name, jpy, twd, rebate, payUsed: freeSelectedPay });
   freeLogsSave();
+  if (!cfg.noRebate) trackerUpdateDashboard(freeSelectedPay);
   const day = freePendingDay;
   freeModalClose();
   freeRenderDayLogs(day);
@@ -691,6 +710,7 @@ function freeDeleteEntry(day, idx) {
   }
   freeLogs[day].splice(idx, 1);
   freeLogsSave();
+  if (!cfg?.noRebate) trackerUpdateDashboard(e.payUsed);
   freeRenderDayLogs(day);
   if (document.getElementById('ledger-overlay').classList.contains('open')) ledgerRender();
 }
