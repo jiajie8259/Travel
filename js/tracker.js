@@ -169,7 +169,7 @@ function trackerRenderDashboard() {
       const barCls  = cfg.unlimited ? 'ok' : (pct >= 100 ? 'full' : pct >= 70 ? 'warn' : 'ok');
       const cardCls = cfg.unlimited ? '' : (pct >= 100 ? 'exhausted' : pct >= 70 ? 'warning' : '');
       const pctLbl  = cfg.unlimited ? '無上限' : (pct >= 100 ? '已用盡' : `${Math.round(pct)}%`);
-      const rateLbl = key === 'rich' ? '淨1.8%' : `${(cfg.rate * 100).toFixed(1)}%`;
+      const rateLbl = `${(cfg.rate * 100).toFixed(1)}%`;
       return `
       <div class="tracker-card ${cardCls}" id="tc-${key}">
         <div class="tc-head">
@@ -239,7 +239,7 @@ function trackerRenderSpotStatus(spotId) {
   if (eff.primaryExhausted) {
     statusHtml = `<span class="pay-status-chip chip-exhausted">額度已用盡</span>`;
     const fbCfg  = CAPS()[s.fallback];
-    const fbRate = s.fallback === 'rich' ? '淨1.8%' : '5%';
+    const fbRate = `${(fbCfg.rate * 100).toFixed(1)}%`;
     fallbackHtml = `<div class="fallback-pay show">↪ 改用 ${fbCfg.label}<br><span style="font-family:'DM Mono',monospace;font-weight:700;color:#b8860b;">${fbRate}</span></div>`;
   } else {
     const pct     = priCfg.unlimited ? 0 : (u / priCfg.cap) * 100;
@@ -302,14 +302,8 @@ function trackerRenderPaySelector(recommendedKey) {
   container.innerHTML = Object.entries(CAPS()).map(([key, cfg]) => {
     const isRec    = key === recommendedKey;
     const isActive = key === activeKey;
-    let rateLabel;
-    if (cfg.noRebate)        rateLabel = '無回饋';
-    else if (key === 'rich') rateLabel = '淨1.8%';
-    else if (key === 'kuma') rateLabel = '8.5%⚠';
-    else                     rateLabel = `${(cfg.rate * 100).toFixed(1)}%`;
-    const tooltip = key === 'kuma'
-      ? '⚠ 須滿足：① 完成活動登錄 ② 指定商店通路 ③ 持實體卡刷（非玉山Wallet）'
-      : (cfg.feeNote || '');
+    const rateLabel = cfg.noRebate ? '無回饋' : `${(cfg.rate * 100).toFixed(1)}%`;
+    const tooltip = [cfg.condNote, cfg.feeNote].filter(Boolean).join(' · ');
     return `<button
       class="pay-sel-btn${isActive ? ` active-${key}` : ''}${isRec ? ' recommended' : ''}"
       onclick="trackerSelectPay('${key}')"
@@ -368,9 +362,8 @@ function trackerUpdatePreview() {
     ? `<span style="color:#6ec88a;font-size:0.72rem;">無上限</span>`
     : `還能刷 <strong>¥${spendLeftJPY.toLocaleString()}</strong>（回饋剩 NT$${rebateLeft.toFixed(0)}）`;
 
-  const kumaWarn = selectedKey === 'kuma'
-    ? `<div style="font-size:0.68rem;color:#b8680b;margin-top:0.3rem;line-height:1.5;">
-         ⚠ 須：① 完成活動登錄 ② 指定商店通路 ③ 持實體卡刷（非玉山Wallet）</div>` : '';
+  const condWarn = payCfg.condNote
+    ? `<div style="font-size:0.68rem;color:#b8680b;margin-top:0.3rem;line-height:1.5;">⚠ ${payCfg.condNote}</div>` : '';
 
   let warnHtml = '';
   if (!payCfg.unlimited && pctAfter >= 100) {
@@ -382,11 +375,11 @@ function trackerUpdatePreview() {
   }
 
   document.getElementById('tracker-modal-preview').innerHTML = jpy === 0
-    ? `<span style="color:#888;font-size:0.78rem;">${remainHtml}<br>輸入日幣金額預覽回饋</span>${kumaWarn}`
+    ? `<span style="color:#888;font-size:0.78rem;">${remainHtml}<br>輸入日幣金額預覽回饋</span>${condWarn}`
     : `消費 ¥${jpy.toLocaleString()} ≒ NT$${Math.round(twd).toLocaleString()}<br>
        回饋率 <span class="prev-rate">${(payCfg.rate * 100).toFixed(1)}%</span>　
        預估回饋 <span class="prev-rebate">NT$${rebate.toFixed(1)}</span><br>
-       ${remainHtml}${warnHtml}${kumaWarn}`;
+       ${remainHtml}${warnHtml}${condWarn}`;
 }
 
 function trackerCloseModal() {
@@ -608,15 +601,12 @@ function freeRenderPaySelector() {
   if (!container) return;
   container.innerHTML = Object.entries(CAPS()).map(([key, cfg]) => {
     const isActive = key === freeSelectedPay;
-    let rateLabel;
-    if (cfg.noRebate)        rateLabel = '無回饋';
-    else if (key === 'rich') rateLabel = '淨1.8%';
-    else if (key === 'kuma') rateLabel = '8.5%⚠';
-    else                     rateLabel = `${(cfg.rate * 100).toFixed(1)}%`;
+    const rateLabel = cfg.noRebate ? '無回饋' : `${(cfg.rate * 100).toFixed(1)}%`;
+    const tooltip = [cfg.condNote, cfg.feeNote].filter(Boolean).join(' · ');
     return `<button
       class="pay-sel-btn${isActive ? ` active-${key}` : ''}"
       onclick="freeSelectPay('${key}')"
-      title="${cfg.feeNote || ''}"
+      title="${tooltip}"
     >${cfg.label} ${rateLabel}</button>`;
   }).join('');
 }
@@ -637,9 +627,9 @@ function freeModalUpdatePreview() {
   }
   const maxRebate = cfg.unlimited ? Infinity : Math.max(0, cfg.cap - (trackerUsed[freeSelectedPay] || 0));
   const rebate    = Math.min(twd * cfg.rate, maxRebate);
-  const kumaWarn  = freeSelectedPay === 'kuma'
-    ? `<div style="font-size:0.65rem;color:#b8680b;margin-top:0.2rem;">⚠ 須登錄＋指定通路＋實體卡刷</div>` : '';
-  preview.innerHTML = `≒ NT$${Math.round(twd).toLocaleString()} · 回饋 <strong style="color:#27ae60;">NT$${rebate.toFixed(1)}</strong>${kumaWarn}`;
+  const condWarn  = cfg.condNote
+    ? `<div style="font-size:0.65rem;color:#b8680b;margin-top:0.2rem;">⚠ ${cfg.condNote}</div>` : '';
+  preview.innerHTML = `≒ NT$${Math.round(twd).toLocaleString()} · 回饋 <strong style="color:#27ae60;">NT$${rebate.toFixed(1)}</strong>${condWarn}`;
 }
 function freeModalConfirm() {
   const name = document.getElementById('free-modal-name').value.trim() || '其他消費';
