@@ -703,6 +703,7 @@ var notesPendingImgUrl = null;   // 已上傳到 Storage 的網址（存圖模�
 var notesPendingImgPath = null;  // 對應的 Storage 路徑（供刪除用）
 var notesOriginalImgUrl = null;  // 編輯前，該筆記原本的圖片網址
 var notesUploading = false;
+var notesDragIdx = -1;
 
 const NOTE_COLORS = {
   '行程': { bg:'#fffde7', border:'#f9a825', icon:'🗓' },
@@ -750,8 +751,15 @@ function notesRender() {
     card.style.cssText = `background:${c.bg};border:1.5px solid ${c.border};border-radius:8px;padding:1rem 1.1rem 0.85rem;position:relative;box-shadow:0 2px 8px rgba(0,0,0,0.06);transition:box-shadow 0.15s;display:flex;flex-direction:column;height:100%;`;
     card.onmouseenter = () => card.style.boxShadow = '0 6px 18px rgba(0,0,0,0.12)';
     card.onmouseleave = () => card.style.boxShadow = '0 2px 8px rgba(0,0,0,0.06)';
+    card.dataset.idx = idx;
+    card.ondragstart = ev => { notesDragIdx = idx; ev.dataTransfer.effectAllowed = 'move'; try { ev.dataTransfer.setData('text/plain', String(idx)); } catch(_) {} setTimeout(() => card.style.opacity = '0.4', 0); };
+    card.ondragover  = ev => { if (notesDragIdx < 0) return; ev.preventDefault(); ev.dataTransfer.dropEffect = 'move'; card.style.outline = '2px dashed ' + c.border; };
+    card.ondragleave = () => { card.style.outline = ''; };
+    card.ondrop      = ev => { ev.preventDefault(); card.style.outline = ''; notesDrop(idx); };
+    card.ondragend   = () => { notesDragIdx = -1; card.style.opacity = ''; card.draggable = false; };
     card.innerHTML = `
       <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:0.6rem;flex-shrink:0;">
+        <span class="notes-drag-handle" title="拖曳調整位置" onmousedown="this.closest('div[data-idx]').draggable=true" onmouseup="this.closest('div[data-idx]').draggable=false" ontouchstart="" style="cursor:grab;color:#bbb;font-size:0.95rem;line-height:1;padding:0 0.35rem 0 0;user-select:none;">⠿</span>
         <span style="font-size:0.68rem;font-family:'DM Mono',monospace;font-weight:700;letter-spacing:0.1em;color:${c.border};background:white;padding:0.15em 0.55em;border-radius:3px;border:1px solid ${c.border};">${c.icon} ${note.cat||'筆記'}</span>
         <div style="display:flex;align-items:center;gap:0.4rem;">
           <span style="font-size:0.65rem;color:#aaa;font-family:'DM Mono',monospace;">${date}</span>
@@ -763,6 +771,16 @@ function notesRender() {
       ${note.text ? `<div style="font-size:0.85rem;line-height:1.75;white-space:pre-wrap;word-break:break-word;color:var(--ink);flex-shrink:0;">${note.text}</div>` : ''}`;
     grid.appendChild(card);
   });
+}
+
+function notesDrop(targetIdx) {
+  const from = notesDragIdx;
+  notesDragIdx = -1;
+  if (from < 0 || from === targetIdx) { notesRender(); return; }
+  const [moved] = notesData.splice(from, 1);
+  notesData.splice(targetIdx, 0, moved);
+  notesRender();
+  notesPush();
 }
 
 function notesOpenModal(idx) {
@@ -1183,6 +1201,7 @@ const ITIN_TYPE_CLASS = { '交通':'tag-transport','景點':'tag-spot','餐飲':
 const CARD_TYPE_DOT = { '交通':'#aaa','景點':'#6b7c5e','餐飲':'#c0392b','住宿':'#8b6b3d','其他':'#999' };
 
 var prepData = []; // [ { id, cat, text, done } ]
+var prepEditId = null;
 const PREP_CATS = ['證件金融','3C電子','藥品保健','衣物穿搭','機場接送','eSIM','換外幣','列印小卡','支付優惠','訂交通票','確認路線','其他'];
 const PREP_CAT_ICON = { '證件金融':'🛂','3C電子':'🔌','藥品保健':'💊','衣物穿搭':'👕','機場接送':'🚕','eSIM':'📶','換外幣':'💱','列印小卡':'🖨️','支付優惠':'💳','訂交通票':'🎫','確認路線':'🗺️','其他':'📦' };
 
@@ -1384,6 +1403,32 @@ function prepToggle(id) {
   prepPush();
 }
 
+function prepEscAttr(t) {
+  return String(t == null ? '' : t).replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+function prepEdit(id) {
+  prepEditId = id;
+  prepRender();
+  const inp = document.getElementById('prep-edit-input');
+  if (inp) { inp.focus(); inp.setSelectionRange(inp.value.length, inp.value.length); }
+}
+function prepEditCancel() {
+  prepEditId = null;
+  prepRender();
+}
+function prepEditSave(id) {
+  const item = prepData.find(i => i.id === id);
+  const text = document.getElementById('prep-edit-input')?.value?.trim();
+  const cat  = document.getElementById('prep-edit-cat')?.value;
+  if (!item) { prepEditCancel(); return; }
+  if (!text) { alert('項目內容不可為空白！'); return; }
+  item.text = text;
+  if (cat) item.cat = cat;
+  prepEditId = null;
+  prepRender();
+  prepPush();
+}
+
 function prepDelete(id) {
   prepData = prepData.filter(i => i.id !== id);
   prepRender();
@@ -1409,10 +1454,21 @@ function prepRender() {
   list.innerHTML = PREP_CATS.map(cat => {
     const items = prepData.filter(i => i.cat === cat);
     if (!items.length) return '';
-    const rows = items.map(i => `
+    const rows = items.map(i => i.id === prepEditId ? `
+      <div style="display:flex;align-items:center;gap:0.5rem;padding:0.5rem 0.3rem;border-bottom:1px solid #eee;flex-wrap:wrap;background:#fffdf5;">
+        <select id="prep-edit-cat" style="font-size:0.8rem;border:1.5px solid #ddd;border-radius:5px;padding:0.35rem 0.4rem;background:white;">
+          ${PREP_CATS.map(c => `<option value="${c}" ${c === i.cat ? 'selected' : ''}>${PREP_CAT_ICON[c] || ''} ${c}</option>`).join('')}
+        </select>
+        <input id="prep-edit-input" type="text" value="${prepEscAttr(i.text)}" maxlength="200"
+          onkeydown="if(event.key==='Enter'){prepEditSave('${i.id}')}else if(event.key==='Escape'){prepEditCancel()}"
+          style="flex:1;min-width:140px;font-size:0.88rem;border:1.5px solid var(--gold);border-radius:5px;padding:0.4rem 0.6rem;">
+        <button onclick="prepEditSave('${i.id}')" style="background:var(--gold);color:white;border:none;border-radius:5px;padding:0.4rem 0.8rem;font-size:0.8rem;cursor:pointer;">儲存</button>
+        <button onclick="prepEditCancel()" style="background:none;border:1px solid #ccc;color:#888;border-radius:5px;padding:0.4rem 0.7rem;font-size:0.8rem;cursor:pointer;">取消</button>
+      </div>` : `
       <div style="display:flex;align-items:center;gap:0.65rem;padding:0.55rem 0.3rem;border-bottom:1px solid #eee;">
         <input type="checkbox" ${i.done ? 'checked' : ''} onchange="prepToggle('${i.id}')" style="width:18px;height:18px;cursor:pointer;accent-color:var(--gold);flex-shrink:0;">
         <span style="flex:1;font-size:0.88rem;word-break:break-word;${i.done ? 'text-decoration:line-through;color:#bbb;' : 'color:var(--ink);'}">${i.text}</span>
+        <button onclick="prepEdit('${i.id}')" title="編輯" style="background:none;border:none;cursor:pointer;color:#bbb;font-size:0.85rem;padding:0.1rem 0.3rem;line-height:1;transition:color 0.15s;" onmouseenter="this.style.color='#2c7be5'" onmouseleave="this.style.color='#bbb'">✏</button>
         <button onclick="prepDelete('${i.id}')" title="刪除" style="background:none;border:none;cursor:pointer;color:#ccc;font-size:0.95rem;padding:0.1rem 0.35rem;line-height:1;transition:color 0.15s;" onmouseenter="this.style.color='#c0392b'" onmouseleave="this.style.color='#ccc'">✕</button>
       </div>`).join('');
     return `<div style="margin-bottom:1.5rem;">
