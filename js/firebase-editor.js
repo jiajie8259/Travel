@@ -1754,11 +1754,62 @@ function mapLinksRender() {
   if (!box) return;
   const links = mapLinksData.map(l => {
     const url = mapNormalizeUrl(l.url);
-    return url ? `<a href="${mapEsc(url)}" target="_blank" rel="noopener noreferrer" title="${mapEsc(url)}">🗺 ${mapEsc(l.label || '地圖')}</a>` : '';
+    return url ? `<a href="${mapEsc(url)}" target="_blank" rel="noopener noreferrer" title="${mapEsc(url)}" onclick="return mapLinksClick(event,this)">🗺 ${mapEsc(l.label || '地圖')}</a>` : '';
   }).join('');
   box.innerHTML = links
     ? links + `<button class="map-edit" onclick="mapLinksOpenModal()" title="編輯地圖連結">✏</button>`
     : `<button class="map-add" onclick="mapLinksOpenModal()">＋ 設定地圖連結</button>`;
+}
+
+/* ── 圖片連結：在頁面內以放大預覽開啟（主畫面 App 模式下新分頁無法關閉，故不離開網站） ── */
+function mapIsStandalone() {
+  try { return window.navigator.standalone === true || window.matchMedia('(display-mode: standalone)').matches; } catch(_) { return false; }
+}
+function mapIsImageUrl(u) {
+  try { return /\.(png|jpe?g|gif|webp|avif|bmp|svg|heic)$/i.test(new URL(u).pathname); } catch(_) { return false; }
+}
+function mapLinksClick(ev, a) {
+  const url = a.getAttribute('href');
+  // 圖片網址一律用預覽；主畫面 App 模式下其他連結也先嘗試當圖片顯示（失敗會提供備用按鈕）
+  if (mapIsImageUrl(url) || mapIsStandalone()) {
+    ev.preventDefault();
+    mapLinksShowViewer(url, a.textContent.replace('🗺','').trim(), !mapIsImageUrl(url));
+    return false;
+  }
+  return true;
+}
+function mapLinksShowViewer(url, title, uncertain) {
+  let v = document.getElementById('map-viewer');
+  if (!v) {
+    v = document.createElement('div');
+    v.id = 'map-viewer';
+    v.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.92);z-index:10000;display:none;flex-direction:column;';
+    v.addEventListener('click', ev => { if (ev.target === v || ev.target.id === 'map-viewer-body') mapLinksCloseViewer(); });
+    document.body.appendChild(v);
+    document.addEventListener('keydown', ev => { if (ev.key === 'Escape') mapLinksCloseViewer(); });
+  }
+  v.innerHTML = `
+    <div style="display:flex;align-items:center;justify-content:space-between;gap:0.6rem;padding:calc(env(safe-area-inset-top,0px) + 0.6rem) 0.9rem 0.6rem;color:white;flex-shrink:0;">
+      <span style="font-size:0.9rem;font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">🗺 ${mapEsc(title)}</span>
+      <button onclick="mapLinksCloseViewer()" style="background:white;color:#222;border:none;border-radius:20px;padding:0.5rem 1.1rem;font-size:0.9rem;font-weight:700;cursor:pointer;flex-shrink:0;">✕ 關閉</button>
+    </div>
+    <div id="map-viewer-body" style="flex:1;overflow:auto;-webkit-overflow-scrolling:touch;text-align:center;padding:0.5rem 0.5rem calc(env(safe-area-inset-bottom,0px) + 1rem);">
+      <img id="map-viewer-img" src="${mapEsc(url)}" alt="${mapEsc(title)}" style="max-width:100%;height:auto;border-radius:4px;background:white;" onclick="this.style.maxWidth = this.style.maxWidth === 'none' ? '100%' : 'none'">
+      <div id="map-viewer-err" style="display:none;color:white;padding:2.5rem 1rem;font-size:0.9rem;line-height:1.8;">
+        這個連結不是圖片，無法在頁面內顯示。<br>
+        <a href="${mapEsc(url)}" target="_blank" rel="noopener noreferrer" style="display:inline-block;margin-top:0.8rem;color:#222;background:#f0c040;padding:0.6rem 1.2rem;border-radius:6px;text-decoration:none;font-weight:700;">改用瀏覽器開啟</a>
+        <div style="font-size:0.72rem;opacity:0.6;margin-top:0.8rem;">（若開啟後無法返回，請從螢幕底部往上滑回到本網站）</div>
+      </div>
+    </div>`;
+  const img = v.querySelector('#map-viewer-img');
+  img.onerror = () => { img.style.display = 'none'; v.querySelector('#map-viewer-err').style.display = 'block'; };
+  v.style.display = 'flex';
+  document.body.style.overflow = 'hidden';
+}
+function mapLinksCloseViewer() {
+  const v = document.getElementById('map-viewer');
+  if (v) v.style.display = 'none';
+  document.body.style.overflow = '';
 }
 
 async function mapLinksLoad() {
