@@ -1697,6 +1697,156 @@ async function flightSave() {
 }
 
 /* ══════════════════════════════════════════════════════════════
+   7b. 標題區地圖連結（最多 5 個，自訂名稱＋網址，跨裝置同步）
+   ══════════════════════════════════════════════════════════════ */
+var mapLinksData = []; // [ { label, url } ]
+const MAP_LINKS_MAX = 5;
+
+function mapEsc(t) {
+  return String(t == null ? '' : t).replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+function mapNormalizeUrl(u) {
+  u = (u || '').trim();
+  if (!u) return '';
+  if (!/^[a-z][a-z0-9+.-]*:/i.test(u)) u = 'https://' + u;
+  return /^https?:\/\//i.test(u) ? u : '';
+}
+
+function mapLinksInjectUI() {
+  if (document.getElementById('map-links')) return;
+  const header = document.querySelector('header');
+  if (!header) return;
+  const style = document.createElement('style');
+  style.textContent = `
+    #map-links { position:absolute; right:2rem; bottom:1rem; display:flex; flex-wrap:wrap; justify-content:flex-end; gap:0.4rem; max-width:min(380px,40%); z-index:2; }
+    #map-links a, #map-links button.map-edit, #map-links button.map-add {
+      font-family:'DM Mono',monospace; font-size:0.68rem; letter-spacing:0.06em; text-decoration:none;
+      color:var(--gold); border:1px solid rgba(184,134,11,0.55); background:rgba(0,0,0,0.25);
+      padding:0.3em 0.8em; border-radius:3px; cursor:pointer; transition:all 0.15s; white-space:nowrap;
+    }
+    #map-links a:hover, #map-links button:hover { background:var(--gold); color:var(--ink); }
+    #map-links button.map-add { border-style:dashed; opacity:0.75; }
+    #map-links button.map-edit { padding:0.3em 0.55em; opacity:0.7; }
+    @media (max-width:600px) {
+      #map-links { position:static; max-width:none; justify-content:flex-end; margin-top:0.8rem; }
+    }
+    @media print { #map-links { display:none; } }
+    #map-modal { display:none; position:fixed; inset:0; background:rgba(0,0,0,0.55); z-index:9999; align-items:center; justify-content:center; padding:1rem; }
+    #map-modal .map-box { background:white; border-radius:10px; width:min(560px,100%); max-height:90vh; overflow:auto; padding:1.3rem 1.4rem; color:var(--ink); text-align:left; }
+    #map-modal .map-row { display:flex; gap:0.4rem; margin-bottom:0.5rem; align-items:center; }
+    #map-modal input { font-size:0.85rem; border:1.5px solid #ddd; border-radius:5px; padding:0.45rem 0.6rem; min-width:0; }
+    #map-modal input.map-label { width:30%; flex-shrink:0; }
+    #map-modal input.map-url { flex:1; }
+  `;
+  document.head.appendChild(style);
+  const box = document.createElement('div');
+  box.id = 'map-links';
+  header.appendChild(box);
+  const modal = document.createElement('div');
+  modal.id = 'map-modal';
+  modal.addEventListener('click', ev => { if (ev.target === modal) mapLinksCloseModal(); });
+  document.body.appendChild(modal);
+}
+
+function mapLinksRender() {
+  mapLinksInjectUI();
+  const box = document.getElementById('map-links');
+  if (!box) return;
+  const links = mapLinksData.map(l => {
+    const url = mapNormalizeUrl(l.url);
+    return url ? `<a href="${mapEsc(url)}" target="_blank" rel="noopener noreferrer" title="${mapEsc(url)}">🗺 ${mapEsc(l.label || '地圖')}</a>` : '';
+  }).join('');
+  box.innerHTML = links
+    ? links + `<button class="map-edit" onclick="mapLinksOpenModal()" title="編輯地圖連結">✏</button>`
+    : `<button class="map-add" onclick="mapLinksOpenModal()">＋ 設定地圖連結</button>`;
+}
+
+async function mapLinksLoad() {
+  mapLinksInjectUI();
+  const e = EC();
+  const doc = e.doc('maplinks');
+  try { const s = localStorage.getItem(e.lsKey('maplinks')); if (s) mapLinksData = JSON.parse(s); } catch(_) {}
+  mapLinksRender();
+  if (!doc) return;
+  try {
+    const snap = await doc.get();
+    if (snap.exists && Array.isArray(snap.data().items)) {
+      mapLinksData = snap.data().items;
+      try { localStorage.setItem(e.lsKey('maplinks'), JSON.stringify(mapLinksData)); } catch(_) {}
+    }
+  } catch(_) {}
+  mapLinksRender();
+}
+
+function mapLinksRowHtml(l) {
+  return `<div class="map-row">
+    <input class="map-label" type="text" maxlength="20" placeholder="名稱（例：行程地圖）" value="${mapEsc(l.label)}">
+    <input class="map-url" type="url" placeholder="https://…（網頁或圖片網址）" value="${mapEsc(l.url)}">
+    <button type="button" onclick="mapLinksRemoveRow(this)" title="刪除" style="background:none;border:none;cursor:pointer;color:#bbb;font-size:1rem;">✕</button>
+  </div>`;
+}
+function mapLinksOpenModal() {
+  const modal = document.getElementById('map-modal');
+  if (!modal) return;
+  const rows = (mapLinksData.length ? mapLinksData : [{label:'',url:''}]).map(mapLinksRowHtml).join('');
+  modal.innerHTML = `<div class="map-box">
+    <div style="font-weight:900;font-size:1rem;margin-bottom:0.3rem;">🗺 地圖連結設定</div>
+    <div style="font-size:0.75rem;color:#888;margin-bottom:0.9rem;">最多 ${MAP_LINKS_MAX} 個，可連到網頁或圖片，點擊會在新分頁開啟。名稱留空的列不會儲存。</div>
+    <div id="map-rows">${rows}</div>
+    <button type="button" id="map-add-row" onclick="mapLinksAddRow()" style="font-size:0.78rem;border:1px dashed #bbb;background:none;border-radius:5px;padding:0.35rem 0.8rem;cursor:pointer;color:#666;margin-top:0.2rem;">＋ 新增一個連結</button>
+    <div style="display:flex;justify-content:flex-end;gap:0.5rem;margin-top:1.1rem;">
+      <button type="button" onclick="mapLinksCloseModal()" style="background:none;border:1px solid #ccc;color:#888;border-radius:5px;padding:0.5rem 1rem;font-size:0.82rem;cursor:pointer;">取消</button>
+      <button type="button" onclick="mapLinksSave()" style="background:var(--gold);color:white;border:none;border-radius:5px;padding:0.5rem 1.2rem;font-size:0.82rem;cursor:pointer;">儲存</button>
+    </div>
+  </div>`;
+  modal.style.display = 'flex';
+  mapLinksSyncAddBtn();
+}
+function mapLinksCloseModal() {
+  const modal = document.getElementById('map-modal');
+  if (modal) modal.style.display = 'none';
+}
+function mapLinksSyncAddBtn() {
+  const n = document.querySelectorAll('#map-rows .map-row').length;
+  const btn = document.getElementById('map-add-row');
+  if (btn) btn.style.display = n >= MAP_LINKS_MAX ? 'none' : '';
+}
+function mapLinksAddRow() {
+  const wrap = document.getElementById('map-rows');
+  if (!wrap || wrap.querySelectorAll('.map-row').length >= MAP_LINKS_MAX) return;
+  wrap.insertAdjacentHTML('beforeend', mapLinksRowHtml({label:'',url:''}));
+  mapLinksSyncAddBtn();
+  wrap.querySelector('.map-row:last-child .map-label')?.focus();
+}
+function mapLinksRemoveRow(btn) {
+  btn.closest('.map-row')?.remove();
+  mapLinksSyncAddBtn();
+}
+async function mapLinksSave() {
+  const items = [];
+  const bad = [];
+  document.querySelectorAll('#map-rows .map-row').forEach(row => {
+    const label = row.querySelector('.map-label').value.trim();
+    const raw = row.querySelector('.map-url').value.trim();
+    if (!label && !raw) return;
+    const url = mapNormalizeUrl(raw);
+    if (!url) { bad.push(label || raw || '(未命名)'); return; }
+    items.push({ label: label || '地圖', url });
+  });
+  if (bad.length) { alert('以下連結網址無效（需為 http/https 網址）：\n' + bad.join('、')); return; }
+  mapLinksData = items.slice(0, MAP_LINKS_MAX);
+  mapLinksCloseModal();
+  mapLinksRender();
+  const e = EC();
+  const doc = e.doc('maplinks');
+  try { localStorage.setItem(e.lsKey('maplinks'), JSON.stringify(mapLinksData)); } catch(_) {}
+  if (doc) {
+    try { await doc.set({ items: mapLinksData, updatedAt: firebase.firestore.FieldValue.serverTimestamp() }); }
+    catch(_) { alert('雲端儲存失敗，已暫存在本機，稍後請再試一次。'); }
+  }
+}
+
+/* ══════════════════════════════════════════════════════════════
    8. 頁面載入：初始化所有 editors
    ══════════════════════════════════════════════════════════════ */
 document.addEventListener('DOMContentLoaded', function() {
@@ -1714,4 +1864,5 @@ document.addEventListener('DOMContentLoaded', function() {
   spotsLoad();
   itineraryLoad();
   prepLoad();
+  mapLinksLoad();
 });
