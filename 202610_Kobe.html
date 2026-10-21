@@ -1247,6 +1247,14 @@
         <input class="free-modal-amount" id="free-modal-amount" type="number" placeholder="0" min="0" oninput="freeModalUpdatePreview()">
       </div>
     </div>
+    <div class="free-modal-field" id="free-coupon-field" style="display:none;">
+      <label class="free-modal-label" for="free-modal-coupon">🎟 樂享券現抵金額（日圓，選填）</label>
+      <div class="free-modal-amount-wrap">
+        <span class="free-modal-currency">¥</span>
+        <input class="free-modal-amount" id="free-modal-coupon" type="number" placeholder="0" min="0" oninput="freeModalUpdatePreview()">
+      </div>
+      <div style="font-size:0.68rem;color:#999;margin-top:0.3rem;line-height:1.5;">上方金額填原價；回饋依「原價 − 現抵」的實付金額計算。每張券單筆滿¥1,000可用、最高折抵¥200。</div>
+    </div>
     <div class="free-modal-preview" id="free-modal-preview"></div>
     <div class="free-modal-btns">
       <button class="free-btn-cancel" onclick="freeModalClose()">取消</button>
@@ -1913,8 +1921,8 @@
       <span class="pb pb-kuma">🐻 熊本熊 6%</span>
       <span class="pb pb-eco">🌿 星展eco 3.5%</span>
       <span class="pb pb-cube">🟡 CUBE秋日遊 2%</span>
-      <span class="pb pb-pay">🔴 PayPay 3.5%</span>
-      <span class="pb pb-allpay">🟢 全支付 3.5%</span>
+      <span class="pb pb-pay">🔴 PayPay-玉山Wallet 3.5%</span>
+      <span class="pb pb-allpay">🟢 PayPay-全支付 3.5%</span>
       <span class="pb pb-suica">🍉 Suica</span>
       <span class="pb pb-rich">🐶 Richart 1.8%</span>
       <span class="pb pb-lai">📱 賴點卡 1.5%</span>
@@ -2260,9 +2268,25 @@
     <div style="background:white;border:1.5px solid #ddd5c8;border-radius:8px;padding:1.2rem 1.4rem;">
       <div style="font-weight:900;margin-bottom:0.75rem;font-size:0.95rem;">🔴 PayPay</div>
       <div style="font-size:0.82rem;line-height:2;color:var(--muted);">
-        <strong>玉山Wallet：</strong><strong style="color:#cc0033;">淨回饋 3.5%</strong>（可刷 NT$2,857 ≒ ¥13,919）<br>
-        <strong>全支付：</strong><strong style="color:#06966b;">淨回饋 3.5%</strong>（每筆交易超過NT$1,000≒¥4,872的部分則無回饋；每月最多可刷NT$4,000≒¥19,488）<br>
-        <strong>全支付加碼：</strong><strong style="color:#06966b;">淨回饋 4%</strong>（單筆交易需超過NT$3,000≒¥14,616，僅有一次機會）
+        <strong>PayPay-玉山Wallet：</strong><strong style="color:#cc0033;">淨回饋 3.5%</strong>（可刷 NT$2,857 ≒ ¥13,919）<br>
+        <strong>PayPay-全支付：</strong><strong style="color:#06966b;">淨回饋 3.5%</strong>（每筆交易超過NT$1,000≒¥4,872的部分則無回饋；每月最多可刷NT$4,000≒¥19,488）<br>
+        <strong>PayPay-全支付加碼：</strong><strong style="color:#06966b;">淨回饋 4%</strong>（單筆交易需超過NT$3,000≒¥14,616，僅有一次機會）
+      </div>
+      <div style="font-weight:700;font-size:0.85rem;margin:1rem 0 0.5rem;color:var(--ink);">🎟 玉山Wallet 樂享券（滿額現抵）</div>
+      <div style="overflow-x:auto;">
+        <table style="width:100%;border-collapse:collapse;font-size:0.8rem;">
+          <thead><tr style="background:#faf7f2;text-align:left;">
+            <th style="padding:0.45rem 0.6rem;border-bottom:1.5px solid #ddd5c8;white-space:nowrap;">適用場域</th>
+            <th style="padding:0.45rem 0.6rem;border-bottom:1.5px solid #ddd5c8;white-space:nowrap;">券面餘額</th>
+            <th style="padding:0.45rem 0.6rem;border-bottom:1.5px solid #ddd5c8;">使用規則</th>
+          </tr></thead>
+          <tbody>
+            <tr><td style="padding:0.45rem 0.6rem;border-bottom:1px solid #eee;white-space:nowrap;">🛍 百貨店券</td><td style="padding:0.45rem 0.6rem;border-bottom:1px solid #eee;white-space:nowrap;">JPY 200</td><td rowspan="4" style="padding:0.45rem 0.6rem;border-bottom:1px solid #eee;line-height:1.7;vertical-align:top;">單筆滿 JPY 1,000 可使用，最高折抵 JPY 200<br>使用期間：2026/08/07 ～ 2026/12/31<br>適用付款方式：信用卡、銀行及郵局帳戶、餘額付款</td></tr>
+            <tr><td style="padding:0.45rem 0.6rem;border-bottom:1px solid #eee;white-space:nowrap;">🏪 便利商店券</td><td style="padding:0.45rem 0.6rem;border-bottom:1px solid #eee;white-space:nowrap;">JPY 200</td></tr>
+            <tr><td style="padding:0.45rem 0.6rem;border-bottom:1px solid #eee;white-space:nowrap;">🎀 藥妝店券</td><td style="padding:0.45rem 0.6rem;border-bottom:1px solid #eee;white-space:nowrap;">JPY 200</td></tr>
+            <tr><td style="padding:0.45rem 0.6rem;border-bottom:1px solid #eee;white-space:nowrap;">🧥 UNIQLO、GU券</td><td style="padding:0.45rem 0.6rem;border-bottom:1px solid #eee;white-space:nowrap;">JPY 200</td></tr>
+          </tbody>
+        </table>
       </div>
     </div>
 
@@ -2521,11 +2545,11 @@ const TRACKER_CAPS = {
     feeNote: '淨回饋2%（無上限，已扣除手續費）'
   },
   pay:   {
-    label: '🔴 PayPay', cap: 100, rate: 0.035, color: '#cc0033', unlimited: false,
+    label: '🔴 PayPay-玉山Wallet', cap: 100, rate: 0.035, color: '#cc0033', unlimited: false,
     feeNote: '玉山Wallet，淨回饋3.5%（已扣除手續費），可刷NT$2,857≒¥13,919封頂'
   },
   allpay:{
-    label: '🟢 全支付', cap: 140, rate: 0.035, color: '#06966b', unlimited: false,
+    label: '🟢 PayPay-全支付', cap: 140, rate: 0.035, color: '#06966b', unlimited: false,
     condNote: '每筆交易上限NT$1,000≒¥4,872，超過部分無回饋；每月最多可刷NT$4,000≒¥19,488；另有單筆消費逾NT$3,000≒¥14,616送一次性4%加碼（僅限一次，此處未納入計算）',
     feeNote: '淨回饋3.5%（已扣除手續費），每月可刷NT$4,000≒¥19,488封頂'
   },
