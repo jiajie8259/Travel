@@ -605,6 +605,7 @@ function freeModalOpen(day) {
   freeSelectedPay = 'eco';
   document.getElementById('free-modal-name').value   = '';
   document.getElementById('free-modal-amount').value = '';
+  const cpInit = document.getElementById('free-modal-coupon'); if (cpInit) cpInit.value = '';
   freeRenderPaySelector();
   freeModalUpdatePreview();
   document.getElementById('free-modal').classList.add('open');
@@ -628,31 +629,53 @@ function freeRenderPaySelector() {
     >${cfg.label} ${rateLabel}</button>`;
   }).join('');
 }
+// 樂享券現抵欄位：僅「PayPay-玉山Wallet」顯示
+function freeCouponActive() { return freeSelectedPay === 'pay'; }
+function freeSyncCouponField() {
+  const f = document.getElementById('free-coupon-field');
+  if (f) f.style.display = freeCouponActive() ? '' : 'none';
+  if (!freeCouponActive()) { const c = document.getElementById('free-modal-coupon'); if (c) c.value = ''; }
+}
+function freeGetCoupon(jpy) {
+  if (!freeCouponActive()) return 0;
+  const c = parseFloat(document.getElementById('free-modal-coupon')?.value) || 0;
+  return Math.min(Math.max(0, c), jpy);
+}
 function freeSelectPay(key) {
   freeSelectedPay = key;
   freeRenderPaySelector();
   freeModalUpdatePreview();
 }
 function freeModalUpdatePreview() {
-  const jpy     = parseFloat(document.getElementById('free-modal-amount').value) || 0;
+  freeSyncCouponField();
+  const jpyGross = parseFloat(document.getElementById('free-modal-amount').value) || 0;
+  const coupon  = freeGetCoupon(jpyGross);
+  const jpy     = jpyGross - coupon; // 實付金額（回饋與已刷皆以實付計）
   const cfg     = CAPS()[freeSelectedPay];
   const preview = document.getElementById('free-modal-preview');
-  if (!cfg || jpy === 0) { preview.innerHTML = ''; return; }
+  if (!cfg || jpyGross === 0) { preview.innerHTML = ''; return; }
   const twd = jpy * TRACKER_JPY_TWD_LIVE;
+  const couponHtml = coupon > 0
+    ? `<div style="font-size:0.7rem;color:#555;margin-bottom:0.2rem;">原價 ¥${jpyGross.toLocaleString()} − 樂享券 ¥${coupon.toLocaleString()} ＝ 實付 <strong>¥${jpy.toLocaleString()}</strong></div>` : '';
+  const couponWarn = (coupon > 0 && (jpyGross < 1000 || coupon > 200))
+    ? `<div style="font-size:0.65rem;color:#b8680b;margin-top:0.2rem;">⚠ 依券規則：單筆滿¥1,000才可使用，每張最高折抵¥200，請確認金額</div>` : '';
   if (cfg.noRebate) {
-    preview.innerHTML = `≒ NT$${Math.round(twd).toLocaleString()} · 無回饋`;
+    preview.innerHTML = `${couponHtml}≒ NT$${Math.round(twd).toLocaleString()} · 無回饋`;
     return;
   }
   const maxRebate = cfg.unlimited ? Infinity : Math.max(0, cfg.cap - (trackerUsed[freeSelectedPay] || 0));
   const rebate    = Math.min(twd * cfg.rate, maxRebate);
   const condWarn  = cfg.condNote
     ? `<div style="font-size:0.65rem;color:#b8680b;margin-top:0.2rem;">⚠ ${cfg.condNote}</div>` : '';
-  preview.innerHTML = `≒ NT$${Math.round(twd).toLocaleString()} · 回饋 <strong style="color:#27ae60;">NT$${rebate.toFixed(1)}</strong>${condWarn}`;
+  preview.innerHTML = `${couponHtml}≒ NT$${Math.round(twd).toLocaleString()} · 回饋 <strong style="color:#27ae60;">NT$${rebate.toFixed(1)}</strong>${couponWarn}${condWarn}`;
 }
 function freeModalConfirm() {
   const name = document.getElementById('free-modal-name').value.trim() || '其他消費';
-  const jpy  = parseFloat(document.getElementById('free-modal-amount').value);
-  if (!jpy || jpy <= 0 || !freePendingDay) return;
+  const jpyGross = parseFloat(document.getElementById('free-modal-amount').value);
+  if (!jpyGross || jpyGross <= 0 || !freePendingDay) return;
+  const coupon = freeGetCoupon(jpyGross);
+  const jpy  = jpyGross - coupon; // 實付金額
+  if (jpy <= 0) { alert('樂享券現抵金額不可大於或等於消費金額！'); return; }
   const cfg = CAPS()[freeSelectedPay];
   const twd = jpy * TRACKER_JPY_TWD_LIVE;
   let rebate = 0;
@@ -665,7 +688,9 @@ function freeModalConfirm() {
     trackerRenderAllSpotStatuses();
   }
   if (!freeLogs[freePendingDay]) freeLogs[freePendingDay] = [];
-  freeLogs[freePendingDay].push({ name, jpy, twd, rebate, payUsed: freeSelectedPay });
+  const entry = { name, jpy, twd, rebate, payUsed: freeSelectedPay };
+  if (coupon > 0) entry.coupon = coupon; // 樂享券現抵（jpy 為已扣除後的實付）
+  freeLogs[freePendingDay].push(entry);
   freeLogsSave();
   if (!cfg.noRebate) trackerUpdateDashboard(freeSelectedPay);
   const day = freePendingDay;
@@ -692,6 +717,7 @@ function freeRenderDayLogs(day) {
       <span class="fle-name">${e.name}</span>
       <span style="${chipStyle}; padding:0.1em 0.4em; border-radius:3px; font-family:'DM Mono',monospace; font-size:0.58rem; font-weight:700;">${cfg?.label || e.payUsed}</span>
       <span class="fle-jpy">¥${e.jpy.toLocaleString()}</span>
+      ${e.coupon ? `<span style="font-family:'DM Mono',monospace;font-size:0.58rem;color:#b8680b;white-space:nowrap;" title="已扣除樂享券現抵">🎟 券-¥${e.coupon.toLocaleString()}</span>` : ''}
       ${rebateHtml}
       <button class="log-del" onclick="freeDeleteEntry('${day}',${i})" title="刪除">✕</button>
     </div>`;
