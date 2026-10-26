@@ -107,29 +107,185 @@ function updateRateDisplay(source) {
 }
 
 /* ══════════════════════════════════════
-   4. 持久化（localStorage）
+   4. 持久化（localStorage 快取 + Firebase 雲端同步）
+   ──────────────────────────────────────
+   合併、不覆蓋：每筆記錄有唯一 id 與時間戳 ts，
+   兩台裝置各自新增的記錄一律取聯集；刪除以「墓碑」(deleted) 記錄，
+   避免被另一台裝置的舊資料復活。回饋金額由合併後的全部記錄依時間順序重算。
    ══════════════════════════════════════ */
-function trackerSaveState() {
+let trackerDeleted = {};   // { entryId: 刪除時間 }
+let skipTs         = {};   // { skipId: 最後切換時間 }
+
+function trackerMeta() {
+  return { id: 'e' + Date.now().toString(36) + Math.random().toString(36).slice(2, 7), ts: Date.now() };
+}
+// 舊資料（尚無 id）補上 id / ts
+function trackerEnsureIds() {
+  let n = 0;
+  const fix = e => { if (!e.id) { const m = trackerMeta(); e.id = m.id; e.ts = ++n; } else if (!e.ts) e.ts = ++n; };
+  Object.values(trackerLogs).forEach(a => a.forEach(fix));
+  Object.values(freeLogs).forEach(a => a.forEach(fix));
+}
+function trackerTombstone(e) { if (e && e.id) trackerDeleted[e.id] = Date.now(); }
+
+function trackerSaveLocal() {
   const k = TC().storageKey;
   try { localStorage.setItem(`${k}_tracker_used`, JSON.stringify(trackerUsed)); } catch(e) {}
   try { localStorage.setItem(`${k}_tracker_logs`, JSON.stringify(trackerLogs)); } catch(e) {}
+  try { localStorage.setItem(`${k}_free_logs`, JSON.stringify(freeLogs)); } catch(e) {}
+  try { localStorage.setItem(`${k}_skip`, JSON.stringify(skipState)); } catch(e) {}
+  try { localStorage.setItem(`${k}_tracker_deleted`, JSON.stringify(trackerDeleted)); } catch(e) {}
+  try { localStorage.setItem(`${k}_skip_ts`, JSON.stringify(skipTs)); } catch(e) {}
 }
+function trackerSaveState() { trackerSaveLocal(); trackerSyncSchedule(); }
 function trackerLoadState() {
   const k = TC().storageKey;
   try { const u = localStorage.getItem(`${k}_tracker_used`); if (u) trackerUsed = JSON.parse(u); } catch(e) {}
   try { const l = localStorage.getItem(`${k}_tracker_logs`); if (l) trackerLogs = JSON.parse(l); } catch(e) {}
+  try { const d = localStorage.getItem(`${k}_tracker_deleted`); if (d) trackerDeleted = JSON.parse(d); } catch(e) {}
+  trackerEnsureIds();
 }
-function freeLogsSave() {
-  try { localStorage.setItem(`${TC().storageKey}_free_logs`, JSON.stringify(freeLogs)); } catch(e) {}
-}
+function freeLogsSave() { trackerSaveLocal(); trackerSyncSchedule(); }
 function freeLogsLoad() {
   try { const d = localStorage.getItem(`${TC().storageKey}_free_logs`); if (d) freeLogs = JSON.parse(d); } catch(e) {}
+  trackerEnsureIds();
 }
-function skipSave() {
-  try { localStorage.setItem(`${TC().storageKey}_skip`, JSON.stringify(skipState)); } catch(e) {}
-}
+function skipSave() { trackerSaveLocal(); trackerSyncSchedule(); }
 function skipLoad() {
-  try { const d = localStorage.getItem(`${TC().storageKey}_skip`); if (d) skipState = JSON.parse(d); } catch(e) {}
+  const k = TC().storageKey;
+  try { const d = localStorage.getItem(`${k}_skip`); if (d) skipState = JSON.parse(d); } catch(e) {}
+  try { const t = localStorage.getItem(`${k}_skip_ts`); if (t) skipTs = JSON.parse(t); } catch(e) {}
+}
+
+/* ── 同步資料結構：{entries:[{id,ts,k,g,...}], deleted:{id:ts}, skip:{id:{v,ts}}} ── */
+function trackerSnapshot() {
+  const entries = [];
+  Object.entries(trackerLogs).forEach(([g, arr]) => arr.forEach(e => { if (e.id) entries.push({ ...e, k: 's', g }); }));
+  Object.entries(freeLogs).forEach(([g, arr]) => arr.forEach(e => { if (e.id) entries.push({ ...e, k: 'f', g }); }));
+  const skip = {};
+  Object.keys(skipState).forEach(id => { skip[id] = { v: !!skipState[id], ts: skipTs[id] || 0 }; });
+  return { entries, deleted: { ...trackerDeleted }, skip };
+}
+function trackerMerge(a, b) {
+  const deleted = { ...(a.deleted || {}) };
+  Object.entries(b.deleted || {}).forEach(([id, ts]) => { deleted[id] = Math.max(deleted[id] || 0, ts || 0); });
+  const map = new Map();
+  [...(a.entries || []), ...(b.entries || [])].forEach(e => {
+    if (e && e.id && !deleted[e.id] && !map.has(e.id)) map.set(e.id, e);
+  });
+  const skip = { ...(a.skip || {}) };
+  Object.entries(b.skip || {}).forEach(([id, o]) => {
+    if (!skip[id] || (o.ts || 0) > (skip[id].ts || 0)) skip[id] = o;
+  });
+  return { entries: [...map.values()], deleted, skip };
+}
+function trackerSignature(d) {
+  const ids = (d.entries || []).map(e => e.id).sort().join(',');
+  const del = Object.keys(d.deleted || {}).sort().join(',');
+  const sk  = Object.keys(d.skip || {}).sort().map(i => i + ':' + d.skip[i].v + ':' + d.skip[i].ts).join(',');
+  return ids + '|' + del + '|' + sk;
+}
+// 合併結果寫回記憶體狀態，並依時間順序重算各卡回饋（上限卡以時間先後分配額度）
+function trackerApplyMerged(m) {
+  const sorted = [...m.entries].sort((x, y) => (x.ts - y.ts) || (x.id < y.id ? -1 : 1));
+  const used = Object.fromEntries(Object.keys(CAPS()).map(k => [k, 0]));
+  const logs = {}, free = {};
+  sorted.forEach(src => {
+    const { k, g, ...e } = src;
+    const cfg = CAPS()[e.payUsed];
+    if (!cfg || cfg.noRebate) e.rebate = 0;
+    else {
+      const full = e.twd * cfg.rate;
+      e.rebate = cfg.unlimited ? full : Math.min(full, Math.max(0, cfg.cap - (used[e.payUsed] || 0)));
+      used[e.payUsed] = (used[e.payUsed] || 0) + e.rebate;
+    }
+    const tgt = k === 'f' ? free : logs;
+    (tgt[g] = tgt[g] || []).push(e);
+  });
+  trackerLogs = logs; freeLogs = free; trackerUsed = used;
+  trackerDeleted = m.deleted;
+  skipState = {}; skipTs = {};
+  Object.entries(m.skip).forEach(([id, o]) => { skipState[id] = !!o.v; skipTs[id] = o.ts || 0; });
+  trackerSaveLocal();
+}
+function trackerRerenderAll() {
+  const hasAny = Object.values(trackerLogs).some(a => a.length) || Object.values(freeLogs).some(a => a.length);
+  if (!trackerActive) { if (hasAny) trackerActivate(); return; }
+  trackerRenderDashboard();
+  trackerRenderAllSpotStatuses();
+  trackerRenderAllLogs();
+  freeRenderAllDayLogs();
+  skipApplyAll();
+  const lo = document.getElementById('ledger-overlay');
+  if (lo && lo.classList.contains('open')) ledgerRender();
+}
+
+/* ── Firebase 同步 ── */
+let trackerSyncTimer = null, trackerSyncBusy = false, trackerSyncAgain = false, trackerSyncUnsub = null;
+function trackerSyncEnabled() { try { return !!EC().doc('tracker'); } catch(e) { return false; } }
+function trackerSyncStatus(msg, color) {
+  let el = document.getElementById('tracker-sync-status');
+  if (!el) {
+    const rate = document.getElementById('tracker-rate-display');
+    if (!rate) return;
+    el = document.createElement('span');
+    el.id = 'tracker-sync-status';
+    el.style.cssText = "font-family:'DM Mono',monospace;font-size:0.58rem;white-space:nowrap;";
+    rate.parentNode.insertBefore(el, rate);
+  }
+  el.textContent = msg; el.style.color = color || '#aaa';
+}
+function trackerSyncSchedule() {
+  if (!trackerSyncEnabled()) return;
+  trackerSyncStatus('☁ 同步中…', '#f0c040');
+  clearTimeout(trackerSyncTimer);
+  trackerSyncTimer = setTimeout(trackerSyncNow, 500);
+}
+async function trackerSyncNow() {
+  if (!trackerSyncEnabled()) return;
+  if (trackerSyncBusy) { trackerSyncAgain = true; return; }
+  trackerSyncBusy = true;
+  try {
+    const ref = EC().doc('tracker');
+    const merged = await window.db.runTransaction(async t => {
+      const snap = await t.get(ref);
+      const remote = snap.exists ? (snap.data().sync ? JSON.parse(snap.data().sync) : {}) : {};
+      const m = trackerMerge(trackerSnapshot(), remote);
+      t.set(ref, { sync: JSON.stringify(m), updatedAt: firebase.firestore.FieldValue.serverTimestamp() });
+      return m;
+    });
+    // 交易期間本機可能又有新增 → 再與目前狀態合併一次
+    const cur = trackerSnapshot();
+    const final = trackerMerge(cur, merged);
+    if (trackerSignature(final) !== trackerSignature(cur)) { trackerApplyMerged(final); trackerRerenderAll(); }
+    else trackerApplyMerged(final);
+    trackerSyncStatus('☁ 已同步', '#6ec88a');
+  } catch(e) {
+    trackerSyncStatus('⚠ 離線，已存本機', '#e67e5a');
+  }
+  trackerSyncBusy = false;
+  if (trackerSyncAgain) { trackerSyncAgain = false; trackerSyncSchedule(); }
+}
+function trackerOnRemote(snap) {
+  if (!snap.exists) { trackerSyncSchedule(); return; }   // 雲端尚無資料 → 上傳本機
+  let remote = {};
+  try { remote = snap.data().sync ? JSON.parse(snap.data().sync) : {}; } catch(e) { return; }
+  const cur = trackerSnapshot();
+  const m = trackerMerge(cur, remote);
+  const changed = trackerSignature(m) !== trackerSignature(cur);
+  if (changed) { trackerApplyMerged(m); trackerRerenderAll(); }
+  trackerSyncStatus('☁ 已同步', '#6ec88a');
+  if (trackerSignature(m) !== trackerSignature(trackerMerge(remote, {}))) trackerSyncSchedule(); // 本機有雲端沒有的 → 回寫
+}
+function trackerSyncInit() {
+  if (trackerSyncUnsub || !trackerSyncEnabled()) return;
+  trackerLoadState(); freeLogsLoad(); skipLoad();
+  trackerSyncStatus('☁ 同步中…', '#f0c040');
+  try {
+    trackerSyncUnsub = EC().doc('tracker').onSnapshot(trackerOnRemote, () => trackerSyncStatus('⚠ 離線，已存本機', '#e67e5a'));
+  } catch(e) { trackerSyncStatus('⚠ 離線，已存本機', '#e67e5a'); }
+  window.addEventListener('online', trackerSyncSchedule);
+  document.addEventListener('visibilitychange', () => { if (!document.hidden) trackerSyncSchedule(); });
 }
 
 /* ══════════════════════════════════════
@@ -420,7 +576,7 @@ function trackerConfirmLog() {
     trackerUsed[selectedKey] += rebate;
   }
   if (!trackerLogs[trackerPendingSpot]) trackerLogs[trackerPendingSpot] = [];
-  trackerLogs[trackerPendingSpot].push({ jpy, twd, rebate, payUsed: selectedKey });
+  trackerLogs[trackerPendingSpot].push({ ...trackerMeta(), jpy, twd, rebate, payUsed: selectedKey });
   trackerSaveState();
   const spot = trackerPendingSpot;
   trackerCloseModal();
@@ -434,6 +590,7 @@ function trackerDeleteLog(spotId, idx) {
   if (!e) return;
   const cfg = CAPS()[e.payUsed];
   if (!cfg?.noRebate) trackerUsed[e.payUsed] = Math.max(0, (trackerUsed[e.payUsed] || 0) - e.rebate);
+  trackerTombstone(e);
   trackerLogs[spotId].splice(idx, 1);
   if (trackerLogs[spotId].length === 0) delete trackerLogs[spotId];
   trackerSaveState();
@@ -452,6 +609,8 @@ function resetConfirmDo()    { resetConfirmClose(); trackerResetAll(); }
 
 function trackerResetAll() {
   // 依 CAPS 初始化各 key
+  Object.values(trackerLogs).forEach(a => a.forEach(trackerTombstone));
+  Object.values(freeLogs).forEach(a => a.forEach(trackerTombstone));
   trackerUsed = Object.fromEntries(Object.keys(CAPS()).map(k => [k, 0]));
   trackerLogs = {};
   freeLogs    = {};
@@ -587,6 +746,7 @@ function ledgerDeleteEntry(spotId, idx) {
   const e   = trackerLogs[spotId][idx];
   const cfg = CAPS()[e.payUsed];
   if (!cfg?.noRebate) trackerUsed[e.payUsed] = Math.max(0, (trackerUsed[e.payUsed] || 0) - e.rebate);
+  trackerTombstone(e);
   trackerLogs[spotId].splice(idx, 1);
   if (trackerLogs[spotId].length === 0) delete trackerLogs[spotId];
   trackerSaveState();
@@ -688,7 +848,7 @@ function freeModalConfirm() {
     trackerRenderAllSpotStatuses();
   }
   if (!freeLogs[freePendingDay]) freeLogs[freePendingDay] = [];
-  const entry = { name, jpy, twd, rebate, payUsed: freeSelectedPay };
+  const entry = { ...trackerMeta(), name, jpy, twd, rebate, payUsed: freeSelectedPay };
   if (coupon > 0) entry.coupon = coupon; // 樂享券現抵（jpy 為已扣除後的實付）
   freeLogs[freePendingDay].push(entry);
   freeLogsSave();
@@ -734,6 +894,7 @@ function freeDeleteEntry(day, idx) {
     trackerUpdateDashboard(e.payUsed);
     trackerRenderAllSpotStatuses();
   }
+  trackerTombstone(e);
   freeLogs[day].splice(idx, 1);
   freeLogsSave();
   if (!cfg?.noRebate) trackerUpdateDashboard(e.payUsed);
@@ -791,6 +952,7 @@ function skipApply(row, id) {
 }
 function skipToggle(id) {
   skipState[id] = !skipState[id];
+  skipTs[id] = Date.now();
   skipSave();
   const row = document.querySelector(`#pay-panel-itinerary .spot-row[data-skip-id="${id}"]`);
   if (row) skipApply(row, id);
@@ -840,6 +1002,7 @@ window.addEventListener('load', () => {
   fetchBOTRate();
   freeLogsLoad();
   skipLoad();
+  trackerSyncInit();
   const hasFree = Object.values(freeLogs).some(arr => arr.length > 0);
   try {
     const saved  = localStorage.getItem(`${TC().storageKey}_tracker_used`);
