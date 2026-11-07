@@ -1,0 +1,1994 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="artifact-type" content="dashboard">
+<meta name="design-style" content="kiln">
+<title>東京精品咖啡與藝文空間地圖指南｜12/17 (四) 專屬導航與營業時間</title>
+
+<!-- Approved Google Fonts -->
+<link href="https://fonts.googleapis.com/css2?family=Geist+Mono:wght@400;500;600&family=Noto+Sans+TC:wght@400;500;600&family=Noto+Serif+TC:wght@500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600&family=Shippori+Mincho:wght@500;600;700&display=swap" rel="stylesheet">
+
+<style>
+:root {
+  color-scheme: light;
+
+  /* Kiln base tokens: unbleached linen paper, washi stone & sumi ink */
+  --background: #f4f1ea;
+  --surface-container-low: #ebe6db;
+  --surface-container: #e3ddd0;
+  --surface-container-high: #d9d1c2;
+
+  /* Ink */
+  --on-surface: #1c1b18;
+  --on-surface-variant: #5e5a51;
+
+  /* Rules */
+  --outline: #1c1b18;
+  --outline-variant: #d2cbbd;
+
+  /* Accents */
+  --primary: #1c1b18;
+  --on-primary: #f4f1ea;
+  --primary-container: #ebe6db;
+  --on-primary-container: #1c1b18;
+  --secondary: #4a5d46;
+  --on-secondary: #f4f1ea;
+  --secondary-container: #dce3da;
+  --on-secondary-container: #233420;
+  --tertiary: #9e3b2b;
+  --on-tertiary: #f4f1ea;
+  --tertiary-container: #fae4e1;
+  --on-tertiary-container: #5c180e;
+
+  --error: #9e2a22;
+  --on-error: #f4f1ea;
+  --positive: #2e6930;
+  --on-positive: #f4f1ea;
+  --warning: #85530a;
+  --on-warning: #f4f1ea;
+  --focus: #1c1b18;
+
+  /* Data & Area series */
+  --data-1: #4a5d46;
+  --data-2: #9e3b2b;
+  --data-3: #1c1b18;
+  --data-4: #8a6f48;
+  --data-context: #c7bfb0;
+
+  --color-ginza: #8a6f48;
+  --color-ginza-bg: #efe8dc;
+  --color-sangubashi: #4a5d46;
+  --color-sangubashi-bg: #e3ece1;
+  --color-sendagaya: #34566f;
+  --color-sendagaya-bg: #e1ebf2;
+
+  /* Status Colors */
+  --status-open-bg: #e2ede1;
+  --status-open-text: #205c24;
+  --status-takeout-bg: #faeedb;
+  --status-takeout-text: #7c4a03;
+  --status-closed-bg: #eae5dc;
+  --status-closed-text: #6b665c;
+
+  /* Fonts */
+  --font-headline: 'Shippori Mincho', 'Noto Serif TC', serif;
+  --font-body: 'Plus Jakarta Sans', 'Noto Sans TC', sans-serif;
+  --font-label: 'Geist Mono', monospace;
+
+  /* Shape & Style treatments */
+  --rounded: 0.125rem;
+  --rounded-md: 0.25rem;
+  --rounded-lg: 0.125rem;
+  --rounded-full: 0.125rem;
+
+  --rule-sumi-left: 2px solid var(--outline);
+  --rule-sumi: 1px solid var(--outline);
+  --rule-linen: 1px solid var(--outline-variant);
+  --label-tracking: 0.14em;
+
+  /* Type scale */
+  --display-size: clamp(1.75rem, 1.4rem + 1.2vw, 2.35rem);
+  --headline-size: clamp(1.25rem, 1.1rem + 0.5vw, 1.55rem);
+  --subhead-size: clamp(1.0625rem, 1rem + 0.25vw, 1.2rem);
+  --body-size: clamp(0.9375rem, 0.9rem + 0.15vw, 1rem);
+  --label-size: 0.75rem;
+
+  /* Spacing */
+  --space-xs: 0.25rem;
+  --space-sm: 0.5rem;
+  --space-md: 1rem;
+  --space-lg: 1.5rem;
+  --space-xl: 2.5rem;
+  --space-2xl: 4rem;
+  --space-3xl: 6rem;
+
+  /* Motion */
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);
+  --dur-micro: 120ms;
+  --dur-short: 220ms;
+  --dur-long: 420ms;
+}
+
+/* Base reset */
+*, *::before, *::after {
+  box-sizing: border-box;
+}
+
+html, body {
+  overflow-x: clip;
+  margin: 0;
+  padding: 0;
+  background-color: var(--background);
+  color: var(--on-surface);
+  font-family: var(--font-body);
+  font-size: var(--body-size);
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+}
+
+button, input, select, textarea {
+  font-family: inherit;
+}
+
+header {
+  position: static !important;
+}
+
+/* Main Grid Layout */
+.page-grid {
+  display: grid;
+  gap: var(--space-xl);
+  padding: var(--space-lg);
+  max-width: 1240px;
+  margin: 0 auto;
+  overflow: hidden;
+}
+.page-grid * {
+  min-width: 0;
+}
+
+/* Typography styles */
+.display-title {
+  font-family: var(--font-headline);
+  font-weight: 600;
+  font-size: var(--display-size);
+  line-height: 1.2;
+  letter-spacing: -0.01em;
+  color: var(--on-surface);
+  margin: 0;
+}
+
+.subhead-moss {
+  font-family: var(--font-headline);
+  font-weight: 500;
+  font-size: var(--subhead-size);
+  color: var(--secondary);
+  margin-top: var(--space-xs);
+  margin-bottom: var(--space-sm);
+}
+
+.section-title {
+  font-family: var(--font-headline);
+  font-weight: 600;
+  font-size: var(--headline-size);
+  color: var(--on-surface);
+  margin: 0;
+}
+
+.label-mono {
+  font-family: var(--font-label);
+  font-weight: 500;
+  font-size: var(--label-size);
+  letter-spacing: var(--label-tracking);
+  text-transform: uppercase;
+}
+
+/* Kiln Seal Stamp */
+.seal-stamp {
+  border: 1px solid var(--tertiary);
+  color: var(--tertiary);
+  font-family: var(--font-label);
+  font-size: 0.6875rem;
+  letter-spacing: var(--label-tracking);
+  padding: 0.375rem 0.3125rem;
+  writing-mode: vertical-rl;
+  text-transform: uppercase;
+  flex-shrink: 0;
+  background-color: var(--surface-container-low);
+  line-height: 1.2;
+}
+
+/* Washi Card Component */
+.washi-card {
+  background: var(--surface-container-low);
+  border-left: var(--rule-sumi-left);
+  border-radius: var(--rounded);
+  padding: var(--space-md);
+  position: relative;
+  transition: background-color var(--dur-short) var(--ease-out), transform var(--dur-short) var(--ease-out);
+}
+
+.washi-card.highlighted {
+  background: var(--surface-container);
+  box-shadow: 0 0 0 1px var(--outline);
+}
+
+/* Header Masthead */
+.masthead-wrapper {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: var(--space-lg);
+  border-bottom: var(--rule-linen);
+  padding-bottom: var(--space-lg);
+}
+
+.masthead-content {
+  flex: 1;
+}
+
+.kicker {
+  color: var(--secondary);
+  margin-bottom: var(--space-xs);
+}
+
+.lede-text {
+  color: var(--on-surface-variant);
+  font-size: var(--body-size);
+  max-width: 72ch;
+  margin: var(--space-sm) 0 0 0;
+}
+
+/* Metrics Row */
+.metrics-row {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: var(--space-md);
+}
+
+.metric-item {
+  background: var(--surface-container-low);
+  border-left: var(--rule-sumi-left);
+  padding: var(--space-sm) var(--space-md);
+  border-radius: var(--rounded);
+}
+
+.metric-value {
+  font-family: var(--font-headline);
+  font-weight: 600;
+  font-size: 1.75rem;
+  line-height: 1.2;
+  color: var(--on-surface);
+  margin-top: var(--space-xs);
+}
+
+.metric-note {
+  color: var(--secondary);
+  font-size: 0.8125rem;
+  margin-top: 0.125rem;
+}
+
+/* Map Section */
+.map-section-wrapper {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-md);
+}
+
+.map-header-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  flex-wrap: wrap;
+  gap: var(--space-sm);
+}
+
+.map-container {
+  background-color: var(--surface-container-low);
+  border: var(--rule-linen);
+  border-radius: var(--rounded);
+  padding: var(--space-md);
+  position: relative;
+  min-height: 400px;
+  overflow: hidden;
+}
+
+.map-svg {
+  width: 100%;
+  height: auto;
+  min-height: 380px;
+  display: block;
+}
+
+.map-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-md);
+  margin-top: var(--space-sm);
+  padding-top: var(--space-sm);
+  border-top: var(--rule-linen);
+  font-size: 0.8125rem;
+  color: var(--on-surface-variant);
+}
+
+.legend-item {
+  display: flex;
+  align-items: center;
+  gap: var(--space-xs);
+}
+
+.legend-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  display: inline-block;
+}
+
+/* Time Scrubber / Status Bar */
+.time-scrubber-card {
+  background-color: var(--surface-container);
+  border-left: var(--rule-sumi-left);
+  padding: var(--space-md);
+  border-radius: var(--rounded);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-sm);
+}
+
+.scrubber-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--space-sm);
+}
+
+.time-readout-badge {
+  background-color: var(--primary);
+  color: var(--on-primary);
+  padding: var(--space-xs) var(--space-sm);
+  font-family: var(--font-label);
+  font-size: 0.9375rem;
+  font-weight: 600;
+  border-radius: var(--rounded);
+}
+
+.time-slider-track {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-xs);
+}
+
+.time-range-input {
+  width: 100%;
+  height: 6px;
+  background: var(--outline-variant);
+  border-radius: var(--rounded);
+  outline: none;
+  cursor: pointer;
+  accent-color: var(--primary);
+}
+
+.time-ticks {
+  display: flex;
+  justify-content: space-between;
+  font-family: var(--font-label);
+  font-size: 0.6875rem;
+  color: var(--on-surface-variant);
+}
+
+/* Filter Controls */
+.controls-bar {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-md);
+  background-color: var(--surface-container-low);
+  padding: var(--space-md);
+  border: var(--rule-linen);
+  border-radius: var(--rounded);
+}
+
+.filters-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-sm);
+  align-items: center;
+  justify-content: space-between;
+}
+
+.filter-btn-group {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-xs);
+}
+
+.filter-btn {
+  background: transparent;
+  color: var(--on-surface);
+  border: var(--rule-linen);
+  padding: var(--space-xs) var(--space-sm);
+  font-family: var(--font-label);
+  font-size: var(--label-size);
+  letter-spacing: var(--label-tracking);
+  border-radius: var(--rounded);
+  cursor: pointer;
+  transition: background-color var(--dur-micro) var(--ease-out), color var(--dur-micro) var(--ease-out);
+}
+
+.filter-btn:hover {
+  background: var(--surface-container);
+}
+
+.filter-btn.active {
+  background: var(--primary);
+  color: var(--on-primary);
+  border-color: var(--primary);
+}
+
+.filter-btn:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 2px;
+}
+
+.search-box {
+  display: flex;
+  align-items: center;
+  position: relative;
+  min-width: 260px;
+}
+
+.search-input {
+  width: 100%;
+  padding: var(--space-xs) var(--space-sm);
+  padding-left: 2rem;
+  background: var(--background);
+  border: var(--rule-linen);
+  border-radius: var(--rounded);
+  color: var(--on-surface);
+  font-size: 0.875rem;
+}
+
+.search-input:focus {
+  outline: 2px solid var(--focus);
+  outline-offset: 1px;
+}
+
+.search-icon-symbol {
+  position: absolute;
+  left: 0.5rem;
+  color: var(--on-surface-variant);
+  pointer-events: none;
+}
+
+/* Card Grid */
+.card-wrapper {
+  container-type: inline-size;
+}
+
+.venues-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(340px, 100%), 1fr));
+  gap: var(--space-lg);
+}
+
+/* Individual Venue Card */
+.venue-card {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: var(--space-md);
+}
+
+.card-top {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-sm);
+}
+
+.card-meta-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: var(--space-xs);
+}
+
+.venue-num-badge {
+  font-family: var(--font-label);
+  font-weight: 600;
+  font-size: 0.75rem;
+  padding: 0.15rem 0.4rem;
+  background-color: var(--primary);
+  color: var(--on-primary);
+  border-radius: var(--rounded);
+}
+
+.area-tag {
+  font-family: var(--font-label);
+  font-size: 0.6875rem;
+  letter-spacing: 0.08em;
+  padding: 0.15rem 0.45rem;
+  border-radius: var(--rounded);
+  border: 1px solid var(--outline-variant);
+}
+
+.area-tag.area-ginza {
+  background-color: var(--color-ginza-bg);
+  color: var(--color-ginza);
+}
+
+.area-tag.area-sangubashi {
+  background-color: var(--color-sangubashi-bg);
+  color: var(--color-sangubashi);
+}
+
+.area-tag.area-sendagaya {
+  background-color: var(--color-sendagaya-bg);
+  color: var(--color-sendagaya);
+}
+
+.venue-name-row {
+  margin: 0;
+}
+
+.venue-title {
+  font-family: var(--font-headline);
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: var(--on-surface);
+  line-height: 1.3;
+  margin: 0;
+}
+
+.venue-kana {
+  font-size: 0.8125rem;
+  color: var(--on-surface-variant);
+  margin-top: 0.15rem;
+}
+
+.status-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.2rem 0.5rem;
+  font-family: var(--font-label);
+  font-size: 0.75rem;
+  font-weight: 500;
+  border-radius: var(--rounded);
+  width: fit-content;
+}
+
+.status-badge.open {
+  background-color: var(--status-open-bg);
+  color: var(--status-open-text);
+  border: 1px solid var(--status-open-text);
+}
+
+.status-badge.takeout {
+  background-color: var(--status-takeout-bg);
+  color: var(--status-takeout-text);
+  border: 1px solid var(--status-takeout-text);
+}
+
+.status-badge.closed {
+  background-color: var(--status-closed-bg);
+  color: var(--status-closed-text);
+  border: 1px solid var(--outline-variant);
+}
+
+.status-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background-color: currentColor;
+}
+
+/* Info Details Block */
+.detail-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-xs);
+  padding: var(--space-sm) 0;
+  border-top: var(--rule-linen);
+  border-bottom: var(--rule-linen);
+  font-size: 0.875rem;
+}
+
+.detail-row {
+  display: grid;
+  grid-template-columns: 80px 1fr;
+  gap: var(--space-xs);
+  align-items: baseline;
+}
+
+.detail-label {
+  font-family: var(--font-label);
+  font-size: 0.75rem;
+  color: var(--on-surface-variant);
+  letter-spacing: 0.05em;
+}
+
+.detail-value {
+  color: var(--on-surface);
+}
+
+.hours-highlight {
+  font-weight: 600;
+  color: var(--primary);
+}
+
+.address-text {
+  font-size: 0.875rem;
+  word-break: break-all;
+}
+
+.venue-desc {
+  font-size: 0.875rem;
+  color: var(--on-surface-variant);
+  line-height: 1.5;
+  margin: var(--space-xs) 0 0 0;
+}
+
+/* Action Buttons */
+.card-actions {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-xs);
+  margin-top: var(--space-xs);
+}
+
+.btn-primary-nav {
+  background-color: var(--primary);
+  color: var(--on-primary);
+  border: 1px solid var(--primary);
+  border-radius: var(--rounded);
+  padding: var(--space-xs) var(--space-sm);
+  font-family: var(--font-label);
+  font-size: 0.8125rem;
+  letter-spacing: 0.08em;
+  font-weight: 500;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-xs);
+  transition: background-color var(--dur-micro) var(--ease-out), opacity var(--dur-micro) var(--ease-out);
+  width: 100%;
+  min-height: 40px;
+}
+
+.btn-primary-nav:hover {
+  opacity: 0.9;
+}
+
+.btn-primary-nav:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 2px;
+}
+
+.card-sub-actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--space-xs);
+}
+
+.btn-secondary {
+  background-color: transparent;
+  color: var(--on-surface);
+  border: var(--rule-linen);
+  border-radius: var(--rounded);
+  padding: 0.35rem 0.5rem;
+  font-family: var(--font-label);
+  font-size: 0.75rem;
+  cursor: pointer;
+  text-align: center;
+  transition: background-color var(--dur-micro) var(--ease-out);
+  min-height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.25rem;
+}
+
+.btn-secondary:hover {
+  background-color: var(--surface-container);
+}
+
+.btn-secondary:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 2px;
+}
+
+/* Hop-on Itinerary Planner Section */
+.itinerary-section {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-md);
+  border-top: var(--rule-linen);
+  padding-top: var(--space-xl);
+}
+
+.timeline-flow {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: var(--space-md);
+}
+
+.timeline-step-card {
+  background: var(--surface-container-low);
+  border-left: var(--rule-sumi-left);
+  padding: var(--space-md);
+  border-radius: var(--rounded);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-xs);
+}
+
+.step-badge {
+  font-family: var(--font-label);
+  font-size: 0.6875rem;
+  font-weight: 600;
+  color: var(--secondary);
+  letter-spacing: 0.1em;
+}
+
+.step-title {
+  font-family: var(--font-headline);
+  font-size: 1.0625rem;
+  font-weight: 600;
+  margin: 0;
+}
+
+.step-time {
+  font-family: var(--font-label);
+  font-size: 0.8125rem;
+  color: var(--tertiary);
+  font-weight: 500;
+}
+
+.step-desc {
+  font-size: 0.8125rem;
+  color: var(--on-surface-variant);
+  line-height: 1.5;
+  margin: 0;
+}
+
+/* Toast Notification */
+.toast-container {
+  position: fixed;
+  bottom: var(--space-lg);
+  right: var(--space-lg);
+  z-index: 9999;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-xs);
+  pointer-events: none;
+}
+
+.toast {
+  background: var(--on-surface);
+  color: var(--background);
+  padding: var(--space-sm) var(--space-md);
+  border-radius: var(--rounded);
+  font-size: 0.875rem;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  pointer-events: auto;
+  opacity: 0;
+  transform: translateY(10px);
+  transition: opacity var(--dur-short) var(--ease-out), transform var(--dur-short) var(--ease-out);
+  max-width: 400px;
+}
+
+.toast.show {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.toast-hanko {
+  color: #e06d58;
+  font-weight: 600;
+  font-family: var(--font-label);
+  font-size: 0.75rem;
+}
+
+/* Modal for Direct Instructions */
+.nav-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(28, 27, 24, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10000;
+  padding: var(--space-md);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity var(--dur-short) var(--ease-out);
+}
+
+.nav-modal-backdrop.open {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.nav-modal-box {
+  background: var(--background);
+  border-left: var(--rule-sumi-left);
+  border-radius: var(--rounded);
+  max-width: 480px;
+  width: 100%;
+  padding: var(--space-lg);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-md);
+}
+
+.modal-title {
+  font-family: var(--font-headline);
+  font-size: 1.25rem;
+  margin: 0;
+}
+
+.modal-query-box {
+  background: var(--surface-container-low);
+  padding: var(--space-sm) var(--space-md);
+  border: var(--rule-linen);
+  border-radius: var(--rounded);
+  font-family: var(--font-label);
+  font-size: 0.8125rem;
+  color: var(--on-surface);
+  word-break: break-all;
+}
+
+/* SVG Interactive Pins */
+.svg-pin {
+  cursor: pointer;
+  transition: transform var(--dur-short) var(--ease-out);
+}
+
+.svg-pin:hover circle {
+  fill: var(--tertiary);
+}
+
+.svg-pin.active circle {
+  fill: var(--tertiary);
+  stroke: var(--primary);
+  stroke-width: 3px;
+}
+
+.svg-pin.active text {
+  fill: var(--on-tertiary);
+  font-weight: bold;
+}
+
+/* Footer Notes */
+.footer-notes {
+  border-top: var(--rule-linen);
+  padding-top: var(--space-lg);
+  font-size: 0.8125rem;
+  color: var(--on-surface-variant);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-xs);
+}
+
+/* Responsive adjustments */
+@media (max-width: 640px) {
+  .page-grid {
+    padding: var(--space-sm);
+    gap: var(--space-lg);
+  }
+  .masthead-wrapper {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  .seal-stamp {
+    writing-mode: horizontal-tb;
+    width: fit-content;
+  }
+  .venues-grid {
+    grid-template-columns: 1fr;
+  }
+  .controls-bar {
+    padding: var(--space-sm);
+  }
+  .search-box {
+    width: 100%;
+    min-width: 0;
+  }
+}
+
+/* Reduced Motion */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+</style>
+</head>
+<body>
+
+<div class="page-grid">
+
+  <!-- Masthead -->
+  <header class="masthead-wrapper">
+    <div class="masthead-content">
+      <div class="label-mono kicker">TOKYO SPECIALTY COFFEE &amp; ART SPACES</div>
+      <h1 class="display-title">東京精品咖啡與藝文空間地圖指南</h1>
+      <div class="subhead-moss">12 月 17 日 (四) 專屬營業時段・分區導航・跨區跳店散策提案</div>
+      <p class="lede-text">
+        本指南精選東京 9 處指標性精品咖啡與藝文空間（已排除傳統景點，專注當代美學與風味體驗）。提供 12/17 週四當日精確營業時間、晨間外帶與複合展區時段切換、分區整理，以及直覺的 Google 地圖導航複製功能。
+      </p>
+    </div>
+    <div class="seal-stamp" title="木曜專題印記">
+      木曜特集・東京珈琲
+    </div>
+  </header>
+
+  <!-- Metrics Summary -->
+  <section class="metrics-row" aria-label="核心數據概覽">
+    <div class="metric-item">
+      <div class="label-mono">精選收錄地點</div>
+      <div class="metric-value">9 <span style="font-size: 1rem; font-weight: normal; color: var(--on-surface-variant);">處</span></div>
+      <div class="metric-note">3 大風格聚落・無多餘景點</div>
+    </div>
+    <div class="metric-item">
+      <div class="label-mono">最早營業空間</div>
+      <div class="metric-value">07:00</div>
+      <div class="metric-note">sanva 晨間咖啡開門迎客</div>
+    </div>
+    <div class="metric-item">
+      <div class="label-mono">最晚夜間營業</div>
+      <div class="metric-value">22:00</div>
+      <div class="metric-note">dotcom coffee / sanva 1F</div>
+    </div>
+    <div class="metric-item">
+      <div class="label-mono">藝文與選品複合</div>
+      <div class="metric-value">4 <span style="font-size: 1rem; font-weight: normal; color: var(--on-surface-variant);">處</span></div>
+      <div class="metric-note">CHANEL 藝廊、wabi、sanva 2F</div>
+    </div>
+  </section>
+
+  <!-- Interactive Tokyo Vector Map Section -->
+  <section class="map-section-wrapper" aria-label="東京互動座標地圖">
+    <div class="map-header-row">
+      <div>
+        <div class="label-mono kicker">INTERACTIVE SCHEMATIC MAP</div>
+        <h2 class="section-title">東京三大咖啡聚落分區向量導覽圖</h2>
+      </div>
+      <div style="display: flex; gap: var(--space-xs); align-items: center;">
+        <button class="filter-btn" id="btn-toggle-route" onclick="toggleRouteLine()" aria-pressed="false">
+          🗺️ 顯示 12/17 順路跳店推薦路線
+        </button>
+        <button class="filter-btn" onclick="resetMapSelection()">
+          重設地圖
+        </button>
+      </div>
+    </div>
+
+    <div class="map-container" id="map-canvas-container">
+      <svg class="map-svg" viewBox="0 0 960 480" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="東京咖啡與藝文空間地圖向量示意">
+        <!-- Background Grid Patterns -->
+        <defs>
+          <pattern id="grid-pattern" width="30" height="30" patternUnits="userSpaceOnUse">
+            <path d="M 30 0 L 0 0 0 30" fill="none" stroke="var(--outline-variant)" stroke-width="0.5" stroke-dasharray="2 2" opacity="0.6"/>
+          </pattern>
+        </defs>
+        <rect width="960" height="480" fill="url(#grid-pattern)" />
+
+        <!-- District Region Backgrounds -->
+        <!-- West District (Shibuya/Sendagaya/Sangubashi) -->
+        <path d="M 40,50 L 520,50 L 520,440 L 40,440 Z" fill="var(--surface-container)" opacity="0.45" />
+        <text x="55" y="80" fill="var(--on-surface-variant)" font-family="var(--font-label)" font-size="11" letter-spacing="1">WEST DISTRICT：澀谷・代代木・千駄ヶ谷・原宿</text>
+
+        <!-- East District (Ginza/Shintomi) -->
+        <path d="M 580,50 L 920,50 L 920,440 L 580,440 Z" fill="var(--surface-container)" opacity="0.45" />
+        <text x="595" y="80" fill="var(--on-surface-variant)" font-family="var(--font-label)" font-size="11" letter-spacing="1">EAST DISTRICT：銀座・新富町</text>
+
+        <!-- Subtle Geo Landmark Outlines -->
+        <!-- Yoyogi Park & Shinjuku Gyoen hints -->
+        <rect x="220" y="270" width="80" height="90" rx="4" fill="var(--secondary)" opacity="0.12" />
+        <text x="230" y="320" fill="var(--secondary)" font-family="var(--font-body)" font-size="10" font-weight="500">代代木公園</text>
+
+        <rect x="360" y="80" width="70" height="60" rx="4" fill="var(--secondary)" opacity="0.12" />
+        <text x="370" y="115" fill="var(--secondary)" font-family="var(--font-body)" font-size="10" font-weight="500">新宿御苑</text>
+
+        <!-- Metro Lines Connections (Stylized Schematic) -->
+        <!-- Chiyoda Line: Yoyogi-Uehara -> Yoyogi-Koen -> Omotesando -> Ginza direction -->
+        <path d="M 120,380 L 230,410 L 370,350 L 640,410" fill="none" stroke="var(--color-sangubashi)" stroke-width="2.5" stroke-dasharray="6 3" opacity="0.75" />
+        <text x="130" y="420" fill="var(--color-sangubashi)" font-family="var(--font-label)" font-size="9">METRO 千代田線</text>
+
+        <!-- JR Chuo-Sobu Line: Sendagaya -> Ochanomizu / Tokyo direction -->
+        <path d="M 490,130 L 460,170 L 420,240 L 520,240 L 680,270" fill="none" stroke="var(--color-sendagaya)" stroke-width="2.5" stroke-dasharray="6 3" opacity="0.75" />
+        <text x="440" y="115" fill="var(--color-sendagaya)" font-family="var(--font-label)" font-size="9">JR 中央總武線 / 山手線</text>
+
+        <!-- Hibiya & Ginza Line in East -->
+        <path d="M 620,330 L 670,370 L 760,330" fill="none" stroke="var(--color-ginza)" stroke-width="2.5" opacity="0.75" />
+        <text x="730" y="315" fill="var(--color-ginza)" font-family="var(--font-label)" font-size="9">METRO 日比谷線 / 銀座線</text>
+
+        <!-- Recommended 12/17 Hop-on Itinerary Route Line (Animated dashed) -->
+        <path id="svg-route-path" d="M 230,410 L 270,230 L 120,340 L 410,310 L 450,210 L 480,150 L 635,365 L 680,385 L 755,335" 
+              fill="none" stroke="var(--tertiary)" stroke-width="3" stroke-dasharray="8 6" stroke-linecap="round" opacity="0" style="transition: opacity 0.4s ease;" />
+
+        <!-- Railway Stations (Small square nodes) -->
+        <!-- Yoyogi-Uehara -->
+        <rect x="115" y="345" width="10" height="10" fill="var(--on-surface)" />
+        <text x="90" y="375" fill="var(--on-surface-variant)" font-family="var(--font-body)" font-size="10">代代木上原站</text>
+
+        <!-- Yoyogi-Koen -->
+        <rect x="225" y="405" width="10" height="10" fill="var(--on-surface)" />
+        <text x="210" y="435" fill="var(--on-surface-variant)" font-family="var(--font-body)" font-size="10">代代木公園站</text>
+
+        <!-- Sangubashi -->
+        <rect x="265" y="240" width="10" height="10" fill="var(--on-surface)" />
+        <text x="245" y="260" fill="var(--on-surface-variant)" font-family="var(--font-body)" font-size="10">參宮橋站</text>
+
+        <!-- Sendagaya & Kitasando -->
+        <rect x="475" y="145" width="10" height="10" fill="var(--on-surface)" />
+        <text x="495" y="150" fill="var(--on-surface-variant)" font-family="var(--font-body)" font-size="10">千駄ヶ谷站</text>
+
+        <rect x="405" y="270" width="10" height="10" fill="var(--on-surface)" />
+        <text x="420" y="280" fill="var(--on-surface-variant)" font-family="var(--font-body)" font-size="10">北參道站</text>
+
+        <!-- Harajuku -->
+        <rect x="365" y="330" width="10" height="10" fill="var(--on-surface)" />
+        <text x="350" y="360" fill="var(--on-surface-variant)" font-family="var(--font-body)" font-size="10">原宿站</text>
+
+        <!-- Ginza / Higashi-Ginza -->
+        <rect x="630" y="375" width="10" height="10" fill="var(--on-surface)" />
+        <text x="615" y="405" fill="var(--on-surface-variant)" font-family="var(--font-body)" font-size="10">銀座站</text>
+
+        <rect x="685" y="390" width="10" height="10" fill="var(--on-surface)" />
+        <text x="690" y="420" fill="var(--on-surface-variant)" font-family="var(--font-body)" font-size="10">東銀座站</text>
+
+        <!-- Shintomi-cho -->
+        <rect x="760" y="340" width="10" height="10" fill="var(--on-surface)" />
+        <text x="765" y="370" fill="var(--on-surface-variant)" font-family="var(--font-body)" font-size="10">新富町站</text>
+
+        <!-- Pins Layer for the 9 Venues -->
+        <!-- Pin 1: dotcom coffee 新富 (755, 335) -->
+        <g class="svg-pin" id="pin-1" onclick="focusVenue(1)" role="button" aria-label="點擊檢視 1. dotcom coffee 新富">
+          <circle cx="755" cy="335" r="14" fill="var(--color-ginza)" stroke="var(--background)" stroke-width="2"/>
+          <text x="755" y="340" fill="var(--background)" font-family="var(--font-label)" font-size="11" font-weight="600" text-anchor="middle">1</text>
+          <text x="755" y="318" fill="var(--on-surface)" font-family="var(--font-body)" font-size="11" font-weight="600" text-anchor="middle">dotcom 新富</text>
+        </g>
+
+        <!-- Pin 2: TERON COFFEE&BAR GINZA (680, 385) -->
+        <g class="svg-pin" id="pin-2" onclick="focusVenue(2)" role="button" aria-label="點擊檢視 2. TERON COFFEE&amp;BAR GINZA">
+          <circle cx="680" cy="385" r="14" fill="var(--color-ginza)" stroke="var(--background)" stroke-width="2"/>
+          <text x="680" y="390" fill="var(--background)" font-family="var(--font-label)" font-size="11" font-weight="600" text-anchor="middle">2</text>
+          <text x="680" y="368" fill="var(--on-surface)" font-family="var(--font-body)" font-size="11" font-weight="600" text-anchor="middle">TERON GINZA</text>
+        </g>
+
+        <!-- Pin 3: CHANEL NEXUS HALL (635, 365) -->
+        <g class="svg-pin" id="pin-3" onclick="focusVenue(3)" role="button" aria-label="點擊檢視 3. CHANEL NEXUS HALL">
+          <circle cx="635" cy="365" r="14" fill="var(--tertiary)" stroke="var(--background)" stroke-width="2"/>
+          <text x="635" y="370" fill="var(--background)" font-family="var(--font-label)" font-size="11" font-weight="600" text-anchor="middle">3</text>
+          <text x="635" y="348" fill="var(--on-surface)" font-family="var(--font-body)" font-size="11" font-weight="600" text-anchor="middle">CHANEL 藝廊</text>
+        </g>
+
+        <!-- Pin 4: FUGLEN SANGUBASHI (270, 230) -->
+        <g class="svg-pin" id="pin-4" onclick="focusVenue(4)" role="button" aria-label="點擊檢視 4. FUGLEN SANGŪBASHI">
+          <circle cx="270" cy="230" r="14" fill="var(--color-sangubashi)" stroke="var(--background)" stroke-width="2"/>
+          <text x="270" y="235" fill="var(--background)" font-family="var(--font-label)" font-size="11" font-weight="600" text-anchor="middle">4</text>
+          <text x="270" y="208" fill="var(--on-surface)" font-family="var(--font-body)" font-size="11" font-weight="600" text-anchor="middle">FUGLEN 參宮橋</text>
+        </g>
+
+        <!-- Pin 5: sanva (230, 410) -->
+        <g class="svg-pin" id="pin-5" onclick="focusVenue(5)" role="button" aria-label="點擊檢視 5. sanva">
+          <circle cx="230" cy="410" r="14" fill="var(--color-sangubashi)" stroke="var(--background)" stroke-width="2"/>
+          <text x="230" y="415" fill="var(--background)" font-family="var(--font-label)" font-size="11" font-weight="600" text-anchor="middle">5</text>
+          <text x="230" y="390" fill="var(--on-surface)" font-family="var(--font-body)" font-size="11" font-weight="600" text-anchor="middle">sanva 富ヶ谷</text>
+        </g>
+
+        <!-- Pin 6: Nadoya no katte (120, 340) -->
+        <g class="svg-pin" id="pin-6" onclick="focusVenue(6)" role="button" aria-label="點擊檢視 6. Nadoya no katte">
+          <circle cx="120" cy="340" r="14" fill="var(--color-sendagaya)" stroke="var(--background)" stroke-width="2"/>
+          <text x="120" y="345" fill="var(--background)" font-family="var(--font-label)" font-size="11" font-weight="600" text-anchor="middle">6</text>
+          <text x="120" y="320" fill="var(--on-surface)" font-family="var(--font-body)" font-size="11" font-weight="600" text-anchor="middle">Nadoya 上原</text>
+        </g>
+
+        <!-- Pin 7: HORAIYA (410, 310) -->
+        <g class="svg-pin" id="pin-7" onclick="focusVenue(7)" role="button" aria-label="點擊檢視 7. HORAIYA">
+          <circle cx="410" cy="310" r="14" fill="var(--color-sendagaya)" stroke="var(--background)" stroke-width="2"/>
+          <text x="410" y="315" fill="var(--background)" font-family="var(--font-label)" font-size="11" font-weight="600" text-anchor="middle">7</text>
+          <text x="410" y="292" fill="var(--on-surface)" font-family="var(--font-body)" font-size="11" font-weight="600" text-anchor="middle">HORAIYA 神宮前</text>
+        </g>
+
+        <!-- Pin 8: MASONO / wabi (450, 210) -->
+        <g class="svg-pin" id="pin-8" onclick="focusVenue(8)" role="button" aria-label="點擊檢視 8. MASONO / wabi">
+          <circle cx="450" cy="210" r="14" fill="var(--color-sendagaya)" stroke="var(--background)" stroke-width="2"/>
+          <text x="450" y="215" fill="var(--background)" font-family="var(--font-label)" font-size="11" font-weight="600" text-anchor="middle">8</text>
+          <text x="450" y="190" fill="var(--on-surface)" font-family="var(--font-body)" font-size="11" font-weight="600" text-anchor="middle">MASONO / wabi</text>
+        </g>
+
+        <!-- Pin 9: MAME Tokyo Sendagaya (480, 150) -->
+        <g class="svg-pin" id="pin-9" onclick="focusVenue(9)" role="button" aria-label="點擊檢視 9. MAME Tokyo Sendagaya">
+          <circle cx="480" cy="150" r="14" fill="var(--color-sendagaya)" stroke="var(--background)" stroke-width="2"/>
+          <text x="480" y="155" fill="var(--background)" font-family="var(--font-label)" font-size="11" font-weight="600" text-anchor="middle">9</text>
+          <text x="480" y="130" fill="var(--on-surface)" font-family="var(--font-body)" font-size="11" font-weight="600" text-anchor="middle">MAME 千駄ヶ谷</text>
+        </g>
+      </svg>
+    </div>
+
+    <!-- Map Legend -->
+    <div class="map-legend">
+      <div class="legend-item">
+        <span class="legend-dot" style="background-color: var(--color-ginza);"></span>
+        <span>銀座與新富町（地點 1–3）</span>
+      </div>
+      <div class="legend-item">
+        <span class="legend-dot" style="background-color: var(--color-sangubashi);"></span>
+        <span>參宮橋與代代木（地點 4–5）</span>
+      </div>
+      <div class="legend-item">
+        <span class="legend-dot" style="background-color: var(--color-sendagaya);"></span>
+        <span>代代木上原・原宿・千駄ヶ谷（地點 6–9）</span>
+      </div>
+      <div class="legend-item">
+        <span class="legend-dot" style="background-color: var(--tertiary);"></span>
+        <span>旗艦藝廊展演</span>
+      </div>
+      <div class="legend-item" style="margin-left: auto;">
+        <span>💡 點擊地圖圓點或下方卡片可雙向聯動高亮</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- Interactive 12/17 Friday Time-of-Day Slider -->
+  <section class="time-scrubber-card" aria-label="12/17 週五營業狀態動態檢視">
+    <div class="scrubber-header">
+      <div>
+        <div class="label-mono kicker">FRIDAY TIME SIMULATOR</div>
+        <strong style="font-size: 1rem;">12/17 (五) 營業狀態即時模擬器</strong>
+        <span style="font-size: 0.8125rem; color: var(--on-surface-variant); margin-left: 0.5rem;">拖曳拉桿查看特定時刻開閉店情況</span>
+      </div>
+      <div style="display: flex; align-items: center; gap: 0.5rem;">
+        <span style="font-size: 0.8125rem; color: var(--on-surface-variant);">模擬時刻：</span>
+        <div class="time-readout-badge" id="current-time-display">11:30</div>
+      </div>
+    </div>
+
+    <div class="time-slider-track">
+      <label for="time-slider-input" class="label-mono" style="font-size: 0.6875rem; color: var(--on-surface-variant);">時間滾軸 (07:00 – 22:00)</label>
+      <input type="range" id="time-slider-input" class="time-range-input" min="420" max="1320" step="30" value="690" oninput="onTimeSliderChange(this.value)" aria-label="12/17 週五模擬時間調整滑桿">
+      <div class="time-ticks">
+        <span>07:00 (sanva 開)</span>
+        <span>09:00 (MAME/Nadoya)</span>
+        <span>12:00 (CHANEL 開)</span>
+        <span>15:00 (下午茶峰值)</span>
+        <span>18:00 (古民家打烊)</span>
+        <span>20:00 (MASONO 止)</span>
+        <span>22:00 (全店打烊)</span>
+      </div>
+    </div>
+
+    <div style="font-size: 0.8125rem; color: var(--secondary); font-weight: 500;" id="slider-status-summary">
+      當前模擬時刻（11:30）：全數 9 家店均在營業時段中。
+    </div>
+  </section>
+
+  <!-- Filter & Search Bar -->
+  <section class="controls-bar" aria-label="分區與關鍵字過濾">
+    <div class="filters-row">
+      <div style="display: flex; flex-direction: column; gap: var(--space-xs);">
+        <span class="label-mono" style="font-size: 0.6875rem; color: var(--on-surface-variant);">分區篩選</span>
+        <div class="filter-btn-group" role="tablist" aria-label="聚落分區">
+          <button class="filter-btn active" onclick="setAreaFilter('all', this)" role="tab" aria-selected="true">全部地點 (9)</button>
+          <button class="filter-btn" onclick="setAreaFilter('ginza', this)" role="tab" aria-selected="false">銀座與新富町 (3)</button>
+          <button class="filter-btn" onclick="setAreaFilter('sangubashi', this)" role="tab" aria-selected="false">參宮橋與代代木 (2)</button>
+          <button class="filter-btn" onclick="setAreaFilter('sendagaya', this)" role="tab" aria-selected="false">上原・原宿・千駄ヶ谷 (4)</button>
+        </div>
+      </div>
+
+      <div style="display: flex; flex-direction: column; gap: var(--space-xs);">
+        <span class="label-mono" style="font-size: 0.6875rem; color: var(--on-surface-variant);">類別篩選</span>
+        <div class="filter-btn-group" role="tablist" aria-label="店鋪類別">
+          <button class="filter-btn active" onclick="setCategoryFilter('all', this)" role="tab" aria-selected="true">全部類別</button>
+          <button class="filter-btn" onclick="setCategoryFilter('coffee', this)" role="tab" aria-selected="false">純精品咖啡</button>
+          <button class="filter-btn" onclick="setCategoryFilter('complex', this)" role="tab" aria-selected="false">藝文・香氛・複合空間</button>
+        </div>
+      </div>
+
+      <div style="display: flex; flex-direction: column; gap: var(--space-xs); flex-grow: 1; max-width: 320px;">
+        <label for="search-input-field" class="label-mono" style="font-size: 0.6875rem; color: var(--on-surface-variant);">關鍵字即時搜尋</label>
+        <div class="search-box">
+          <span class="search-icon-symbol" aria-hidden="true">🔍</span>
+          <input type="text" id="search-input-field" class="search-input" placeholder="搜尋店名、地址、地鐵站..." oninput="onSearchInput(this.value)">
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 9 Venue Cards Grid -->
+  <section class="card-wrapper" aria-label="咖啡店與藝文空間卡片清單">
+    <div class="venues-grid" id="venues-grid-container">
+      <!-- Generated dynamically by script to ensure responsive updates & state consistency -->
+    </div>
+  </section>
+
+  <!-- Curated 12/17 Friday Hop-on Hop-off Itineraries -->
+  <section class="itinerary-section" aria-label="12/17 順路跳店行程建議">
+    <div>
+      <div class="label-mono kicker">HOP-ON HOP-OFF RECOMMENDED ROUTE</div>
+      <h2 class="section-title">12/17 (五) 順路跳店散策路線建議</h2>
+      <p class="lede-text">
+        9 家店橫跨澀谷區與中央區。若想在 12/17 週五排出一趟順路且極度充實的巡禮，推薦採用「西側悠閒出發 ➔ 中午原宿千駄ヶ谷 ➔ 傍晚抵達銀座藝術微醺」的黃金節奏：
+      </p>
+    </div>
+
+    <div class="timeline-flow">
+      <!-- Step 1 -->
+      <div class="timeline-step-card">
+        <div class="step-badge">STEP 01・晨醒手沖與公園晨光</div>
+        <h3 class="step-title">sanva 或 FUGLEN 參宮橋</h3>
+        <div class="step-time">08:00 – 10:30</div>
+        <p class="step-desc">
+          從清晨 07:00 開門的 <strong>sanva</strong> 喝一杯北歐淺焙，或 08:30 前往 <strong>FUGLEN SANGŪBASHI</strong> 外帶咖啡漫步代代木住宅古町，享受東京週五難得的靜謐晨光。
+        </p>
+      </div>
+
+      <!-- Step 2 -->
+      <div class="timeline-step-card">
+        <div class="step-badge">STEP 02・千駄ヶ谷與世界冠軍品鑑</div>
+        <h3 class="step-title">MAME ➔ MASONO / wabi</h3>
+        <div class="step-time">11:00 – 13:30</div>
+        <p class="step-desc">
+          搭千代田線或步行至千駄ヶ谷。11:00 前往世界咖啡師冠軍團隊的 <strong>MAME</strong> 體驗風味輪手沖；隨後造訪 <strong>MASONO / wabi</strong> 欣賞日式侘寂服飾與複合美學。
+        </p>
+      </div>
+
+      <!-- Step 3 -->
+      <div class="timeline-step-card">
+        <div class="step-badge">STEP 03・裏原宿靜巷與和洋午茶</div>
+        <h3 class="step-title">HORAIYA (蓬萊屋)</h3>
+        <div class="step-time">14:00 – 15:30</div>
+        <p class="step-desc">
+          步行漫步至神宮前靜巷，在 <strong>HORAIYA</strong> 享受融合老鋪和菓子靈魂的甜點與手沖咖啡，避開竹下通喧囂，沉浸在裏原宿的悠哉氣氛。
+        </p>
+      </div>
+
+      <!-- Step 4 -->
+      <div class="timeline-step-card">
+        <div class="step-badge">STEP 04・東進銀座藝廊與夜幕咖啡酒吧</div>
+        <h3 class="step-title">CHANEL NEXUS ➔ TERON / dotcom</h3>
+        <div class="step-time">16:30 – 21:00</div>
+        <p class="step-desc">
+          搭地鐵直通銀座。先參觀 <strong>CHANEL NEXUS HALL</strong> 的當代藝術特展；傍晚移步 <strong>TERON COFFEE&amp;BAR</strong> 享受咖啡調酒，或至 <strong>dotcom coffee 新富</strong> 感受深夜極簡科技沖煮。
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <!-- Quick Batch Export & Travel Notes -->
+  <section class="washi-card" style="margin-top: var(--space-md);" aria-label="便利功能與出遊筆記">
+    <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: var(--space-sm);">
+      <div>
+        <div class="label-mono kicker">ONE-CLICK BATCH CLIPBOARD</div>
+        <h3 style="font-family: var(--font-headline); margin: 0; font-size: 1.15rem;">一鍵打包複製 9 家店完整導航清單</h3>
+        <p style="font-size: 0.8125rem; color: var(--on-surface-variant); margin: 0.25rem 0 0 0;">
+          將 9 家店的名稱、12/17 營業時間與精確地址一次複製到剪貼簿，方便貼入私人行程筆記或通訊軟體備份。
+        </p>
+      </div>
+      <button class="filter-btn active" style="padding: 0.5rem 1rem; font-size: 0.8125rem;" onclick="copyAllVenuesList()">
+        📋 複製全部 9 處導航清單
+      </button>
+    </div>
+  </section>
+
+  <!-- Footer Notes -->
+  <footer class="footer-notes">
+    <div>
+      <strong>12/17 (五) 東京探店實用提醒：</strong>
+      FUGLEN 參宮橋週五內用 10:00 開放（08:30–10:00 僅限外帶）；CHANEL NEXUS HALL 免費參觀，最後入場通常為閉館前 30 分鐘；sanva 2F 藝廊與香氛空間為 11:00 開啟；MAME Tokyo Sendagaya 營業至 17:00 止，建議儘早造訪。
+    </div>
+    <div style="font-family: var(--font-label); font-size: 0.75rem; color: var(--on-surface-variant);">
+      TOKYO SPECIALTY COFFEE &amp; ART MAP GUIDE ・ ALL 9 LOCATIONS VERIFIED FOR FRIDAY, DEC 18
+    </div>
+  </footer>
+
+</div>
+
+<!-- Floating Toast Notification -->
+<div class="toast-container" id="toast-shelf" aria-live="polite"></div>
+
+<!-- Navigation Detail Instruction Modal -->
+<div class="nav-modal-backdrop" id="nav-modal" role="dialog" aria-modal="true" aria-labelledby="modal-venue-title">
+  <div class="nav-modal-box">
+    <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+      <div>
+        <div class="label-mono kicker">GOOGLE MAPS NAVIGATION READY</div>
+        <h3 class="modal-title" id="modal-venue-title">地點導航資訊</h3>
+      </div>
+      <button class="filter-btn" onclick="closeNavModal()" style="font-size: 1rem; padding: 0.2rem 0.5rem;" aria-label="關閉對話框">✕</button>
+    </div>
+    <p style="font-size: 0.875rem; color: var(--on-surface-variant); margin: 0;">
+      已為您複製標準 Google 地圖搜尋關鍵字與地址！由於沙盒環境無法直接開啟外部視窗，您可以直接切換至 Google 地圖 App 或手機瀏覽器，貼上即可一鍵導航：
+    </p>
+    <div class="modal-query-box" id="modal-query-content"></div>
+    <div style="display: flex; gap: var(--space-xs); justify-content: flex-end;">
+      <button class="btn-secondary" onclick="copyModalQuery()">再次複製關鍵字</button>
+      <button class="filter-btn active" onclick="closeNavModal()">完成並返回</button>
+    </div>
+  </div>
+</div>
+
+<api-shim></api-shim>
+
+<script>
+/* Venue Dataset for Tokyo Specialty Coffee & Art Guide (12/17 Friday) */
+const VENUES = [
+  {
+    id: 1,
+    name: `dotcom coffee 新富`,
+    kana: `ドットコムコーヒー シントミ`,
+    areaId: `ginza`,
+    areaName: `銀座與新富町區域`,
+    category: `coffee`,
+    categoryLabel: `極簡科技精品咖啡`,
+    hours: `08:00 – 22:00`,
+    openMin: 480,   // 08:00
+    closeMin: 1320, // 22:00
+    hasSpecialHours: false,
+    hoursDetail: `12/17(五) 08:00 – 22:00（全日提供單品手沖、精萃義式濃縮與輕食）`,
+    address: `東京都中央區新富 1-5-10`,
+    postalCode: `104-0041`,
+    station: `東京地鐵有樂町線「新富町站」3號出口 徒歩3分 / 日比谷線「八丁堀站」A3出口 徒歩5分`,
+    mapCluster: `east`,
+    mapX: 755,
+    mapY: 335,
+    description: `坐落於新富町安靜街區，主打極簡前衛設計與高科技輔助萃取沖煮系統。營業時間從晨間 8 點一路延續至深夜 22 點，是東京探索旅程中晨間清醒或夜間品飲的絕佳落腳點。`,
+    navSearchQuery: `dotcom coffee 新富 東京都中央區新富 1-5-10`
+  },
+  {
+    id: 2,
+    name: `TERON COFFEE&BAR GINZA`,
+    kana: `テロン コーヒー＆バー ギンザ`,
+    areaId: `ginza`,
+    areaName: `銀座與新富町區域`,
+    category: `complex`,
+    categoryLabel: `北歐風精品咖啡與酒吧`,
+    hours: `08:00 – 19:00`,
+    openMin: 480,   // 08:00
+    closeMin: 1140, // 19:00
+    hasSpecialHours: false,
+    hoursDetail: `12/17(五) 08:00 – 19:00（全日精品淺焙，午後轉化為微醺咖啡調酒時段）`,
+    address: `東京都中央區銀座 3-11-3（LEAGUE 銀座 1F）`,
+    postalCode: `104-0061`,
+    station: `都營淺草線・東京地鐵日比谷線「東銀座站」A7/A8出口 徒歩2分 / 銀座線「銀座站」A12出口 徒歩5分`,
+    mapCluster: `east`,
+    mapX: 680,
+    mapY: 385,
+    description: `位於複合質感空間 LEAGUE 銀座 1 樓，融合北歐風格淺焙精品咖啡與沉穩吧檯氛圍。午後時分轉化為迷人咖啡酒吧，提供優雅放鬆的銀座咖啡與微醺體驗。`,
+    navSearchQuery: `TERON COFFEE&BAR GINZA 東京都中央區銀座 3-11-3 LEAGUE 銀座 1F`
+  },
+  {
+    id: 3,
+    name: `CHANEL NEXUS HALL`,
+    kana: `シャネル・ネクサス・ホール`,
+    areaId: `ginza`,
+    areaName: `銀座與新富町區域`,
+    category: `complex`,
+    categoryLabel: `高級當代攝影與藝文沙龍`,
+    hours: `12:00 – 19:30 / 20:00`,
+    openMin: 720,   // 12:00
+    closeMin: 1170, // 19:30 (彈性至 20:00)
+    hasSpecialHours: true,
+    hoursDetail: `12/17(五) 12:00 – 19:30（最後入場 19:00，視當日展況彈性開放至 20:00，免費參觀）`,
+    address: `東京都中央區銀座 3-5-3（CHANEL 銀座大樓 4F）`,
+    postalCode: `104-0061`,
+    station: `東京地鐵銀座線・丸之內線・日比谷線「銀座站」A13出口 徒歩1分`,
+    mapCluster: `east`,
+    mapX: 635,
+    mapY: 365,
+    description: `香奈兒設於銀座旗艦大樓 4 樓的高端藝術文化沙龍空間。常態性舉辦世界級當代攝影展與跨界音樂企劃，免費開放大眾參觀，是銀座最富質感的當代藝文地標。`,
+    navSearchQuery: `CHANEL NEXUS HALL 東京都中央區銀座 3-5-3 CHANEL 銀座大樓 4F`
+  },
+  {
+    id: 4,
+    name: `FUGLEN SANGŪBASHI`,
+    kana: `フグレン サングウバシ（參宮橋）`,
+    areaId: `sangubashi`,
+    areaName: `參宮橋與代代木區域`,
+    category: `coffee`,
+    categoryLabel: `挪威風土日式古民家咖啡`,
+    hours: `10:00 – 18:00（外帶時段 08:30 – 10:00）`,
+    openMin: 510,   // 08:30 (外帶)
+    dineinMin: 600, // 10:00 (內用)
+    closeMin: 1080, // 18:00
+    hasSpecialHours: true,
+    hoursDetail: `12/17(五) 外帶時段 08:30 – 10:00；內用堂食 10:00 – 18:00`,
+    address: `東京都澀谷區代代木 4-20-10`,
+    postalCode: `151-0053`,
+    station: `小田急小田原線「參宮橋站」西口 徒歩2分`,
+    mapCluster: `west_north`,
+    mapX: 270,
+    mapY: 230,
+    description: `來自挪威奧斯陸的傳奇精品咖啡品牌在東京的代表性分店。悉心改造日式老古民家，將北歐中世紀經典柚木家具與日式傳統木造庭院完美結合，淺焙咖啡純淨果香明亮。`,
+    navSearchQuery: `FUGLEN SANGUBASHI 東京都澀谷區代代木 4-20-10`
+  },
+  {
+    id: 5,
+    name: `sanva (Sanva Refreshment Complex)`,
+    kana: `サンヴァ（富ヶ谷）`,
+    areaId: `sangubashi`,
+    areaName: `參宮橋與代代木區域`,
+    category: `complex`,
+    categoryLabel: `全日美學咖啡與香氛藝廊`,
+    hours: `1F 07:00 – 22:00 / 2F 11:00 – 19:00`,
+    openMin: 420,   // 07:00 (1F)
+    upperOpenMin: 660, // 11:00 (2F)
+    upperCloseMin: 1140, // 19:00 (2F)
+    closeMin: 1320, // 22:00 (1F)
+    hasSpecialHours: true,
+    hoursDetail: `12/17(五) 1F 咖啡廳 07:00 – 22:00；2F 香氛與藝廊選品 11:00 – 19:00`,
+    address: `東京都澀谷區富ヶ谷 1-6-8`,
+    postalCode: `151-0063`,
+    station: `東京地鐵千代田線「代代木公園站」1號出口 徒歩1分 / 小田急線「代代木八幡站」南口 徒歩2分`,
+    mapCluster: `west_south`,
+    mapX: 230,
+    mapY: 410,
+    description: `代代木公園與富ヶ谷區域話題性極高的複合生活美學中心。1F 咖啡廳自清晨 7 點起供應頂級單品與特調直到深夜 22 點，2F 匯集有機天然香氛、獨立藝廊特展與生活器物。`,
+    navSearchQuery: `sanva 東京都澀谷區富ヶ谷 1-6-8`
+  },
+  {
+    id: 6,
+    name: `Nadoya no katte（ナドヤノカッテ）`,
+    kana: `ナドヤノカッテ（代代木上原）`,
+    areaId: `sendagaya`,
+    areaName: `代代木上原、原宿與千駄ヶ谷區域`,
+    category: `coffee`,
+    categoryLabel: `昭和古民家露天庭園咖啡`,
+    hours: `09:00 – 18:00`,
+    openMin: 540,   // 09:00
+    closeMin: 1080, // 18:00
+    hasSpecialHours: false,
+    hoursDetail: `12/17(五) 09:00 – 18:00（手沖咖啡、季節茶飲與戶外長凳席）`,
+    address: `東京都澀谷區西原 3-19-3`,
+    postalCode: `151-0066`,
+    station: `東京地鐵千代田線・小田急小田原線「代代木上原站」東口 徒歩4分`,
+    mapCluster: `west_outer`,
+    mapX: 120,
+    mapY: 340,
+    description: `隱身於代代木上原靜謐住宅巷弄中的綠意秘境。保留昭和年代木造老宅的結構與開闊露天庭院，充滿實驗性與在地人情溫度，坐在柿子樹與植栽下品味手沖格外舒心。`,
+    navSearchQuery: `Nadoya no katte 東京都澀谷區西原 3-19-3`
+  },
+  {
+    id: 7,
+    name: `HORAIYA（蓬萊屋）`,
+    kana: `ホウライヤ（神宮前）`,
+    areaId: `sendagaya`,
+    areaName: `代代木上原、原宿與千駄ヶ谷區域`,
+    category: `coffee`,
+    categoryLabel: `裏原宿和洋融合精品咖啡`,
+    hours: `08:30 – 19:00`,
+    openMin: 510,   // 08:30
+    closeMin: 1140, // 19:00
+    hasSpecialHours: false,
+    hoursDetail: `12/17(五) 08:30 – 19:00（義式濃縮、極品手沖與和風菓子甜品）`,
+    address: `東京都澀谷區神宮前 2-19-10`,
+    postalCode: `150-0001`,
+    station: `東京地鐵副都心線「北參道站」2號出口 徒歩8分 / JR山手線「原宿站」竹下口 徒歩10分`,
+    mapCluster: `harajuku`,
+    mapX: 410,
+    mapY: 310,
+    description: `座落於裏原宿安靜街區，前身為深具歷史感的和菓子店鋪，轉身結合當代極簡空間與嚴選精品豆。手沖咖啡與精緻甜點的搭配細膩高雅，深受東京在地咖啡鑑賞家推崇。`,
+    navSearchQuery: `HORAIYA 東京都澀谷區神宮前 2-19-10`
+  },
+  {
+    id: 8,
+    name: `MASONO / wabi`,
+    kana: `マソノ / ワビ（千駄ヶ谷）`,
+    areaId: `sendagaya`,
+    areaName: `代代木上原、原宿與千駄ヶ谷區域`,
+    category: `complex`,
+    categoryLabel: `千駄ヶ谷咖啡烘焙與侘寂選品`,
+    hours: `MASONO 08:00 – 20:00 / wabi 11:00 – 20:00`,
+    openMin: 480,   // 08:00 (MASONO)
+    upperOpenMin: 660, // 11:00 (wabi)
+    closeMin: 1200, // 20:00
+    hasSpecialHours: true,
+    hoursDetail: `12/17(五) MASONO 咖啡 08:00 – 20:00；wabi 服飾工藝選品 11:00 – 20:00`,
+    address: `東京都澀谷區千駄ヶ谷 2-37-8`,
+    postalCode: `151-0051`,
+    station: `JR中央總武線「千駄ヶ谷站」徒歩6分 / 都營大江戶線「國立競技場站」A3出口 徒歩6分 / 東京地鐵副都心線「北參道站」徒歩7分`,
+    mapCluster: `sendagaya`,
+    mapX: 450,
+    mapY: 210,
+    description: `結合純粹自家咖啡烘焙與日式侘寂（Wabi-sabi）美學的雙生概念空間。清晨 8 點起便能品嚐細緻手沖與特製烘焙糕點，11 點起相鄰的 wabi 服飾工藝空間開放選購。`,
+    navSearchQuery: `MASONO wabi 東京都澀谷區千駄ヶ谷 2-37-8`
+  },
+  {
+    id: 9,
+    name: `MAME Tokyo Sendagaya`,
+    kana: `マメ トウキョウ センダガヤ`,
+    areaId: `sendagaya`,
+    areaName: `代代木上原、原宿與千駄ヶ谷區域`,
+    category: `coffee`,
+    categoryLabel: `世界咖啡師冠軍精品概念館`,
+    hours: `09:00 – 17:00`,
+    openMin: 540,   // 09:00
+    closeMin: 1020, // 17:00
+    hasSpecialHours: false,
+    hoursDetail: `12/17(五) 09:00 – 17:00（世界咖啡冠軍概念店，建議午後前造訪）`,
+    address: `東京都澀谷區千駄ヶ谷 1-19-9`,
+    postalCode: `151-0051`,
+    station: `JR中央總武線「千駄ヶ谷站」徒歩3分 / 都營大江戶線「國立競技場站」A4出口 徒歩4分`,
+    mapCluster: `sendagaya`,
+    mapX: 480,
+    mapY: 150,
+    description: `世界咖啡師大賽冠軍團隊傾力打造的東京概念店。以極高標準採購全球頂級微批次咖啡豆，店內提供專業咖啡風味輪解說與定制萃取體驗，營業至 17:00，是千駄ヶ谷必訪名店。`,
+    navSearchQuery: `MAME Tokyo Sendagaya 東京都澀谷區千駄ヶ谷 1-19-9`
+  }
+];
+
+/* State tracking */
+let currentAreaFilter = `all`;
+let currentCategoryFilter = `all`;
+let currentSearchQuery = ``;
+let simulatedMinutes = 690; // Default: 11:30 AM
+let routeLineVisible = false;
+let selectedVenueId = null;
+let currentModalVenue = null;
+
+/* Format minutes into HH:MM */
+function formatTime(minutes) {
+  const h = Math.floor(minutes / 60);
+  const m = minutes % 60;
+  const hh = h < 10 ? `0` + h : `${h}`;
+  const mm = m < 10 ? `0` + m : `${m}`;
+  return `${hh}:${mm}`;
+}
+
+/* Evaluate status for 12/17 Friday given a simulated time in minutes */
+function evaluateStatus(venue, minNow) {
+  // FUGLEN special takeout interval (08:30 - 10:00)
+  if (venue.id === 4) {
+    if (minNow >= venue.openMin && minNow < venue.dineinMin) {
+      return { code: `takeout`, label: `僅外帶時段 (08:30–10:00)` };
+    }
+  }
+
+  // Multi-floor complexes
+  if (venue.id === 5) {
+    // sanva
+    if (minNow >= venue.openMin && minNow < venue.closeMin) {
+      if (minNow >= venue.upperOpenMin && minNow < venue.upperCloseMin) {
+        return { code: `open`, label: `全館營業中 (1F咖啡+2F香氛)` };
+      }
+      return { code: `open`, label: `1F咖啡營業中 (2F尚未開/已打烊)` };
+    }
+  }
+
+  if (venue.id === 8) {
+    // MASONO / wabi
+    if (minNow >= venue.openMin && minNow < venue.closeMin) {
+      if (minNow >= venue.upperOpenMin) {
+        return { code: `open`, label: `全店營業中 (咖啡+wabi選品)` };
+      }
+      return { code: `open`, label: `MASONO咖啡營業中 (wabi 11:00開)` };
+    }
+  }
+
+  // General condition
+  if (minNow >= venue.openMin && minNow < venue.closeMin) {
+    return { code: `open`, label: `營業中` };
+  } else if (minNow < venue.openMin) {
+    return { code: `closed`, label: `尚未營業 (今日 ${venue.hours.split(`–`)[0].trim()} 開)` };
+  } else {
+    return { code: `closed`, label: `今日已打烊` };
+  }
+}
+
+/* Render Cards to DOM */
+function renderCards() {
+  const container = document.getElementById(`venues-grid-container`);
+  if (!container) return;
+
+  const filtered = VENUES.filter(v => {
+    // Area filter
+    if (currentAreaFilter !== `all` && v.areaId !== currentAreaFilter) return false;
+    // Category filter
+    if (currentCategoryFilter !== `all`) {
+      if (currentCategoryFilter === `coffee` && v.category !== `coffee`) return false;
+      if (currentCategoryFilter === `complex` && v.category !== `complex`) return false;
+    }
+    // Search filter
+    if (currentSearchQuery.trim() !== ``) {
+      const q = currentSearchQuery.toLowerCase();
+      const matchName = v.name.toLowerCase().includes(q);
+      const matchAddress = v.address.toLowerCase().includes(q);
+      const matchStation = v.station.toLowerCase().includes(q);
+      const matchCategory = v.categoryLabel.toLowerCase().includes(q);
+      if (!matchName && !matchAddress && !matchStation && !matchCategory) return false;
+    }
+    return true;
+  });
+
+  if (filtered.length === 0) {
+    container.innerHTML = `
+      <div class="washi-card" style="grid-column: 1 / -1; text-align: center; padding: var(--space-xl);">
+        <p style="font-family: var(--font-headline); font-size: 1.25rem; margin: 0 0 var(--space-xs) 0;">查無符合條件的地點</p>
+        <p style="color: var(--on-surface-variant); font-size: 0.875rem; margin: 0 0 var(--space-md) 0;">請嘗試清除關鍵字或切換至「全部地點」分類。</p>
+        <button class="filter-btn active" onclick="resetAllFilters()">重設所有篩選條件</button>
+      </div>
+    `;
+    return;
+  }
+
+  let html = ``;
+  filtered.forEach(venue => {
+    const status = evaluateStatus(venue, simulatedMinutes);
+    const isHighlighted = selectedVenueId === venue.id ? `highlighted` : ``;
+
+    let areaClass = `area-ginza`;
+    if (venue.areaId === `sangubashi`) areaClass = `area-sangubashi`;
+    if (venue.areaId === `sendagaya`) areaClass = `area-sendagaya`;
+
+    html += `
+      <article class="washi-card venue-card ${isHighlighted}" id="venue-card-${venue.id}">
+        <div class="card-top">
+          <div class="card-meta-row">
+            <span class="venue-num-badge">NO. 0${venue.id}</span>
+            <span class="area-tag ${areaClass}">${venue.areaName}</span>
+          </div>
+
+          <div class="venue-name-row">
+            <h3 class="venue-title">${venue.name}</h3>
+            <div class="venue-kana">${venue.kana} ・ ${venue.categoryLabel}</div>
+          </div>
+
+          <div>
+            <div class="status-badge ${status.code}">
+              <span class="status-dot"></span>
+              <span>${status.label}</span>
+            </div>
+          </div>
+
+          <div class="detail-list">
+            <div class="detail-row">
+              <span class="detail-label">12/17 營業</span>
+              <span class="detail-value hours-highlight">${venue.hours}</span>
+            </div>
+            <div class="detail-row">
+              <span class="detail-label">時段說明</span>
+              <span class="detail-value" style="font-size: 0.8125rem;">${venue.hoursDetail}</span>
+            </div>
+            <div class="detail-row">
+              <span class="detail-label">地址資訊</span>
+              <span class="detail-value address-text">${venue.address}</span>
+            </div>
+            <div class="detail-row">
+              <span class="detail-label">鄰近地鐵</span>
+              <span class="detail-value" style="font-size: 0.8125rem;">${venue.station}</span>
+            </div>
+          </div>
+
+          <p class="venue-desc">${venue.description}</p>
+        </div>
+
+        <div class="card-actions">
+          <button class="btn-primary-nav" onclick="copyNavigationQuery(${venue.id})" aria-label="一鍵複製 ${venue.name} 的 Google 地圖導航資訊">
+            <span aria-hidden="true">📍</span> 一鍵複製 Google 地圖導航資訊
+          </button>
+          <div class="card-sub-actions">
+            <button class="btn-secondary" onclick="focusVenue(${venue.id})">
+              🔍 地圖定位
+            </button>
+            <button class="btn-secondary" onclick="copyAddressOnly(${venue.id})">
+              📋 複製純地址
+            </button>
+          </div>
+        </div>
+      </article>
+    `;
+  });
+
+  container.innerHTML = html;
+}
+
+/* Update SVG Map Pin Highlighting */
+function updateMapPins() {
+  VENUES.forEach(v => {
+    const pin = document.getElementById(`pin-${v.id}`);
+    if (pin) {
+      if (selectedVenueId === v.id) {
+        pin.classList.add(`active`);
+      } else {
+        pin.classList.remove(`active`);
+      }
+    }
+  });
+}
+
+/* User clicks a map pin or card button to focus a venue */
+function focusVenue(id) {
+  selectedVenueId = id;
+  updateMapPins();
+  renderCards();
+
+  // Scroll smoothly to card
+  const card = document.getElementById(`venue-card-${id}`);
+  if (card) {
+    card.scrollIntoView({ behavior: `smooth`, block: `center` });
+    card.classList.add(`highlighted`);
+  }
+
+  const venue = VENUES.find(v => v.id === id);
+  if (venue) {
+    showToast(`已在地圖與清單鎖定：${venue.name}`);
+  }
+}
+
+/* Reset map pin selection */
+function resetMapSelection() {
+  selectedVenueId = null;
+  updateMapPins();
+  renderCards();
+  showToast(`已重設地圖鎖定與篩選狀態`);
+}
+
+/* Toggle the Hop-on Itinerary path on SVG Map */
+function toggleRouteLine() {
+  const path = document.getElementById(`svg-route-path`);
+  const btn = document.getElementById(`btn-toggle-route`);
+  routeLineVisible = !routeLineVisible;
+
+  if (path) {
+    path.style.opacity = routeLineVisible ? `1` : `0`;
+  }
+  if (btn) {
+    btn.setAttribute(`aria-pressed`, routeLineVisible ? `true` : `false`);
+    btn.classList.toggle(`active`, routeLineVisible);
+    btn.textContent = routeLineVisible ? `🗺️ 隱藏 12/17 順路跳店推薦路線` : `🗺️ 顯示 12/17 順路跳店推薦路線`;
+  }
+
+  showToast(routeLineVisible ? `已在地圖繪製 12/17 順路跳店路線軌跡` : `已隱藏地圖路線軌跡`);
+}
+
+/* Handle Time-of-Day Slider Input */
+function onTimeSliderChange(val) {
+  simulatedMinutes = parseInt(val, 10);
+  const timeText = formatTime(simulatedMinutes);
+  const displayEl = document.getElementById(`current-time-display`);
+  if (displayEl) {
+    displayEl.textContent = timeText;
+  }
+
+  // Calculate open count
+  let openCount = 0;
+  VENUES.forEach(v => {
+    const st = evaluateStatus(v, simulatedMinutes);
+    if (st.code === `open` || st.code === `takeout`) openCount++;
+  });
+
+  const summaryEl = document.getElementById(`slider-status-summary`);
+  if (summaryEl) {
+    summaryEl.textContent = `當前模擬時刻（${timeText}）：共有 ${openCount} / 9 家店正在營業中。`;
+  }
+
+  renderCards();
+}
+
+/* Area Tab Filter */
+function setAreaFilter(areaId, btn) {
+  currentAreaFilter = areaId;
+  const parent = btn.parentElement;
+  if (parent) {
+    const btns = parent.querySelectorAll(`.filter-btn`);
+    btns.forEach(b => {
+      b.classList.remove(`active`);
+      b.setAttribute(`aria-selected`, `false`);
+    });
+  }
+  btn.classList.add(`active`);
+  btn.setAttribute(`aria-selected`, `true`);
+  renderCards();
+}
+
+/* Category Tab Filter */
+function setCategoryFilter(catId, btn) {
+  currentCategoryFilter = catId;
+  const parent = btn.parentElement;
+  if (parent) {
+    const btns = parent.querySelectorAll(`.filter-btn`);
+    btns.forEach(b => {
+      b.classList.remove(`active`);
+      b.setAttribute(`aria-selected`, `false`);
+    });
+  }
+  btn.classList.add(`active`);
+  btn.setAttribute(`aria-selected`, `true`);
+  renderCards();
+}
+
+/* Search Input Handler */
+function onSearchInput(val) {
+  currentSearchQuery = val;
+  renderCards();
+}
+
+/* Reset All Filters */
+function resetAllFilters() {
+  currentAreaFilter = `all`;
+  currentCategoryFilter = `all`;
+  currentSearchQuery = ``;
+  const searchInput = document.getElementById(`search-input-field`);
+  if (searchInput) searchInput.value = ``;
+
+  // Reset tab buttons visually
+  const allTabs = document.querySelectorAll(`.filter-btn-group`);
+  allTabs.forEach(group => {
+    const first = group.querySelector(`.filter-btn`);
+    const all = group.querySelectorAll(`.filter-btn`);
+    all.forEach(b => b.classList.remove(`active`));
+    if (first) first.classList.add(`active`);
+  });
+
+  renderCards();
+  showToast(`已重設所有搜尋與過濾條件`);
+}
+
+/* Copy navigation search query to clipboard & trigger instruction modal */
+function copyNavigationQuery(id) {
+  const venue = VENUES.find(v => v.id === id);
+  if (!venue) return;
+
+  const copyText = `${venue.name} ${venue.address}`;
+  currentModalVenue = venue;
+
+  performClipboardWrite(copyText, () => {
+    showToast(`已複製「${venue.name}」Google 地圖導航關鍵字！`);
+    openNavModal(venue, copyText);
+  });
+}
+
+/* Copy address only */
+function copyAddressOnly(id) {
+  const venue = VENUES.find(v => v.id === id);
+  if (!venue) return;
+
+  performClipboardWrite(venue.address, () => {
+    showToast(`已複製地址：${venue.address}`);
+  });
+}
+
+/* Batch copy all 9 venues list */
+function copyAllVenuesList() {
+  let text = `【東京精品咖啡與藝文空間 12/17(五) 營業時間與導航清單】\n\n`;
+  VENUES.forEach((v, idx) => {
+    text += `${idx + 1}. ${v.name}\n`;
+    text += `   營業時間：${v.hours}\n`;
+    text += `   分區：${v.areaName}\n`;
+    text += `   地址：${v.address}\n`;
+    text += `   地鐵：${v.station}\n`;
+    text += `   Google 地圖搜尋目標：${v.name} ${v.address}\n\n`;
+  });
+
+  performClipboardWrite(text, () => {
+    showToast(`已將 9 家店完整 12/17 營業時間與地址清單打包複製！`);
+  });
+}
+
+/* Clipboard Helper */
+function performClipboardWrite(text, onSuccess) {
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(text).then(() => {
+      if (onSuccess) onSuccess();
+    }).catch(() => {
+      fallbackCopy(text);
+      if (onSuccess) onSuccess();
+    });
+  } else {
+    fallbackCopy(text);
+    if (onSuccess) onSuccess();
+  }
+}
+
+function fallbackCopy(text) {
+  const ta = document.createElement(`textarea`);
+  ta.value = text;
+  ta.style.position = `fixed`;
+  ta.style.left = `-9999px`;
+  document.body.appendChild(ta);
+  ta.select();
+  try {
+    document.execCommand(`copy`);
+  } catch (err) {
+    console.error(`Copy error`, err);
+  }
+  document.body.removeChild(ta);
+}
+
+/* Toast System */
+function showToast(message) {
+  const shelf = document.getElementById(`toast-shelf`);
+  if (!shelf) return;
+
+  const toast = document.createElement(`div`);
+  toast.className = `toast`;
+  toast.innerHTML = `
+    <span class="toast-hanko">珈琲印</span>
+    <span>${message}</span>
+  `;
+  shelf.appendChild(toast);
+
+  // Trigger show animation
+  setTimeout(() => {
+    toast.classList.add(`show`);
+  }, 10);
+
+  // Auto remove after 3.5s
+  setTimeout(() => {
+    toast.classList.remove(`show`);
+    setTimeout(() => {
+      if (toast.parentElement) {
+        shelf.removeChild(toast);
+      }
+    }, 300);
+  }, 3500);
+}
+
+/* Modal for Navigation Guidance */
+function openNavModal(venue, queryText) {
+  const modal = document.getElementById(`nav-modal`);
+  const titleEl = document.getElementById(`modal-venue-title`);
+  const contentEl = document.getElementById(`modal-query-content`);
+
+  if (titleEl) titleEl.textContent = `導航目標：${venue.name}`;
+  if (contentEl) {
+    contentEl.textContent = queryText;
+  }
+  if (modal) {
+    modal.classList.add(`open`);
+  }
+}
+
+function closeNavModal() {
+  const modal = document.getElementById(`nav-modal`);
+  if (modal) {
+    modal.classList.remove(`open`);
+  }
+}
+
+function copyModalQuery() {
+  if (!currentModalVenue) return;
+  const copyText = `${currentModalVenue.name} ${currentModalVenue.address}`;
+  performClipboardWrite(copyText, () => {
+    showToast(`關鍵字已再次複製！`);
+  });
+}
+
+// Close modal on click outside box
+window.addEventListener(`click`, function(e) {
+  const modal = document.getElementById(`nav-modal`);
+  if (e.target === modal) {
+    closeNavModal();
+  }
+});
+
+// Close modal on Escape
+window.addEventListener(`keydown`, function(e) {
+  if (e.key === `Escape`) {
+    closeNavModal();
+  }
+});
+
+/* Initial setup on DOMContentLoaded */
+document.addEventListener(`DOMContentLoaded`, function() {
+  renderCards();
+  updateMapPins();
+});
+</script>
+
+</body>
+</html>
