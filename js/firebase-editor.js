@@ -737,6 +737,16 @@ async function notesPush() {
   await pushToFirebase(doc, { items: notesData }, 'notes-sync-status', e.lsKey('notes'));
 }
 
+// 小筆記：文字中的網址轉成可點擊連結（先跳脫 HTML 再轉換）
+function notesLinkify(text) {
+  const esc = String(text).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  return esc.replace(/\bhttps?:\/\/[^\s<]+/gi, m => {
+    let url = m, tail = '';
+    const t = url.match(/[.,;:!?)）」』、。，；：！？]+$/);
+    if (t) { tail = t[0]; url = url.slice(0, -tail.length); }
+    return `<a href="${url}" target="_blank" rel="noopener noreferrer" style="color:#2c7be5;text-decoration:underline;word-break:break-all;">${url}</a>${tail}`;
+  });
+}
 function notesRender() {
   const grid  = document.getElementById('notes-grid');
   const empty = document.getElementById('notes-empty');
@@ -768,7 +778,7 @@ function notesRender() {
         </div>
       </div>
       ${note.imgUrl ? `<img src="${note.imgUrl}" loading="lazy" onclick="window.open('${note.imgUrl}','_blank')" style="display:block;width:100%;flex:1;min-height:140px;object-fit:cover;object-position:top;border-radius:6px;cursor:zoom-in;margin-bottom:${note.text?'0.6rem':'0'};flex-shrink:0;">` : ''}
-      ${note.text ? `<div style="font-size:0.85rem;line-height:1.75;white-space:pre-wrap;word-break:break-word;color:var(--ink);flex-shrink:0;">${note.text}</div>` : ''}`;
+      ${note.text ? `<div style="font-size:0.85rem;line-height:1.75;white-space:pre-wrap;word-break:break-word;color:var(--ink);flex-shrink:0;">${notesLinkify(note.text)}</div>` : ''}`;
     grid.appendChild(card);
   });
 }
