@@ -1285,23 +1285,29 @@ function itineraryRender() {
         const tagClass = ITIN_TYPE_CLASS[ev.type] || 'tag-other';
         if (itineraryEditMode) {
           const typeOpts = ITIN_TYPES.map(t => `<option value="${t}" ${ev.type===t?'selected':''}>${t}</option>`).join('');
-          return `<div class="event" data-di="${di}" data-pi="${pi}" data-ei="${ei}" style="display:flex;gap:0.6rem;align-items:flex-start;padding:0.5rem 0;border-bottom:1px dashed #eee;">
+          return `<div class="event" data-di="${di}" data-pi="${pi}" data-ei="${ei}" style="display:flex;gap:0.6rem;align-items:flex-start;padding:0.5rem 0;border-bottom:1px dashed #eee;"
+            ondragstart="itinDragStart(event,${di},${pi},${ei})" ondragover="itinDragOver(event,this)" ondragleave="this.style.outline=''" ondrop="itinDrop(event,${di},${pi},${ei},this)" ondragend="itinDragEnd(this)">
+            <span class="itin-drag-handle" title="拖曳調整順序" onmousedown="this.closest('.event').draggable=true" onmouseup="this.closest('.event').draggable=false" style="cursor:grab;color:#bbb;font-size:0.95rem;line-height:1.7;user-select:none;flex-shrink:0;">⠿</span>
             <div class="event-type" style="flex-shrink:0;padding-top:0.1rem;">
               <select onchange="itinEdit(${di},${pi},${ei},'type',this.value)"
                 style="font-size:0.72rem;border:1px solid #ddd;border-radius:3px;padding:0.15rem;background:white;">
                 ${typeOpts}
               </select>
             </div>
-            <div class="event-body" style="flex:1;display:flex;flex-direction:column;gap:0.3rem;">
+            <div class="event-body" style="flex:1;display:flex;flex-direction:row;flex-wrap:wrap;gap:0.4rem;min-width:0;">
               <input value="${(ev.name||'').replace(/"/g,'&quot;')}"
                 onchange="itinEdit(${di},${pi},${ei},'name',this.value)"
                 placeholder="事件名稱"
-                style="width:100%;font-size:0.82rem;font-weight:600;border:1px solid #ddd;border-radius:3px;padding:0.25rem 0.4rem;box-sizing:border-box;">
+                style="flex:1 1 10rem;min-width:0;max-width:22rem;font-size:0.82rem;font-weight:600;border:1px solid #ddd;border-radius:3px;padding:0.25rem 0.4rem;box-sizing:border-box;">
               <input value="${(ev.note||'').replace(/"/g,'&quot;')}"
                 onchange="itinEdit(${di},${pi},${ei},'note',this.value)"
                 placeholder="補充說明（可留空）"
-                style="width:100%;font-size:0.76rem;border:1px solid #ddd;border-radius:3px;padding:0.2rem 0.4rem;box-sizing:border-box;color:#666;">
+                style="flex:1 1 10rem;min-width:0;max-width:22rem;font-size:0.76rem;border:1px solid #ddd;border-radius:3px;padding:0.25rem 0.4rem;box-sizing:border-box;color:#666;">
             </div>
+            <span style="flex-shrink:0;display:flex;flex-direction:column;gap:2px;margin-top:0.05rem;">
+              <button onclick="itinMoveEvent(${di},${pi},${ei},-1)" title="上移" ${ei===0&&pi===0?'disabled':''} style="background:#f3f1ec;border:1px solid #ddd;border-radius:3px;cursor:pointer;font-size:0.7rem;line-height:1;padding:0.28rem 0.5rem;color:#555;${ei===0&&pi===0?'opacity:0.3;':''}">▲</button>
+              <button onclick="itinMoveEvent(${di},${pi},${ei},1)" title="下移" style="background:#f3f1ec;border:1px solid #ddd;border-radius:3px;cursor:pointer;font-size:0.7rem;line-height:1;padding:0.28rem 0.5rem;color:#555;">▼</button>
+            </span>
             <button onclick="itinDeleteEvent(${di},${pi},${ei})"
               style="flex-shrink:0;background:none;border:none;cursor:pointer;font-size:0.9rem;color:#c0392b;padding:0.2rem 0.35rem;margin-top:0.1rem;" title="刪除">✕</button>
           </div>`;
@@ -1542,6 +1548,49 @@ function itinEdit(di, pi, ei, field, value) {
   if (itineraryData[di]?.periods[pi]?.events[ei]) {
     itineraryData[di].periods[pi].events[ei][field] = value;
   }
+}
+/* ── ▲▼ 按鈕移動（手機用）：到時段頭尾時自動跨到相鄰時段 ── */
+function itinMoveEvent(di, pi, ei, dir) {
+  const periods = itineraryData[di]?.periods; if (!periods) return;
+  const evs = periods[pi].events;
+  const [item] = evs.splice(ei, 1);
+  if (dir < 0) {
+    if (ei > 0) evs.splice(ei - 1, 0, item);
+    else if (pi > 0) periods[pi - 1].events.push(item);
+    else evs.splice(0, 0, item);
+  } else {
+    if (ei < evs.length) evs.splice(ei + 1, 0, item);
+    else if (pi < periods.length - 1) periods[pi + 1].events.unshift(item);
+    else evs.push(item);
+  }
+  itineraryRender();
+}
+/* ── 事件拖曳排序（可跨時段，限同一天） ── */
+var itinDragSrc = null;
+function itinDragStart(ev, di, pi, ei) {
+  itinDragSrc = { di, pi, ei };
+  ev.dataTransfer.effectAllowed = 'move';
+  try { ev.dataTransfer.setData('text/plain', 'itin'); } catch(_) {}
+  const el = ev.currentTarget; setTimeout(() => { el.style.opacity = '0.4'; }, 0);
+}
+function itinDragOver(ev, el) {
+  if (!itinDragSrc) return;
+  ev.preventDefault(); ev.dataTransfer.dropEffect = 'move';
+  el.style.outline = '2px dashed #6b7c5e';
+}
+function itinDragEnd(el) { itinDragSrc = null; el.style.opacity = ''; el.draggable = false; el.style.outline = ''; }
+function itinDrop(ev, di, pi, ei, el) {
+  ev.preventDefault(); el.style.outline = '';
+  const s = itinDragSrc; itinDragSrc = null;
+  if (!s || s.di !== di) return;
+  if (s.pi === pi && s.ei === ei) return;
+  const from = itineraryData[di].periods[s.pi].events;
+  const [item] = from.splice(s.ei, 1);
+  const to = itineraryData[di].periods[pi].events;
+  let idx = ei;
+  if (s.pi === pi && s.ei < ei) idx = ei;   // 往後拖：放到目標之後
+  to.splice(idx, 0, item);
+  itineraryRender();
 }
 function itinEditPeriod(di, pi, field, value) {
   if (itineraryData[di]?.periods[pi]) itineraryData[di].periods[pi][field] = value;
