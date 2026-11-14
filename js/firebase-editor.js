@@ -569,7 +569,12 @@ function hotelRender() {
     tbody.innerHTML = `<tr><td colspan="15" style="color:var(--muted);font-style:italic;text-align:center;padding:1.5rem;">— 尚無飯店詢價紀錄 —<br><span style="font-size:0.75rem;">點擊右上角「✏ 編輯」按鈕開始新增</span></td></tr>`;
     hotelCalcTotal(); return;
   }
-  tbody.innerHTML = hotelRows.map((r, i) => {
+  tbody.innerHTML = hotelRows.map((r, i) => hotelRowHtml(r, i) + hotelCompareHtml(r, i)).join('');
+  hotelCalcTotal();
+}
+
+function hotelRowHtml(r, i) {
+  {
     const sel = !!r.selected;
     const rowBg = sel ? 'background:#f0fff4;' : '';
     const chk = `<input type="checkbox" ${sel?'checked':''} onchange="hotelEdit(${i},'selected',this.checked)" style="width:1rem;height:1rem;cursor:pointer;accent-color:#27ae60;">`;
@@ -619,8 +624,64 @@ function hotelRender() {
         <td style="padding:0.6rem 0.5rem;font-family:'DM Mono',monospace;font-size:0.75rem;text-align:center;color:var(--muted);">${fd(r.checkout)}</td>
         <td style="display:none"></td></tr>`;
     }
-  }).join('');
-  hotelCalcTotal();
+  }
+}
+
+/* ── 比價：每間飯店下方的多平台報價清單 ── */
+function hotelCompareHtml(r, i) {
+  const list = Array.isArray(r.compare) ? r.compare : [];
+  if (!list.length && !hotelEditMode) return '';
+  const esc = v => String(v == null ? '' : v).replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;');
+  // 同幣別中的最低價
+  const minBy = {};
+  list.forEach(c => { const p = parseFloat(c.price); if (p > 0) { const u = c.cur || '¥'; if (minBy[u] == null || p < minBy[u]) minBy[u] = p; } });
+  const cnt = {}; list.forEach(c => { if (parseFloat(c.price) > 0) { const u = c.cur || '¥'; cnt[u] = (cnt[u]||0)+1; } });
+  const fd = d => d ? d.replace(/^(\d{4})-(\d{2})-(\d{2})$/,'$2/$3') : '—';
+  let body;
+  if (hotelEditMode) {
+    const inS = 'font-size:0.76rem;border:1px solid #ddd;border-radius:3px;padding:0.25rem 0.35rem;box-sizing:border-box;';
+    body = list.map((c, j) => `<div style="display:flex;flex-wrap:wrap;gap:0.35rem;align-items:center;margin-bottom:0.4rem;">
+        <input value="${esc(c.platform)}" placeholder="訂房平台" onchange="hotelCmpEdit(${i},${j},'platform',this.value)" style="${inS}flex:1 1 7rem;min-width:0;max-width:10rem;">
+        <input value="${esc(c.name)}" placeholder="飯店名稱" onchange="hotelCmpEdit(${i},${j},'name',this.value)" style="${inS}flex:2 1 10rem;min-width:0;max-width:20rem;">
+        <select onchange="hotelCmpEdit(${i},${j},'cur',this.value)" style="${inS}background:white;"><option value="¥" ${(c.cur||'¥')==='¥'?'selected':''}>¥</option><option value="NT$" ${c.cur==='NT$'?'selected':''}>NT$</option></select>
+        <input type="number" value="${esc(c.price)}" placeholder="價格" onchange="hotelCmpEdit(${i},${j},'price',this.value)" style="${inS}width:6.5rem;text-align:right;font-family:'DM Mono',monospace;">
+        <input type="date" value="${esc(c.date)}" onchange="hotelCmpEdit(${i},${j},'date',this.value)" style="${inS}font-size:0.72rem;font-family:'DM Mono',monospace;">
+        <button onclick="hotelCmpDel(${i},${j})" title="刪除此報價" style="background:none;border:none;cursor:pointer;color:#c0392b;font-size:0.9rem;padding:0.2rem 0.35rem;">✕</button>
+      </div>`).join('') +
+      `<button onclick="hotelCmpAdd(${i})" style="font-family:'DM Mono',monospace;font-size:0.7rem;background:transparent;border:1px dashed #bbb;border-radius:3px;padding:0.25rem 0.7rem;cursor:pointer;color:var(--muted);">＋ 新增報價</button>`;
+  } else {
+    const th = 'padding:0.25rem 0.5rem;font-weight:600;font-size:0.68rem;color:var(--muted);text-align:left;';
+    const td = 'padding:0.3rem 0.5rem;font-size:0.78rem;';
+    body = `<table style="border-collapse:collapse;width:100%;max-width:44rem;"><thead><tr style="border-bottom:1px solid #e6dccb;">
+        <th style="${th}">訂房平台</th><th style="${th}">飯店名稱</th><th style="${th}text-align:right;">價格</th><th style="${th}text-align:center;">價格日期</th></tr></thead><tbody>` +
+      list.map(c => {
+        const p = parseFloat(c.price), u = c.cur || '¥';
+        const low = p > 0 && cnt[u] > 1 && p === minBy[u];
+        const price = p > 0 ? `${u}${p.toLocaleString()}` : '—';
+        return `<tr style="border-bottom:1px dotted #eee;${low?'background:#f0fff4;':''}">
+          <td style="${td}font-weight:600;">${esc(c.platform)||'—'}</td>
+          <td style="${td}">${esc(c.name)||'—'}</td>
+          <td style="${td}text-align:right;font-family:'DM Mono',monospace;font-weight:700;color:${low?'#27ae60':'var(--ink)'};">${price}${low?' ✓最低':''}</td>
+          <td style="${td}text-align:center;font-family:'DM Mono',monospace;color:var(--muted);">${fd(c.date)}</td></tr>`;
+      }).join('') + `</tbody></table>`;
+  }
+  return `<tr data-cmp="${i}" style="border-bottom:1px solid #f0e8dc;background:#fcfaf5;"><td></td>
+    <td colspan="15" style="padding:0.4rem 0.6rem 0.7rem;">
+      <div style="font-family:'DM Mono',monospace;font-size:0.68rem;color:#8b6b3d;margin-bottom:0.3rem;">💰 比價${list.length?`（${list.length}）`:''}</div>${body}
+    </td></tr>`;
+}
+function hotelCmpAdd(i) {
+  const r = hotelRows[i]; if (!r) return;
+  if (!Array.isArray(r.compare)) r.compare = [];
+  r.compare.push({ platform:'', name:(r.name||'').split('\n')[0], cur:'¥', price:'', date:(d=>d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'))(new Date()) });
+  hotelRender();
+}
+function hotelCmpEdit(i, j, field, value) {
+  const c = hotelRows[i]?.compare?.[j]; if (c) c[field] = value;
+}
+function hotelCmpDel(i, j) {
+  hotelRows[i]?.compare?.splice(j, 1);
+  hotelRender();
 }
 
 function hotelEdit(idx, field, value) {
