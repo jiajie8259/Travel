@@ -632,16 +632,19 @@ function hotelCompareHtml(r, i) {
   const list = Array.isArray(r.compare) ? r.compare : [];
   if (!list.length && !hotelEditMode) return '';
   const esc = v => String(v == null ? '' : v).replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;');
-  // 同幣別中的最低價
-  const minBy = {};
-  list.forEach(c => { const p = parseFloat(c.price); if (p > 0) { const u = c.cur || '¥'; if (minBy[u] == null || p < minBy[u]) minBy[u] = p; } });
-  const cnt = {}; list.forEach(c => { if (parseFloat(c.price) > 0) { const u = c.cur || '¥'; cnt[u] = (cnt[u]||0)+1; } });
+  // 日圓依網站匯率換算成台幣後比價
+  const needRate = list.some(c => (c.cur || '¥') === '¥' && parseFloat(c.price) > 0);
+  const rate = needRate ? hotelCmpRate() : null;
+  const twdOf = c => { const p = parseFloat(c.price); if (!(p > 0)) return null; if ((c.cur || '¥') === 'NT$') return p; return rate ? p * rate : null; };
+  const twds = list.map(twdOf).filter(v => v != null);
+  const minTwd = twds.length > 1 ? Math.min(...twds) : null;
+  const rateNote = needRate ? (rate ? `<span style="color:#2c7be5;margin-left:0.5rem;">¥1 ≈ NT$${rate.toFixed(4)}（網站即時匯率，日圓已換算成台幣比價）</span>` : `<span style="color:#c0392b;margin-left:0.5rem;">⚠ 匯率載入中／無法取得，日圓暫不參與比價</span>`) : '';
   const fd = d => d ? d.replace(/^(\d{4})-(\d{2})-(\d{2})$/,'$2/$3') : '—';
   let body;
   if (hotelEditMode) {
     const inS = 'font-size:0.76rem;border:1px solid #ddd;border-radius:3px;padding:0.25rem 0.35rem;box-sizing:border-box;';
     body = list.map((c, j) => `<div style="display:flex;flex-wrap:wrap;gap:0.35rem;align-items:center;margin-bottom:0.4rem;">
-        <input value="${esc(c.platform)}" placeholder="訂房平台" onchange="hotelCmpEdit(${i},${j},'platform',this.value)" style="${inS}flex:1 1 7rem;min-width:0;max-width:10rem;">
+        <input list="hotel-platform-list" value="${esc(c.platform)}" placeholder="訂房平台（可選可填）" onchange="hotelCmpEdit(${i},${j},'platform',this.value)" style="${inS}flex:1 1 8rem;min-width:0;max-width:11rem;">
         <input value="${esc(c.name)}" placeholder="飯店名稱" onchange="hotelCmpEdit(${i},${j},'name',this.value)" style="${inS}flex:2 1 10rem;min-width:0;max-width:20rem;">
         <select onchange="hotelCmpEdit(${i},${j},'cur',this.value)" style="${inS}background:white;"><option value="¥" ${(c.cur||'¥')==='¥'?'selected':''}>¥</option><option value="NT$" ${c.cur==='NT$'?'selected':''}>NT$</option></select>
         <input type="number" value="${esc(c.price)}" placeholder="價格" onchange="hotelCmpEdit(${i},${j},'price',this.value)" style="${inS}width:6.5rem;text-align:right;font-family:'DM Mono',monospace;">
@@ -656,19 +659,34 @@ function hotelCompareHtml(r, i) {
         <th style="${th}">訂房平台</th><th style="${th}">飯店名稱</th><th style="${th}text-align:right;">價格</th><th style="${th}text-align:center;">價格日期</th></tr></thead><tbody>` +
       list.map(c => {
         const p = parseFloat(c.price), u = c.cur || '¥';
-        const low = p > 0 && cnt[u] > 1 && p === minBy[u];
+        const tw = twdOf(c);
+        const low = tw != null && minTwd != null && tw === minTwd;
+        const conv = (u === '¥' && tw != null) ? `<div style="font-size:0.68rem;font-weight:400;color:${low?'#27ae60':'var(--muted)'};">≈ NT$${Math.round(tw).toLocaleString()}</div>` : '';
         const price = p > 0 ? `${u}${p.toLocaleString()}` : '—';
         return `<tr style="border-bottom:1px dotted #eee;${low?'background:#f0fff4;':''}">
           <td style="${td}font-weight:600;">${esc(c.platform)||'—'}</td>
           <td style="${td}">${esc(c.name)||'—'}</td>
-          <td style="${td}text-align:right;font-family:'DM Mono',monospace;font-weight:700;color:${low?'#27ae60':'var(--ink)'};">${price}${low?' ✓最低':''}</td>
+          <td style="${td}text-align:right;font-family:'DM Mono',monospace;font-weight:700;color:${low?'#27ae60':'var(--ink)'};">${price}${low?' ✓最低':''}${conv}</td>
           <td style="${td}text-align:center;font-family:'DM Mono',monospace;color:var(--muted);">${fd(c.date)}</td></tr>`;
       }).join('') + `</tbody></table>`;
   }
+  const dl = `<datalist id="hotel-platform-list"><option value="AGODA"><option value="易遊網"><option value="官網"></datalist>`;
   return `<tr data-cmp="${i}" style="border-bottom:1px solid #f0e8dc;background:#fcfaf5;"><td></td>
     <td colspan="15" style="padding:0.4rem 0.6rem 0.7rem;">
-      <div style="font-family:'DM Mono',monospace;font-size:0.68rem;color:#8b6b3d;margin-bottom:0.3rem;">💰 比價${list.length?`（${list.length}）`:''}</div>${body}
+      <div style="font-family:'DM Mono',monospace;font-size:0.68rem;color:#8b6b3d;margin-bottom:0.3rem;">💰 比價${list.length?`（${list.length}）`:''}${rateNote}</div>${body}${hotelEditMode?dl:''}
     </td></tr>`;
+}
+var _cmpRateLoading = false;
+function hotelCmpRate() {
+  if (_jpyRate) return _jpyRate;
+  if (!_cmpRateLoading) {
+    _cmpRateLoading = true;
+    hotelGetJpyRate().then(r => {
+      if (!r && typeof TRACKER_JPY_TWD_LIVE === 'number') { _jpyRate = TRACKER_JPY_TWD_LIVE; _jpyRateTime = Date.now(); }
+      _cmpRateLoading = false; hotelRender();
+    });
+  }
+  return null;
 }
 function hotelCmpAdd(i) {
   const r = hotelRows[i]; if (!r) return;
@@ -678,6 +696,7 @@ function hotelCmpAdd(i) {
 }
 function hotelCmpEdit(i, j, field, value) {
   const c = hotelRows[i]?.compare?.[j]; if (c) c[field] = value;
+  if (field === 'price' || field === 'cur') hotelRender();
 }
 function hotelCmpDel(i, j) {
   hotelRows[i]?.compare?.splice(j, 1);
