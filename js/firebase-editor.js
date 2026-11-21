@@ -838,10 +838,11 @@ function notesRender() {
     const c = NOTE_COLORS[note.cat] || NOTE_DEFAULT_COLOR;
     const date = note.ts ? new Date(note.ts).toLocaleDateString('zh-TW', { month:'numeric', day:'numeric', hour:'2-digit', minute:'2-digit' }) : '';
     const card = document.createElement('div');
-    card.style.cssText = `background:${c.bg};border:1.5px solid ${c.border};border-radius:8px;padding:1rem 1.1rem 0.85rem;position:relative;box-shadow:0 2px 8px rgba(0,0,0,0.06);transition:box-shadow 0.15s;display:flex;flex-direction:column;height:100%;`;
+    card.style.cssText = `background:${c.bg};border:1.5px solid ${c.border};border-radius:8px;padding:1rem 1.1rem 0.85rem;position:relative;box-shadow:0 2px 8px rgba(0,0,0,0.06);transition:box-shadow 0.15s;display:flex;flex-direction:column;aspect-ratio:6/5;max-height:380px;overflow:hidden;cursor:pointer;align-self:start;`;
     card.onmouseenter = () => card.style.boxShadow = '0 6px 18px rgba(0,0,0,0.12)';
     card.onmouseleave = () => card.style.boxShadow = '0 2px 8px rgba(0,0,0,0.06)';
     card.dataset.idx = idx;
+    card.onclick = ev => { if (ev.target.closest('button,a,.notes-drag-handle')) return; notesView(idx); };
     card.ondragstart = ev => { notesDragIdx = idx; ev.dataTransfer.effectAllowed = 'move'; try { ev.dataTransfer.setData('text/plain', String(idx)); } catch(_) {} setTimeout(() => card.style.opacity = '0.4', 0); };
     card.ondragover  = ev => { if (notesDragIdx < 0) return; ev.preventDefault(); ev.dataTransfer.dropEffect = 'move'; card.style.outline = '2px dashed ' + c.border; };
     card.ondragleave = () => { card.style.outline = ''; };
@@ -857,11 +858,58 @@ function notesRender() {
           <button onclick="notesDelete(${idx})" title="刪除" style="background:none;border:none;cursor:pointer;color:#ccc;font-size:1rem;line-height:1;padding:0.1rem 0.2rem;border-radius:3px;transition:color 0.15s;" onmouseenter="this.style.color='#c0392b'" onmouseleave="this.style.color='#ccc'">✕</button>
         </div>
       </div>
-      ${note.imgUrl ? `<img src="${note.imgUrl}" loading="lazy" onclick="window.open('${note.imgUrl}','_blank')" style="display:block;width:100%;flex:1;min-height:140px;object-fit:cover;object-position:top;border-radius:6px;cursor:zoom-in;margin-bottom:${note.text?'0.6rem':'0'};flex-shrink:0;">` : ''}
-      ${note.text ? `<div style="font-size:0.85rem;line-height:1.75;white-space:pre-wrap;word-break:break-word;color:var(--ink);flex-shrink:0;">${notesLinkify(note.text)}</div>` : ''}`;
+      <div class="note-body" style="flex:1;min-height:0;display:flex;flex-direction:column;gap:0.5rem;overflow:hidden;position:relative;">
+        ${note.imgUrl ? `<div style="${note.text?'flex:0 1 auto;max-height:62%;':'flex:1;'}min-height:0;display:flex;justify-content:center;align-items:flex-start;"><img src="${note.imgUrl}" loading="lazy" style="display:block;max-width:100%;max-height:100%;width:auto;height:auto;object-fit:contain;border-radius:6px;"></div>` : ''}
+        ${note.text ? `<div class="note-text" style="flex:1;min-height:0;overflow:hidden;font-size:0.85rem;line-height:1.75;white-space:pre-wrap;word-break:break-word;color:var(--ink);">${notesLinkify(note.text)}</div>` : ''}
+        <div class="note-more" style="display:none;position:absolute;left:0;right:0;bottom:0;padding:1.4rem 0 0;text-align:center;font-size:0.7rem;font-family:'DM Mono',monospace;color:#8b6b3d;background:linear-gradient(to bottom,transparent,${c.bg} 60%);">…點擊看全部</div>
+      </div>`;
     grid.appendChild(card);
   });
+  grid.style.alignItems = 'start';
+  notesMarkOverflow();
 }
+
+// 偵測卡片內容是否被截斷，截斷時顯示「點擊看全部」
+function notesMarkOverflow() {
+  document.querySelectorAll('#notes-grid [data-idx]').forEach(card => {
+    const t = card.querySelector('.note-text'), more = card.querySelector('.note-more');
+    if (!more) return;
+    const body = card.querySelector('.note-body');
+    const cut = (t && t.scrollHeight > t.clientHeight + 2) || (body && body.scrollHeight > body.clientHeight + 2);
+    more.style.display = cut ? 'block' : 'none';
+  });
+}
+window.addEventListener('resize', () => { clearTimeout(window.__nmo); window.__nmo = setTimeout(notesMarkOverflow, 150); });
+document.addEventListener('load', e => { if (e.target && e.target.tagName === 'IMG' && e.target.closest('#notes-grid')) notesMarkOverflow(); }, true);
+
+// 點擊卡片：彈出完整內容（原比例圖片＋全部文字）
+function notesView(idx) {
+  const n = notesData[idx]; if (!n) return;
+  const c = NOTE_COLORS[n.cat] || NOTE_DEFAULT_COLOR;
+  let v = document.getElementById('notes-viewer');
+  if (!v) {
+    v = document.createElement('div');
+    v.id = 'notes-viewer';
+    v.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.55);z-index:9998;display:none;align-items:center;justify-content:center;padding:1rem;';
+    v.onclick = ev => { if (ev.target === v) notesViewClose(); };
+    document.body.appendChild(v);
+    document.addEventListener('keydown', ev => { if (ev.key === 'Escape') notesViewClose(); });
+  }
+  const date = n.ts ? new Date(n.ts).toLocaleDateString('zh-TW', { month:'numeric', day:'numeric', hour:'2-digit', minute:'2-digit' }) : '';
+  v.innerHTML = `<div style="background:${c.bg};border:1.5px solid ${c.border};border-radius:10px;width:100%;max-width:720px;max-height:92vh;display:flex;flex-direction:column;box-shadow:0 10px 40px rgba(0,0,0,0.3);">
+    <div style="display:flex;align-items:center;justify-content:space-between;gap:0.5rem;padding:0.8rem 1rem;border-bottom:1px solid ${c.border}33;flex-shrink:0;">
+      <span style="font-size:0.72rem;font-family:'DM Mono',monospace;font-weight:700;color:${c.border};background:white;padding:0.15em 0.6em;border-radius:3px;border:1px solid ${c.border};">${c.icon} ${n.cat||'筆記'}</span>
+      <span style="font-size:0.68rem;color:#aaa;font-family:'DM Mono',monospace;margin-right:auto;">${date}</span>
+      <button onclick="notesViewClose();notesOpenModal(${idx})" style="font-family:'DM Mono',monospace;font-size:0.72rem;padding:0.35rem 0.8rem;border:1px solid #bbb;border-radius:4px;background:white;cursor:pointer;">✏ 編輯</button>
+      <button onclick="notesViewClose()" style="font-family:'DM Mono',monospace;font-size:0.72rem;padding:0.35rem 0.8rem;border:none;border-radius:4px;background:var(--ink);color:#f0c040;cursor:pointer;font-weight:700;">✕ 關閉</button>
+    </div>
+    <div style="overflow:auto;padding:1rem 1.2rem 1.2rem;-webkit-overflow-scrolling:touch;">
+      ${n.imgUrl ? `<img src="${n.imgUrl}" style="display:block;max-width:100%;height:auto;margin:0 auto ${n.text?'1rem':'0'};border-radius:6px;">` : ''}
+      ${n.text ? `<div style="font-size:0.92rem;line-height:1.8;white-space:pre-wrap;word-break:break-word;color:var(--ink);">${notesLinkify(n.text)}</div>` : ''}
+    </div></div>`;
+  v.style.display = 'flex';
+}
+function notesViewClose() { const v = document.getElementById('notes-viewer'); if (v) v.style.display = 'none'; }
 
 function notesDrop(targetIdx) {
   const from = notesDragIdx;
