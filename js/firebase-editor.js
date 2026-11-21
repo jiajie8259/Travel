@@ -1043,6 +1043,19 @@ function notesCompressImage(dataUrl, mimeType, maxDim, quality) {
   });
 }
 
+// 在筆記視窗（新增／編輯）貼上圖片（Ctrl+V／長按貼上）：依目前模式存圖或 AI 轉文字
+document.addEventListener('paste', ev => {
+  const modal = document.getElementById('notes-modal');
+  if (!modal || modal.style.display === 'none' || !modal.contains(ev.target)) return;
+  const items = ev.clipboardData && ev.clipboardData.items ? Array.from(ev.clipboardData.items) : [];
+  const it = items.find(i => i.kind === 'file' && i.type.startsWith('image/'));
+  if (!it) return;            // 純文字照常貼上
+  const file = it.getAsFile();
+  if (!file) return;
+  ev.preventDefault();
+  notesHandleImage(file);
+});
+
 function notesCloseModal() {
   const modal = document.getElementById('notes-modal');
   if (modal) modal.style.display = 'none';
